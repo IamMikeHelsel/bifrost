@@ -73,8 +73,8 @@ class ConnectionPool:
         self._closed = False
         self._health_check_task: Optional[asyncio.Task] = None
         
-        # Start background health checks
-        self._start_health_checks()
+        # Health checks will be started when first connection is requested
+        self._health_checks_started = False
     
     @property
     def size(self) -> int:
@@ -100,6 +100,11 @@ class ConnectionPool:
         """Get a connection from the pool or create a new one."""
         if self._closed:
             raise RuntimeError("Connection pool is closed")
+        
+        # Start health checks on first use
+        if not self._health_checks_started:
+            self._start_health_checks()
+            self._health_checks_started = True
         
         # Try to get an available connection first
         pooled_conn = self._get_available_connection()
