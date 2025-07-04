@@ -358,7 +358,7 @@ $ bifrost export --start "2024-01-01" --end "2024-01-31" --format csv
 #### Interactive Dashboard Mode
 
 ```bash
-$ bifrost dashboard
+bifrost dashboard
 ```
 
 - Real-time data visualization

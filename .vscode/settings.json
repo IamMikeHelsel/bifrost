@@ -20,7 +20,6 @@
   
   // Markdown settings
   "[markdown]": {
-    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
     "editor.formatOnSave": true,
     "editor.wordWrap": "on",
     "editor.quickSuggestions": {
@@ -30,9 +29,15 @@
     }
   },
   
+  // Markdown linting configuration
+  "markdownlint.config": {
+    "MD040": false,  // Disable "fenced code blocks should have a language specified"
+    "MD024": false   // Disable "multiple headings with the same content"
+  },
+  
   // TOML settings
   "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
   
@@ -50,7 +55,6 @@
   
   // Rust settings (for future Rust code)
   "[rust]": {
-    "editor.defaultFormatter": "rust-lang.rust-analyzer",
     "editor.formatOnSave": true
   },
   
