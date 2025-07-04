@@ -52,5 +52,3 @@ async with connect("modbus://10.0.0.100") as equipment:
 **We need**: Your war stories, protocol expertise, and vision for unified OT/IT
 
 ---
-
-*Machines should work better*
