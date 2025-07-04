@@ -1,3 +1,7 @@
+Absolutely! You're right - let me revise to be more inclusive of the various titles in this space:
+
+---
+
 # 🌉 Bifrost - Bridge Your OT Equipment to Modern IT Infrastructure
 
 **Bifrost** makes industrial equipment speak the language of modern software. Built for engineers stuck between the OT and IT worlds.
@@ -14,7 +18,7 @@ If you've ever tried to:
 
 ## 🔧 What Bifrost Does
 
-We're building the Python toolkit that OT engineers actually want - one that understands both worlds:
+We're building the Python toolkit that automation professionals actually want - one that understands both worlds:
 
 - **Speaks OT**: Native support for Modbus, OPC UA, Ethernet/IP, S7 - the protocols your equipment actually uses
 - **Thinks IT**: Modern async Python, JSON outputs, cloud-ready, plays nice with your IT stack
@@ -23,14 +27,17 @@ We're building the Python toolkit that OT engineers actually want - one that und
 
 ## 🎯 Our Mission
 
-Break down the walls between operational technology and information technology. Make it as easy to work with a PLC as it is to work with a REST API. Help OT engineers leverage modern tools without abandoning what works.
+Break down the walls between operational technology and information technology. Make it as easy to work with a PLC as it is to work with a REST API. Help automation professionals leverage modern tools without abandoning what works.
 
 ## 👥 Who Should Join
 
-- **OT Engineers** tired of duct-taping solutions together
+- **Control Systems Engineers** tired of duct-taping solutions together
+- **Automation Engineers** who want modern development tools
+- **SCADA/HMI Developers** looking for better Python libraries
 - **IT Developers** who need to understand industrial equipment
-- **System Integrators** looking for better tools
-- **Anyone** trying to get reliable data from industrial equipment to modern systems
+- **System Integrators** seeking reliable, performant tools
+- **Process Engineers** trying to get data into analytics platforms
+- **Anyone** bridging the OT/IT gap
 
 ## 💡 The Vision
 
@@ -52,3 +59,5 @@ async with connect("modbus://10.0.0.100") as equipment:
 **We need**: Your war stories, protocol expertise, and vision for unified OT/IT
 
 ---
+
+*Expect more from your machines* 🌉
