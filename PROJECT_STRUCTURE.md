@@ -95,11 +95,29 @@ from bifrost_protocols import (
 
 ### Meta Packages
 
+#### `bifrost-web`
+
+**Purpose**: Web API and dashboard components (optional)\
+**Dependencies**: bifrost-core + FastAPI + web frameworks\
+**Size**: ~30MB
+
+```python
+from bifrost_web import WebAPI, Dashboard, MonitoringApp
+
+# REST API for integration
+api = WebAPI()
+app = api.create_fastapi_app()
+
+# Web dashboard for monitoring
+dashboard = Dashboard()
+await dashboard.serve(port=8080)
+```
+
 #### `bifrost-all`
 
 **Purpose**: Complete installation for full development\
 **Dependencies**: All bifrost packages\
-**Size**: ~300MB total
+**Size**: ~330MB total
 
 ```python
 # Everything available
@@ -108,6 +126,7 @@ from bifrost_opcua import *
 from bifrost_analytics import *
 from bifrost_cloud import *
 from bifrost_protocols import *
+from bifrost_web import *
 ```
 
 ## Monorepo Structure
@@ -196,11 +215,18 @@ uv add bifrost bifrost-analytics bifrost-cloud
 # ~200MB, processing + cloud
 ```
 
+#### Web Development
+
+```bash
+uv add bifrost bifrost-web
+# ~80MB, core + web APIs
+```
+
 #### Full Development
 
 ```bash
 uv add bifrost-all
-# ~300MB, everything
+# ~330MB, everything
 ```
 
 ### Smart Import System

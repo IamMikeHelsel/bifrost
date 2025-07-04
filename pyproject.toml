@@ -40,7 +40,14 @@ dev-dependencies = [
     "ipython>=8.0",
     "rich>=13.0",
     "mdformat>=0.7",
-    "pre-commit>=3.6"
+    "pre-commit>=3.6",
+    
+    # Security scanning
+    "bandit>=1.7",
+    "safety>=3.0",
+    
+    # Release tools
+    "twine>=4.0"
 ]
 
 # Global configuration for all packages

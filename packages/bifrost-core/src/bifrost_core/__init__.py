@@ -13,21 +13,89 @@ from .base import (
     DataPoint,
     ConnectionError,
     ProtocolError,
+    TimeoutError,
+    ConnectionState,
+    DataType,
+    ProtocolType,
 )
-from .events import EventBus, Event
-from .pooling import ConnectionPool
-from .typing import ProtocolType, DataType, ConnectionState
+from .events import (
+    EventBus, 
+    Event,
+    EventType,
+    ConnectionStateEvent,
+    DataReceivedEvent,
+    ErrorEvent,
+    get_global_event_bus,
+    emit_event,
+    subscribe_to_events,
+    subscribe_to_events_async,
+)
+from .pooling import (
+    ConnectionPool,
+    PooledConnection,
+    get_global_pool,
+    pooled_connection,
+)
+from .typing import (
+    Tag,
+    DeviceInfo,
+    ReadRequest,
+    WriteRequest,
+    PollingConfig,
+    Address,
+    Value,
+    TagName,
+    DeviceId,
+    ConnectionString,
+    parse_address,
+    validate_data_type_conversion,
+    get_default_value,
+)
 
 __all__ = [
+    # Base classes and exceptions
     "BaseConnection",
     "BaseProtocol", 
     "DataPoint",
     "ConnectionError",
     "ProtocolError",
-    "EventBus",
-    "Event", 
-    "ConnectionPool",
-    "ProtocolType",
-    "DataType",
+    "TimeoutError",
+    
+    # Enums
     "ConnectionState",
+    "DataType", 
+    "ProtocolType",
+    
+    # Events
+    "EventBus",
+    "Event",
+    "EventType",
+    "ConnectionStateEvent",
+    "DataReceivedEvent", 
+    "ErrorEvent",
+    "get_global_event_bus",
+    "emit_event",
+    "subscribe_to_events",
+    "subscribe_to_events_async",
+    
+    # Connection pooling
+    "ConnectionPool",
+    "PooledConnection",
+    "get_global_pool",
+    "pooled_connection",
+    
+    # Type definitions
+    "Tag",
+    "DeviceInfo",
+    "ReadRequest",
+    "WriteRequest",
+    "PollingConfig",
+    "Address",
+    "Value",
+    "TagName", 
+    "DeviceId",
+    "ConnectionString",
+    "parse_address",
+    "validate_data_type_conversion",
+    "get_default_value",
 ]
