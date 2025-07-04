@@ -37,10 +37,7 @@ class ModbusConnection(BaseConnection):
                 host=self.host,
                 port=self.port,
                 timeout=self.timeout,
-                retries=self.retry_attempts,
-                retry_on_empty=True,
-                close_comm_on_error=True,
-                strict=False
+                retries=self.retry_attempts
             )
             
             # Connect and verify
@@ -66,7 +63,7 @@ class ModbusConnection(BaseConnection):
         """Disconnect from Modbus device."""
         if self._client:
             try:
-                self._client.close()
+                await self._client.close()
             except Exception as e:
                 emit_event(ErrorEvent(self.connection_id, e))
             finally:
@@ -226,6 +223,20 @@ class ModbusConnection(BaseConnection):
             return True
         except Exception:
             return False
+    
+    @property
+    def protocol(self) -> str:
+        """Get protocol name."""
+        return "modbus"
+    
+    @property
+    def connection_string(self) -> str:
+        """Get connection string."""
+        return f"modbus://{self.host}:{self.port}/{self.unit_id}"
+    
+    def __str__(self) -> str:
+        """String representation."""
+        return f"{self.__class__.__name__}(host='{self.host}', port={self.port}, unit_id={self.unit_id})"
 
 
 class ModbusTCPConnection(ModbusConnection):

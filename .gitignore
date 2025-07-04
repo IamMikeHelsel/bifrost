@@ -98,7 +98,8 @@ ipython_config.py
 #   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
-#uv.lock
+#   Since this is a library/framework project with multiple packages, we'll ignore uv.lock
+uv.lock
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
@@ -205,3 +206,37 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Bifrost-specific
+# Temporary files from industrial device testing
+*.pcap
+*.pcapng
+device_dumps/
+modbus_logs/
+
+# Development databases
+*.db
+*.sqlite
+
+# Rust/PyO3 build artifacts (for future Rust extensions)
+Cargo.lock
+target/
+*.pyd
+*.dll
+*.dylib
+
+# Test outputs
+test_reports/
+benchmark_results/
+
+# Local configuration
+.bifrost.yaml
+.bifrost.json
+local_config/
+
+# IDE and editor specific
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

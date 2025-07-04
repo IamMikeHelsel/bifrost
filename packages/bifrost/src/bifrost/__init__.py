@@ -25,12 +25,14 @@ from bifrost_core import (
     ProtocolType,
     DataType,
     ConnectionState,
+    Tag,
+    DeviceInfo,
 )
 
 # Main package exports
 from .connections import connect, discover_devices
 from .modbus import ModbusConnection, ModbusTCPConnection, ModbusRTUConnection
-from .plc import PLCConnection, Tag
+from .plc import PLCConnection
 
 # CLI exports
 from .cli import main as cli_main
@@ -105,6 +107,8 @@ __all__ = [
     "ProtocolType", 
     "DataType",
     "ConnectionState",
+    "Tag",
+    "DeviceInfo",
     
     # Main
     "connect",
@@ -113,7 +117,6 @@ __all__ = [
     "ModbusTCPConnection", 
     "ModbusRTUConnection",
     "PLCConnection",
-    "Tag",
     "cli_main",
     
     # Optional (via __getattr__)
