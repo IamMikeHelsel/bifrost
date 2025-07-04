@@ -1,7 +1,3 @@
-Absolutely! You're right - let me revise to be more inclusive of the various titles in this space:
-
----
-
 # 🌉 Bifrost - Bridge Your OT Equipment to Modern IT Infrastructure
 
 **Bifrost** makes industrial equipment speak the language of modern software. Built for engineers stuck between the OT and IT worlds.
@@ -9,6 +5,7 @@ Absolutely! You're right - let me revise to be more inclusive of the various tit
 ## 🤝 The Problem We're Solving
 
 If you've ever tried to:
+
 - Get data from a 20-year-old PLC into your cloud analytics platform
 - Make your MES talk to equipment using 5 different protocols  
 - Run Python on an industrial edge device without it melting down
