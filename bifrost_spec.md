@@ -6,7 +6,7 @@
 
 ### Date: January 2025
 
----
+______________________________________________________________________
 
 ## 1. Executive Summary
 
@@ -19,7 +19,7 @@ Bifrost is a comprehensive Python package designed to bridge the gap between Ope
 - **Production-Ready**: Built for reliability, security, and scalability in industrial environments
 - **Developer-Friendly**: Pythonic APIs with comprehensive documentation and examples
 
----
+______________________________________________________________________
 
 ## 2. Architecture Overview
 
@@ -50,10 +50,14 @@ bifrost/
 │   ├── connectors/
 │   ├── buffering/
 │   └── security/
-└── _native/           # Rust extensions via PyO3
+├── _native/           # Rust extensions via PyO3
+└── cli/               # Beautiful command-line interface
+    ├── commands/
+    ├── display/
+    └── themes/
 ```
 
----
+______________________________________________________________________
 
 ## 3. Component Specifications
 
@@ -198,7 +202,7 @@ bridge = CloudBridge()
 await bridge.start()
 ```
 
----
+______________________________________________________________________
 
 ## 4. Technical Requirements
 
@@ -221,7 +225,7 @@ await bridge.start()
 - Native Extensions: PyO3 (Rust bindings)
 - Optional: pandas, numpy (for advanced analytics)
 
----
+______________________________________________________________________
 
 ## 5. Security Considerations
 
@@ -231,7 +235,7 @@ await bridge.start()
 - **Secrets Management**: Integration with HashiCorp Vault, AWS Secrets Manager
 - **Audit Logging**: Comprehensive logging for compliance
 
----
+______________________________________________________________________
 
 ## 6. Deployment Scenarios
 
@@ -254,12 +258,178 @@ await bridge.start()
 - Edge preprocessing
 - Reliable cloud synchronization
 
----
+______________________________________________________________________
 
-## 7. API Design Philosophy
+## 7. Command-Line Interface (`bifrost.cli`)
+
+### 7.1 Design Philosophy
+
+- **Visual Clarity**: Rich colors and formatting to enhance comprehension
+- **Interactive Experience**: Progress bars, spinners, and real-time feedback
+- **Contextual Help**: Inline documentation and examples
+- **Professional Aesthetics**: Modern, clean interface that inspires confidence
+
+### 7.2 Core Features
+
+#### Command Structure
+
+```bash
+# Device discovery and connection
+bifrost discover                    # Scan network for devices
+bifrost connect modbus://10.0.0.100 # Interactive connection wizard
+
+# Data operations with visual feedback
+bifrost read --tags temp,pressure --format table
+bifrost monitor --dashboard --refresh 1s
+
+# Configuration management
+bifrost config --wizard            # Interactive setup
+bifrost devices --list --status    # Device management
+```
+
+#### Visual Elements
+
+**Color Coding System**:
+
+- 🟢 **Green**: Success states, healthy connections, normal values
+- 🟡 **Yellow**: Warnings, thresholds approaching, configuration needed
+- 🔴 **Red**: Errors, failed connections, critical alerts
+- 🔵 **Blue**: Information, headers, navigation elements
+- 🟣 **Purple**: Special states, advanced features, admin functions
+
+**Real-time Displays**:
+
+```bash
+# Live monitoring dashboard
+┌─ Device Status ─────────────────────────────────────────────────┐
+│ PLC-001 (10.0.0.100)  🟢 Connected    Latency: 2ms    Tags: 45  │
+│ PLC-002 (10.0.0.101)  🟡 Slow         Latency: 45ms   Tags: 32  │
+│ PLC-003 (10.0.0.102)  🔴 Timeout      Last seen: 30s ago        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─ Live Data ─────────────────────────────────────────────────────┐
+│ Temperature    │ ████████████████████████████████ 75.2°C  🟢    │
+│ Pressure       │ ████████████████████████████████ 2.1 PSI 🟢    │
+│ Flow Rate      │ ████████████████████████████████ 125 GPM 🟡    │
+│ Vibration      │ ████████████████████████████████ 8.2 Hz  🔴    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Interactive Features
+
+**Connection Wizard**:
+
+```bash
+$ bifrost connect
+? Select protocol: 
+  ❯ Modbus TCP
+    Modbus RTU
+    OPC UA
+    Ethernet/IP
+    S7 (Siemens)
+
+? Enter device IP: 10.0.0.100
+? Port (502): 
+? Test connection? (Y/n): y
+
+🔄 Testing connection...
+✅ Connected successfully!
+🔍 Discovering available tags...
+📊 Found 47 tags
+
+? Save this connection? (Y/n): y
+? Connection name: Main PLC
+✅ Saved as 'Main PLC'
+```
+
+**Data Export with Progress**:
+
+```bash
+$ bifrost export --start "2024-01-01" --end "2024-01-31" --format csv
+📊 Preparing data export...
+🔍 Scanning 30 days of data...
+📈 Processing 2.3M data points...
+[████████████████████████████████] 100% Complete
+💾 Exported to bifrost_export_2024-01.csv (45.2 MB)
+```
+
+### 7.3 Advanced CLI Features
+
+#### Interactive Dashboard Mode
+
+```bash
+$ bifrost dashboard
+```
+
+- Real-time data visualization
+- Keyboard shortcuts for navigation
+- Color-coded status indicators
+- Configurable layouts and themes
+
+#### Intelligent Autocomplete
+
+- Context-aware suggestions
+- Tab completion for device names, tags, and parameters
+- Built-in help system with examples
+
+#### Theme Customization
+
+```bash
+# Built-in themes
+bifrost config --theme dark        # Dark mode
+bifrost config --theme light       # Light mode  
+bifrost config --theme industrial  # High contrast
+bifrost config --theme colorblind  # Accessibility friendly
+
+# Custom themes
+bifrost config --theme custom --colors config.json
+```
+
+### 7.4 Integration with Core Library
+
+The CLI seamlessly integrates with the core Bifrost library:
+
+```python
+# CLI commands can be scripted
+from bifrost.cli import CLIRunner
+
+runner = CLIRunner()
+result = await runner.run_command([
+    "read", "--device", "PLC-001", 
+    "--tags", "temp,pressure", 
+    "--format", "json"
+])
+```
+
+### 7.5 Error Handling and User Experience
+
+**Helpful Error Messages**:
+
+```bash
+$ bifrost connect modbus://192.168.1.999
+🔴 Connection failed: No route to host
+💡 Suggestions:
+   • Check if device is powered on
+   • Verify network connectivity: ping 192.168.1.999
+   • Confirm IP address is correct
+   • Try: bifrost discover --scan 192.168.1.0/24
+```
+
+**Verbose and Debug Modes**:
+
+```bash
+$ bifrost --verbose connect modbus://10.0.0.100
+🔵 Resolving hostname...
+🔵 Establishing TCP connection...
+🔵 Sending Modbus identification request...
+🟢 Device responded: Model XYZ-123, Firmware v2.1
+```
+
+## 8. API Design Philosophy
 
 - **Async-First**: All I/O operations are async by default
 - **Context Managers**: Resource management via `async with`
 - **Type Safety**: Full type hints and runtime validation
 - **Intuitive Naming**: Clear, descriptive function names
 - **Progressive Disclosure**: Simple tasks simple, complex tasks possible
+- **Beautiful CLI**: Intuitive command-line interface with rich visual feedback

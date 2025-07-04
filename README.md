@@ -7,7 +7,7 @@
 If you've ever tried to:
 
 - Get data from a 20-year-old PLC into your cloud analytics platform
-- Make your MES talk to equipment using 5 different protocols  
+- Make your MES talk to equipment using 5 different protocols
 - Run Python on an industrial edge device without it melting down
 - Explain to IT why you can't "just use REST APIs" for everything
 
@@ -55,6 +55,6 @@ async with connect("modbus://10.0.0.100") as equipment:
 
 **We need**: Your war stories, protocol expertise, and vision for unified OT/IT
 
----
+______________________________________________________________________
 
 *Expect more from your machines* 🌉
