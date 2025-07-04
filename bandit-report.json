@@ -1,0 +1,368 @@
+{
+  "errors": [],
+  "generated_at": "2025-07-04T15:08:23Z",
+  "metrics": {
+    "_totals": {
+      "CONFIDENCE.HIGH": 4,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 6,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 4,
+      "SEVERITY.MEDIUM": 6,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 2118,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost-core/src/bifrost_core/__init__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 88,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost-core/src/bifrost_core/base.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 195,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost-core/src/bifrost_core/events.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 164,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost-core/src/bifrost_core/pooling.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 214,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost-core/src/bifrost_core/typing.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 219,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost/src/bifrost/__init__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 125,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost/src/bifrost/cli.py": {
+      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 344,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost/src/bifrost/connections.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 46,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost/src/bifrost/discovery.py": {
+      "CONFIDENCE.HIGH": 3,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 6,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 3,
+      "SEVERITY.MEDIUM": 6,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 449,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost/src/bifrost/modbus.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 241,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "packages/bifrost/src/bifrost/plc.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 33,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": [
+    {
+      "code": "431             asyncio.run(pool.close())\n432         except Exception:\n433             pass\n434 \n",
+      "col_offset": 8,
+      "end_col_offset": 16,
+      "filename": "packages/bifrost/src/bifrost/cli.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 703,
+        "link": "https://cwe.mitre.org/data/definitions/703.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Try, Except, Pass detected.",
+      "line_number": 432,
+      "line_range": [
+        432,
+        433
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b110_try_except_pass.html",
+      "test_id": "B110",
+      "test_name": "try_except_pass"
+    },
+    {
+      "code": "26     flags: int = 0\n27     ciaddr: str = \"0.0.0.0\"  # Client IP\n28     yiaddr: str = \"0.0.0.0\"  # Your IP\n",
+      "col_offset": 18,
+      "end_col_offset": 27,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 27,
+      "line_range": [
+        27
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    },
+    {
+      "code": "27     ciaddr: str = \"0.0.0.0\"  # Client IP\n28     yiaddr: str = \"0.0.0.0\"  # Your IP\n29     siaddr: str = \"0.0.0.0\"  # Server IP\n",
+      "col_offset": 18,
+      "end_col_offset": 27,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 28,
+      "line_range": [
+        28
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    },
+    {
+      "code": "28     yiaddr: str = \"0.0.0.0\"  # Your IP\n29     siaddr: str = \"0.0.0.0\"  # Server IP\n30     giaddr: str = \"0.0.0.0\"  # Gateway IP\n",
+      "col_offset": 18,
+      "end_col_offset": 27,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 29,
+      "line_range": [
+        29
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    },
+    {
+      "code": "29     siaddr: str = \"0.0.0.0\"  # Server IP\n30     giaddr: str = \"0.0.0.0\"  # Gateway IP\n31     chaddr: bytes = b\"\\x00\" * 16  # Client hardware address\n",
+      "col_offset": 18,
+      "end_col_offset": 27,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 30,
+      "line_range": [
+        30
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    },
+    {
+      "code": "238 \n239             except Exception:\n240                 pass  # Host not responding on this port\n241 \n",
+      "col_offset": 12,
+      "end_col_offset": 20,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 703,
+        "link": "https://cwe.mitre.org/data/definitions/703.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Try, Except, Pass detected.",
+      "line_number": 239,
+      "line_range": [
+        239,
+        240
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b110_try_except_pass.html",
+      "test_id": "B110",
+      "test_name": "try_except_pass"
+    },
+    {
+      "code": "265                 hostname = socket.gethostbyaddr(ip)[0]\n266             except Exception:\n267                 pass\n268 \n",
+      "col_offset": 12,
+      "end_col_offset": 20,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 703,
+        "link": "https://cwe.mitre.org/data/definitions/703.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Try, Except, Pass detected.",
+      "line_number": 266,
+      "line_range": [
+        266,
+        267
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b110_try_except_pass.html",
+      "test_id": "B110",
+      "test_name": "try_except_pass"
+    },
+    {
+      "code": "289                     await writer.wait_closed()\n290                 except Exception:\n291                     pass\n292 \n",
+      "col_offset": 16,
+      "end_col_offset": 24,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 703,
+        "link": "https://cwe.mitre.org/data/definitions/703.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Try, Except, Pass detected.",
+      "line_number": 290,
+      "line_range": [
+        290,
+        291
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b110_try_except_pass.html",
+      "test_id": "B110",
+      "test_name": "try_except_pass"
+    },
+    {
+      "code": "396                 # Use the assigned IP or client IP\n397                 device_ip = your_ip if your_ip != \"0.0.0.0\" else client_ip\n398 \n",
+      "col_offset": 50,
+      "end_col_offset": 59,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 397,
+      "line_range": [
+        397
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    },
+    {
+      "code": "513         yiaddr = struct.unpack(\"!I\", socket.inet_aton(ip_address))[0]\n514         siaddr = struct.unpack(\"!I\", socket.inet_aton(\"0.0.0.0\"))[0]\n515 \n",
+      "col_offset": 54,
+      "end_col_offset": 63,
+      "filename": "packages/bifrost/src/bifrost/discovery.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 514,
+      "line_range": [
+        514
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    }
+  ]
+}

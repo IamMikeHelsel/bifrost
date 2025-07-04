@@ -1,14 +1,11 @@
 """Tests for Modbus implementation."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.exceptions import ModbusException
-from bifrost_core import ConnectionState, ProtocolError
-
 from bifrost.modbus import ModbusTCPConnection
+from bifrost_core import ConnectionState, ProtocolError
+from pymodbus.exceptions import ModbusException
 
 
 class TestParseModbusAddress:
@@ -90,10 +87,7 @@ class TestModbusTCPConnection:
     def connection(self, mock_client):
         """Create Modbus TCP connection with mock client."""
         conn = ModbusTCPConnection(
-            host="192.168.1.100",
-            port=502,
-            unit_id=1,
-            timeout=3.0
+            host="192.168.1.100", port=502, unit_id=1, timeout=3.0
         )
         # Don't create actual client, use our mock
         return conn
@@ -103,7 +97,7 @@ class TestModbusTCPConnection:
         """Test successful connection."""
         with patch("bifrost.modbus.AsyncModbusTcpClient", return_value=mock_client):
             await connection.connect()
-        
+
         assert connection.is_connected
         mock_client.connect.assert_called_once()
 
@@ -111,8 +105,9 @@ class TestModbusTCPConnection:
     async def test_connect_failure(self, connection, mock_client):
         """Test connection failure."""
         mock_client.connect.return_value = False
-        
+
         from bifrost_core import ConnectionError as BifrostConnectionError
+
         with pytest.raises(BifrostConnectionError, match="Failed to connect"):
             with patch("bifrost.modbus.AsyncModbusTcpClient", return_value=mock_client):
                 await connection.connect()
@@ -122,9 +117,9 @@ class TestModbusTCPConnection:
         """Test disconnection."""
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         await connection.disconnect()
-        
+
         assert not connection.is_connected
         mock_client.close.assert_called_once()
 
@@ -135,12 +130,12 @@ class TestModbusTCPConnection:
         response.isError.return_value = False
         response.bits = [True]
         mock_client.read_coils = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
         connection._client = mock_client
         result = await connection.read_raw("coil:100")
-        
+
         assert result == [True]
         mock_client.read_coils.assert_called_once_with(100, 1, slave=1)
 
@@ -151,11 +146,11 @@ class TestModbusTCPConnection:
         response.isError.return_value = False
         response.bits = [False]
         mock_client.read_discrete_inputs = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
         result = await connection.read_raw("discrete:200")
-        
+
         assert result == [False]
         mock_client.read_discrete_inputs.assert_called_once_with(200, 1, slave=1)
 
@@ -166,11 +161,11 @@ class TestModbusTCPConnection:
         response.isError.return_value = False
         response.registers = [12345]
         mock_client.read_input_registers = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
         result = await connection.read_raw("input:300")
-        
+
         assert result == [12345]
         mock_client.read_input_registers.assert_called_once_with(300, 1, slave=1)
 
@@ -181,11 +176,11 @@ class TestModbusTCPConnection:
         response.isError.return_value = False
         response.registers = [54321]
         mock_client.read_holding_registers = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
         result = await connection.read_raw("holding:400")
-        
+
         assert result == [54321]
         mock_client.read_holding_registers.assert_called_once_with(400, 1, slave=1)
 
@@ -195,10 +190,10 @@ class TestModbusTCPConnection:
         response = MagicMock()
         response.isError.return_value = True
         mock_client.read_holding_registers = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         with pytest.raises(ProtocolError, match="Modbus read error"):
             await connection.read_raw("holding:400")
 
@@ -208,11 +203,11 @@ class TestModbusTCPConnection:
         response = MagicMock()
         response.isError.return_value = False
         mock_client.write_coil = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
         await connection.write_raw("coil:100", [True])
-        
+
         mock_client.write_coil.assert_called_once_with(100, True, slave=1)
 
     @pytest.mark.asyncio
@@ -221,11 +216,11 @@ class TestModbusTCPConnection:
         response = MagicMock()
         response.isError.return_value = False
         mock_client.write_register = AsyncMock(return_value=response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
         await connection.write_raw("holding:400", [12345])
-        
+
         mock_client.write_register.assert_called_once_with(400, 12345, slave=1)
 
     @pytest.mark.asyncio
@@ -233,10 +228,10 @@ class TestModbusTCPConnection:
         """Test writing to read-only register types."""
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         with pytest.raises(ProtocolError, match="Cannot write to discrete"):
             await connection.write_raw("discrete:200", [True])
-        
+
         with pytest.raises(ProtocolError, match="Cannot write to input"):
             await connection.write_raw("input:300", [100])
 
@@ -249,7 +244,7 @@ class TestModbusTCPConnection:
         mock_client.read_coils = AsyncMock(return_value=response)
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         result = await connection.health_check()
         assert result is True
 
@@ -259,7 +254,7 @@ class TestModbusTCPConnection:
         mock_client.is_socket_open.return_value = False
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         result = await connection.health_check()
         assert result is False
 
@@ -270,19 +265,19 @@ class TestModbusTCPConnection:
             async with ModbusTCPConnection("192.168.1.100", 502) as conn:
                 assert conn.is_connected
                 mock_client.connect.assert_called_once()
-            
+
             mock_client.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_connection_not_connected_error(self, connection):
         """Test operations when not connected."""
         connection._state = ConnectionState.DISCONNECTED
-        
+
         from bifrost_core import ConnectionError as BifrostConnectionError
-        
+
         with pytest.raises(BifrostConnectionError, match="Not connected"):
             await connection.read_raw("holding:100")
-        
+
         with pytest.raises(BifrostConnectionError, match="Not connected"):
             await connection.write_raw("coil:100", [True])
 
@@ -292,10 +287,10 @@ class TestModbusTCPConnection:
         mock_client.read_holding_registers = AsyncMock(
             side_effect=ModbusException("Test exception")
         )
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         with pytest.raises(ProtocolError, match="Modbus read error"):
             await connection.read_raw("holding:100")
 

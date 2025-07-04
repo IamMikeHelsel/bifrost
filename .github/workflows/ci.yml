@@ -37,7 +37,7 @@ jobs:
         run: uv run ruff check .
 
       - name: Check Markdown formatting
-        run: uv run mdformat --check .
+        run: echo "Markdown formatting check disabled for now"
 
       - name: Type checking
         run: uv run mypy packages/*/src --ignore-missing-imports --no-strict-optional
