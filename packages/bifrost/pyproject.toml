@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "bifrost-core>=0.1.0",
+    "bifrost-core",
     "pymodbus>=3.5",
     "rich>=13.7",
     "typer>=0.12",
@@ -32,17 +32,21 @@ dependencies = [
     "orjson>=3.9",
 ]
 
+[tool.uv.sources]
+bifrost-core = { workspace = true }
+
 [project.optional-dependencies]
-opcua = ["bifrost-opcua>=0.1.0"]
-analytics = ["bifrost-analytics>=0.1.0"] 
-cloud = ["bifrost-cloud>=0.1.0"]
-protocols = ["bifrost-protocols>=0.1.0"]
-all = [
-    "bifrost-opcua>=0.1.0",
-    "bifrost-analytics>=0.1.0",
-    "bifrost-cloud>=0.1.0", 
-    "bifrost-protocols>=0.1.0",
-]
+# Future extensions - not implemented yet
+# opcua = ["bifrost-opcua>=0.1.0"]
+# analytics = ["bifrost-analytics>=0.1.0"] 
+# cloud = ["bifrost-cloud>=0.1.0"]
+# protocols = ["bifrost-protocols>=0.1.0"]
+# all = [
+#     "bifrost-opcua>=0.1.0",
+#     "bifrost-analytics>=0.1.0",
+#     "bifrost-cloud>=0.1.0", 
+#     "bifrost-protocols>=0.1.0",
+# ]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",

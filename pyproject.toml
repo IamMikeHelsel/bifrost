@@ -3,11 +3,6 @@
 members = [
     "packages/bifrost-core",
     "packages/bifrost",
-    "packages/bifrost-opcua", 
-    "packages/bifrost-analytics",
-    "packages/bifrost-cloud",
-    "packages/bifrost-protocols",
-    "packages/bifrost-all"
 ]
 
 [tool.uv]

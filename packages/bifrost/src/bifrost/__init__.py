@@ -33,7 +33,7 @@ from .modbus import ModbusConnection, ModbusTCPConnection, ModbusRTUConnection
 from .plc import PLCConnection, Tag
 
 # CLI exports
-from .cli import CLI
+from .cli import main as cli_main
 
 # Smart imports with helpful error messages
 def __getattr__(name: str):
@@ -114,7 +114,7 @@ __all__ = [
     "ModbusRTUConnection",
     "PLCConnection",
     "Tag",
-    "CLI",
+    "cli_main",
     
     # Optional (via __getattr__)
     "OPCUAClient",

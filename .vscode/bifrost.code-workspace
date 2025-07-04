@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.toml": "toml",
+			"justfile": "makefile",
+			"Justfile": "makefile"
+		}
+	}
+}
