@@ -30,10 +30,10 @@ dev-install: dev-setup
     # uv pip install -e packages/bifrost-protocols
     @echo "✅ All packages installed in development mode"
 
-# Format all code
+# Format all code (Google style: 80 characters)
 fmt:
-    @echo "🎨 Formatting Python code..."
-    uv run ruff format .
+    @echo "🎨 Formatting Python code (Google style)..."
+    uv run ruff format --line-length 80 .
     @echo "🎨 Formatting Rust code..."
     find . -name "*.rs" -exec rustfmt {} \; 2>/dev/null || true
     @echo "📝 Formatting markdown..."
@@ -167,6 +167,25 @@ alias d := dev
 # Quick check (fast feedback)
 check: fmt lint typecheck
 alias c := check
+
+# Google Style Guide specific commands
+google-check:
+    @echo "📏 Checking Google Python Style Guide compliance..."
+    uv run ruff check --select D,PL,C90,N,ERA,PIE,SIM,RET,ARG .
+    @echo "✅ Google style check complete!"
+
+google-fix:
+    @echo "🔧 Applying auto-fixable Google style violations..."
+    uv run ruff check --fix --select I,UP,SIM,PIE,ERA .
+    @echo "✅ Auto-fixes applied!"
+
+google-docstring-check:
+    @echo "📖 Checking docstring compliance..."
+    uv run ruff check --select D .
+    @echo "✅ Docstring check complete!"
+
+google-migrate: google-fix fmt lint
+    @echo "🎯 Google style migration step completed!"
 
 # Show help
 help:

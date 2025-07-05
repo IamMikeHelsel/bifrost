@@ -1,8 +1,9 @@
 """Tests for main bifrost package initialization."""
 
 import pytest
-from bifrost_core.base import BaseConnection
+
 from bifrost import __version__
+from bifrost_core.base import BaseConnection
 
 
 class TestBifrostInit:

@@ -47,28 +47,72 @@ dev-dependencies = [
 
 # Global configuration for all packages
 [tool.ruff]
-line-length = 88
+line-length = 80  # Google style guide standard
 target-version = "py313"
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings  
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings  
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "D",   # pydocstyle (docstring conventions)
+    "PL",  # pylint
+    "C90", # mccabe (complexity checking)
+    "N",   # pep8-naming
+    "ERA", # eradicate (commented-out code)
+    "PIE", # flake8-pie
+    "SIM", # flake8-simplify
+    "RET", # flake8-return
+    "ARG", # flake8-unused-arguments
 ]
 ignore = [
-    "E501", # line too long (handled by formatter)
-    "B008", # do not perform function calls in argument defaults
-    "UP046", # generic class uses Generic subclass instead of type parameters
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults
+    "UP046",  # generic class uses Generic subclass instead of type parameters
+    "D100",   # missing docstring in public module (too noisy for now)
+    "D104",   # missing docstring in public package (too noisy for now)
+    "PLR0913", # too many arguments (industrial code often needs many params)
+    "C901",   # too complex (will address gradually)
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"] # allow unused imports in __init__.py
-"tests/**/*.py" = ["B011"] # allow assert False in tests
+"__init__.py" = [
+    "F401",  # allow unused imports in __init__.py
+    "D107",  # allow missing docstring in __init__
+]
+"tests/**/*.py" = [
+    "B011",  # allow assert False in tests
+    "D103",  # allow missing docstring in test functions
+    "ARG001", # allow unused arguments in test fixtures
+    "PLR2004", # allow magic values in tests
+]
+
+# Google-style docstring configuration
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# Import organization (Google style)
+[tool.ruff.lint.isort]
+known-first-party = ["bifrost", "bifrost_core"]
+section-order = [
+    "future",
+    "standard-library", 
+    "third-party",
+    "first-party",
+    "local-folder"
+]
+
+# Complexity configuration
+[tool.ruff.lint.mccabe]
+max-complexity = 10  # Google recommends keeping functions simple
+
+# Naming conventions
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = ["classmethod", "pydantic.validator"]
 
 [tool.mypy]
 python_version = "3.13"

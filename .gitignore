@@ -207,6 +207,11 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Bazel build system
+MODULE.bazel.lock
+bazel-*
+.bazel-cache/
+
 # Bifrost-specific
 # Temporary files from industrial device testing
 *.pcap
@@ -233,6 +238,26 @@ benchmark_results/
 .bifrost.yaml
 .bifrost.json
 local_config/
+
+# Temporary development files (analysis, examples, comparisons)
+*_analysis.md
+*_strategy.md
+*_comparison.md
+*_examples.py
+*_patterns.py
+*_testing.py
+google_style_*.py
+google_style_*.toml
+justfile_*
+migration_*.md
+code_comparison.md
+tech_stack_analysis.md
+packaging_strategy_analysis.md
+implementation_plan.md
+
+# Build artifacts not covered above
+UNKNOWN.egg-info/
+requirements_lock.txt
 
 # IDE and editor specific
 .idea/

@@ -1,6 +1,7 @@
 """Tests for bifrost-core base classes."""
 
 import pytest
+
 from bifrost_core.base import BaseConnection, ConnectionState
 from bifrost_core.typing import DataType
 

@@ -4,6 +4,7 @@ import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
+
 from bifrost_core.events import BaseEvent, EventBus
 
 

@@ -3,8 +3,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from bifrost.cli import app
 from typer.testing import CliRunner
+
+from bifrost.cli import app
 
 
 class TestCLIBasics:

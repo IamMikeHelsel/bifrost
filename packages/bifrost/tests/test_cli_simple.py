@@ -1,8 +1,9 @@
 """Simple tests for CLI commands that verify basic functionality."""
 
 import pytest
-from bifrost.cli import app
 from typer.testing import CliRunner
+
+from bifrost.cli import app
 
 
 class TestCLIBasics:

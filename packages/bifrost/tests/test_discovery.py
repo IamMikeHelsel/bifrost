@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from bifrost.discovery import discover_devices
 
 
@@ -12,7 +13,9 @@ class TestDiscoveryFunctions:
     @pytest.mark.asyncio
     async def test_discover_devices_default(self):
         """Test discover_devices with default parameters."""
-        with patch("bifrost.discovery.discover_devices") as mock_discover_devices:
+        with patch(
+            "bifrost.discovery.discover_devices"
+        ) as mock_discover_devices:
             mock_discover_devices.return_value = AsyncMock(
                 return_value=[
                     {

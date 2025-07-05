@@ -1,0 +1,28 @@
+# This BUILD.bazel file is for the native Rust components.
+# It primarily serves to make Cargo.lock and Cargo.toml visible to Bazel.
+
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+filegroup(
+    name = "cargo_files",
+    srcs = [
+        "Cargo.toml",
+        "Cargo.lock",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+rust_library(
+    name = "modbus_native_lib",
+    srcs = glob(["src/**/*.rs"]),
+    crate_name = "modbus_native",
+    edition = "2021",
+    deps = [
+        "@rules_rust//:pyo3",
+        "@rules_rust//:tokio",
+    ],
+    proc_macro_deps = [
+        "@rules_rust//:pyo3-macros",
+    ],
+)
+

@@ -4,6 +4,7 @@ import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
+
 from bifrost_core.base import BaseConnection
 from bifrost_core.pooling import ConnectionPool
 
@@ -44,6 +45,7 @@ class TestConnectionPool:
     async def test_get_new_connection(self):
         async def factory():
             return MockConnection("localhost")
+
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = await pool.get()
         assert isinstance(conn, MockConnection)
@@ -51,7 +53,9 @@ class TestConnectionPool:
 
     @pytest.mark.asyncio
     async def test_put_and_get_reused_connection(self):
-        pool = ConnectionPool(connection_factory=lambda: MockConnection("localhost"), max_size=1)
+        pool = ConnectionPool(
+            connection_factory=lambda: MockConnection("localhost"), max_size=1
+        )
         conn1 = await pool.get()
         await pool.put(conn1)
 
@@ -60,7 +64,9 @@ class TestConnectionPool:
 
     @pytest.mark.asyncio
     async def test_max_size_enforcement(self):
-        pool = ConnectionPool(connection_factory=lambda: MockConnection("localhost"), max_size=1)
+        pool = ConnectionPool(
+            connection_factory=lambda: MockConnection("localhost"), max_size=1
+        )
         conn1 = await pool.get()
 
         # Try to get another connection, should wait as max_size is 1
@@ -76,6 +82,7 @@ class TestConnectionPool:
     async def test_put_disconnected_connection(self):
         async def factory():
             return MockConnection("localhost")
+
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = MockConnection("localhost")
         # Simulate a disconnected connection

@@ -1,6 +1,7 @@
 """Tests for bifrost-core typing utilities."""
 
 import pytest
+
 from bifrost_core.base import DeviceInfo
 from bifrost_core.typing import DataType, Tag
 
@@ -99,7 +100,10 @@ class TestDeviceInfo:
 
     def test_device_connection_string_no_port(self):
         device = DeviceInfo(
-            device_id="PLC001", protocol="opcua.tcp", host="192.168.1.100", port=4840
+            device_id="PLC001",
+            protocol="opcua.tcp",
+            host="192.168.1.100",
+            port=4840,
         )
 
         assert device.protocol == "opcua.tcp"
@@ -107,7 +111,10 @@ class TestDeviceInfo:
 
     def test_device_default_name(self):
         device = DeviceInfo(
-            device_id="PLC001", protocol="modbus.tcp", host="192.168.1.100", port=502
+            device_id="PLC001",
+            protocol="modbus.tcp",
+            host="192.168.1.100",
+            port=502,
         )
 
         # Name should default to device_id

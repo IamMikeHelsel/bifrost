@@ -5,8 +5,10 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from bifrost.connections import ConnectionFactory
+from typer.testing import CliRunner
+
 from bifrost.cli import app as cli_app
+from bifrost.connections import ConnectionFactory
 from bifrost.discovery import discover_devices
 from bifrost.modbus import ModbusConnection
 from bifrost_core import (
@@ -15,7 +17,6 @@ from bifrost_core import (
     DeviceInfo,
     Tag,
 )
-from typer.testing import CliRunner
 
 
 class TestEndToEndModbusWorkflow:
@@ -27,7 +28,9 @@ class TestEndToEndModbusWorkflow:
 
         # Mock a complete Modbus device workflow
         with (
-            patch("bifrost.discovery.discover_devices") as mock_discover_devices,
+            patch(
+                "bifrost.discovery.discover_devices"
+            ) as mock_discover_devices,
             patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class,
         ):
             # 1. Mock device discovery
@@ -72,7 +75,9 @@ class TestEndToEndModbusWorkflow:
             assert device["host"] == "192.168.1.100"
 
             # Step 2: Connect to discovered device
-            connection_string = f"modbus.tcp://{device['host']}:{device['port']}"
+            connection_string = (
+                f"modbus.tcp://{device['host']}:{device['port']}"
+            )
             connection = ConnectionFactory.create(connection_string)
 
             assert isinstance(connection, ModbusConnection)
@@ -82,7 +87,9 @@ class TestEndToEndModbusWorkflow:
                 # Step 3: Read data from multiple registers
 
                 # Read individual tags
-                readings = await conn.read([Tag("40001"), Tag("40002"), Tag("40003")])
+                readings = await conn.read(
+                    [Tag("40001"), Tag("40002"), Tag("40003")]
+                )
 
                 assert readings[Tag("40001")].value == 42
                 assert readings[Tag("40002")].value == 100
@@ -171,14 +178,49 @@ class TestEndToEndModbusWorkflow:
             connection = ModbusConnection("192.168.1.100", 502)
             device = ModbusDevice(connection)
             async with connection as conn:
-
                 # Test batch read
-                readings = await device.read([Tag(name=f"tag{i}", address=str(40001 + i), data_type=DataType.INT16) for i in range(5)])
+                readings = await device.read(
+                    [
+                        Tag(
+                            name=f"tag{i}",
+                            address=str(40001 + i),
+                            data_type=DataType.INT16,
+                        )
+                        for i in range(5)
+                    ]
+                )
                 assert len(readings) == 5
-                assert readings[Tag(name="tag0", address="40001", data_type=DataType.INT16)].value == 10
+                assert (
+                    readings[
+                        Tag(
+                            name="tag0",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 10
+                )
 
                 # Test batch write
-                await device.write({Tag(name="tag0", address="40001", data_type=DataType.INT16): 100, Tag(name="tag1", address="40002", data_type=DataType.INT16): 200, Tag(name="tag2", address="40003", data_type=DataType.INT16): 300})
+                await device.write(
+                    {
+                        Tag(
+                            name="tag0",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        ): 100,
+                        Tag(
+                            name="tag1",
+                            address="40002",
+                            data_type=DataType.INT16,
+                        ): 200,
+                        Tag(
+                            name="tag2",
+                            address="40003",
+                            data_type=DataType.INT16,
+                        ): 300,
+                    }
+                )
 
             assert not connection.is_connected
 
@@ -262,7 +304,9 @@ class TestConnectionPoolingIntegration:
             async def connection_factory():
                 return ModbusConnection("192.168.1.100", 502)
 
-            pool = ConnectionPool(connection_factory=connection_factory, max_size=1)
+            pool = ConnectionPool(
+                connection_factory=connection_factory, max_size=1
+            )
 
             # Test pooled connection usage
             async with pool.get() as conn1:
@@ -319,7 +363,7 @@ class TestEventSystemIntegration:
             # Connect (should generate connection state events)
             async with connection:
                 # Read data (should generate data received event)
-                await connection.read([Tag("40001")] )
+                await connection.read([Tag("40001")])
 
             # Disconnect (should generate disconnection event)
             # Handled by context manager
@@ -365,9 +409,11 @@ class TestScalabilityScenarios:
             # Perform operations on all connections concurrently
             tasks = []
             for conn in connections:
+
                 async def _operate(c):
                     async with c:
                         await c.read([Tag("40001")])
+
                 task = asyncio.create_task(_operate(conn))
                 tasks.append(task)
 
@@ -396,7 +442,6 @@ class TestScalabilityScenarios:
 
             connection = ModbusConnection("192.168.1.100", 502)
             async with connection as conn:
-
                 # Perform many rapid operations
                 start_time = time.time()
                 num_operations = 100
@@ -411,7 +456,9 @@ class TestScalabilityScenarios:
 
                 # Verify all operations completed
                 assert len(results) == num_operations
-                assert all(result[Tag("40001")].value == 42 for result in results)
+                assert all(
+                    result[Tag("40001")].value == 42 for result in results
+                )
 
                 # Performance check (should complete in reasonable time)
                 duration = end_time - start_time
@@ -486,7 +533,9 @@ class TestRealWorldScenarios:
                 async with conn:
                     for i, tag_name in enumerate(device_info["tags"]):
                         readings = await conn.read([Tag(f"4000{i + 1}")])
-                        tag_values[tag_name] = readings[Tag(f"4000{i + 1}")].value
+                        tag_values[tag_name] = readings[
+                            Tag(f"4000{i + 1}")
+                        ].value
 
                 monitoring_data[device_name] = tag_values
 
@@ -499,9 +548,13 @@ class TestRealWorldScenarios:
             temp_1 = monitoring_data["Production Line 1 PLC"]["temp_1"]
             if temp_1 > 25:  # Alarm threshold
                 # Send control command to reduce temperature
-                control_conn = connections["Production Line 1 PLC"]["connection"]
+                control_conn = connections["Production Line 1 PLC"][
+                    "connection"
+                ]
                 async with control_conn:
-                    await control_conn.write({Tag("40010"): 0})  # Turn off heater
+                    await control_conn.write(
+                        {Tag("40010"): 0}
+                    )  # Turn off heater
 
             # Cleanup - disconnect all devices (handled by context managers)
             for device_info in connections.values():
@@ -567,8 +620,16 @@ class TestConfigurationManagement:
                     "host": "192.168.1.100",
                     "port": 502,
                     "tags": [
-                        {"name": "temperature", "address": "40001", "type": "int16"},
-                        {"name": "pressure", "address": "40002", "type": "int16"},
+                        {
+                            "name": "temperature",
+                            "address": "40001",
+                            "type": "int16",
+                        },
+                        {
+                            "name": "pressure",
+                            "address": "40002",
+                            "type": "int16",
+                        },
                     ],
                 }
             ],
@@ -591,7 +652,9 @@ class TestConfigurationManagement:
             # Deploy devices from configuration
             deployed_devices = {}
             for device_config in config["devices"]:
-                conn = ModbusConnection(device_config["host"], device_config["port"])
+                conn = ModbusConnection(
+                    device_config["host"], device_config["port"]
+                )
                 deployed_devices[device_config["name"]] = {
                     "connection": conn,
                     "tags": device_config["tags"],
@@ -648,12 +711,16 @@ class TestPerformanceBenchmarks:
 
             # Performance assertion
             avg_time_per_connection = (end_time - start_time) / num_connections
-            assert avg_time_per_connection < 0.1  # Should be under 100ms per connection
+            assert (
+                avg_time_per_connection < 0.1
+            )  # Should be under 100ms per connection
 
             # Cleanup
             tasks = []
             for conn in connections:
-                tasks.append(asyncio.create_task(conn.__aexit__(None, None, None)))
+                tasks.append(
+                    asyncio.create_task(conn.__aexit__(None, None, None))
+                )
             await asyncio.gather(*tasks)
 
     @pytest.mark.asyncio
@@ -675,7 +742,6 @@ class TestPerformanceBenchmarks:
 
             connection = ModbusConnection("192.168.1.100", 502)
             async with connection as conn:
-
                 # Perform many rapid operations
                 start_time = time.time()
                 num_operations = 100
@@ -691,6 +757,8 @@ class TestPerformanceBenchmarks:
                 # Performance assertion
                 total_time = end_time - start_time
                 reads_per_second = num_operations / total_time
-                assert reads_per_second > 100  # Should achieve >100 reads/second
+                assert (
+                    reads_per_second > 100
+                )  # Should achieve >100 reads/second
 
             assert not connection.is_connected

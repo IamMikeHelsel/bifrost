@@ -3,9 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pymodbus.exceptions import ModbusException
+
 from bifrost.modbus import ModbusConnection
 from bifrost_core import ConnectionState
-from pymodbus.exceptions import ModbusException
 
 
 class TestModbusConnection:
@@ -62,7 +63,9 @@ class TestModbusConnection:
         async with connection:
             result = await connection.read(["40001"])
             assert result["40001"].value == 54321
-            mock_client.read_holding_registers.assert_called_once_with(address=40001, count=1)
+            mock_client.read_holding_registers.assert_called_once_with(
+                address=40001, count=1
+            )
 
     @pytest.mark.asyncio
     async def test_read_error(self, connection, mock_client):
@@ -73,7 +76,7 @@ class TestModbusConnection:
 
         async with connection:
             result = await connection.read(["40001"])
-            assert "40001" not in result # Error should result in no reading
+            assert "40001" not in result  # Error should result in no reading
 
     @pytest.mark.asyncio
     async def test_write_holding_register(self, connection, mock_client):
@@ -84,7 +87,9 @@ class TestModbusConnection:
 
         async with connection:
             await connection.write({"40001": 12345})
-            mock_client.write_register.assert_called_once_with(address=40001, value=12345)
+            mock_client.write_register.assert_called_once_with(
+                address=40001, value=12345
+            )
 
     @pytest.mark.asyncio
     async def test_write_error(self, connection, mock_client):
@@ -115,5 +120,10 @@ class TestModbusConnection:
         )
 
         async with modbus_device.connection:
-            result = await modbus_device.read([Tag(name="test", address="40001", data_type=DataType.INT16)])
-            assert Tag(name="test", address="40001", data_type=DataType.INT16) not in result
+            result = await modbus_device.read(
+                [Tag(name="test", address="40001", data_type=DataType.INT16)]
+            )
+            assert (
+                Tag(name="test", address="40001", data_type=DataType.INT16)
+                not in result
+            )
