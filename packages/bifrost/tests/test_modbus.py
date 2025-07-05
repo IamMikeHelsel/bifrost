@@ -1,12 +1,12 @@
 """Tests for Modbus implementation."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pymodbus.exceptions import ModbusException
 
 from bifrost.modbus import ModbusConnection
-from bifrost_core import ConnectionState
+from bifrost_core.typing import DataType, Tag
 
 
 class TestModbusConnection:

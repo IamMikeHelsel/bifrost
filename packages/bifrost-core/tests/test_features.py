@@ -1,6 +1,6 @@
 """Tests for bifrost-core feature system."""
 
-from typing import Any, Protocol, Set, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import pytest
 

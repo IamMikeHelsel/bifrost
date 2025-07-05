@@ -28,5 +28,4 @@ class ConnectionFactory:
         #     return OPCUAConnection(hostname, port or 4840)
         # elif scheme == "s7":
         #     return S7Connection(hostname, port or 102)
-        else:
-            raise ValueError(f"Unsupported protocol: {scheme}")
+        raise ValueError(f"Unsupported protocol: {scheme}")

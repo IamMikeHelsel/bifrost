@@ -1,6 +1,5 @@
 """Tests for bifrost-core event system."""
 
-import asyncio
 from unittest.mock import AsyncMock
 
 import pytest

@@ -3,6 +3,8 @@
 from enum import Enum
 from typing import Any, NewType, TypeVar
 
+from pydantic import BaseModel, Field
+
 
 class DataType(Enum):
     """Represents common data types for industrial protocols."""
@@ -23,9 +25,6 @@ class DataType(Enum):
 Value = TypeVar("Value")
 
 # Represents a unique identifier for a data point (e.g., a PLC tag or sensor reading)
-from typing import Optional
-
-from pydantic import BaseModel, Field
 
 
 class Tag(BaseModel):
@@ -67,21 +66,19 @@ class Tag(BaseModel):
 
         # Attempt to convert to the target data type if scaling was applied
         if self.scaling_factor is not None or self.offset is not None:
-            if (
-                self.data_type == DataType.INT16
-                or self.data_type == DataType.INT32
-                or self.data_type == DataType.UINT16
-                or self.data_type == DataType.UINT32
-            ):
+            if self.data_type in {
+                DataType.INT16,
+                DataType.INT32,
+                DataType.UINT16,
+                DataType.UINT32,
+            }:
                 return int(scaled_value)
-            elif (
-                self.data_type == DataType.FLOAT32
-                or self.data_type == DataType.FLOAT64
-            ):
+            if self.data_type in {DataType.FLOAT32, DataType.FLOAT64}:
                 return float(scaled_value)
         return scaled_value
 
     def __str__(self) -> str:
+        """Return string representation of the tag."""
         return f"Tag({self.name}, {self.address}, {self.data_type.value})"
 
 
