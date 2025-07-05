@@ -97,17 +97,20 @@ def discover(
     network: str = typer.Option(
         "192.168.1.0/24", 
         "--network", "-n", 
-        help="[cyan]Network range to scan[/cyan] (CIDR notation, e.g., 192.168.1.0/24)"
+        help="[cyan]Network range to scan[/cyan] (CIDR notation, e.g., 192.168.1.0/24)",
+        autocompletion=complete_network_ranges
     ),
     protocols: str = typer.Option(
         "modbus,cip,bootp", 
         "--protocols", "-p", 
-        help="[cyan]Protocols to use[/cyan] (modbus,cip,bootp or combinations)"
+        help="[cyan]Protocols to use[/cyan] (modbus,cip,bootp or combinations)",
+        autocompletion=complete_protocols
     ),
     timeout: float = typer.Option(
         2.0, 
         "--timeout", "-t", 
-        help="[cyan]Discovery timeout[/cyan] in seconds per device"
+        help="[cyan]Discovery timeout[/cyan] in seconds per device",
+        autocompletion=complete_timeouts
     ),
     max_concurrent: int = typer.Option(
         50, 
