@@ -90,6 +90,121 @@ def about() -> None:
     console.print("  [yellow]bifrost discover --help[/yellow]  Discovery options")
     console.print("  [yellow]bifrost scan-modbus --help[/yellow] Modbus scan options")
     console.print()
+    
+    console.print("⚡ [bold green]Enable Autocompletion:[/bold green]")
+    console.print("  [yellow]bifrost completion --install[/yellow]   Auto-install tab completion")
+    console.print("  [yellow]bifrost completion --help[/yellow]     Completion installation help")
+    console.print()
+
+
+@app.command(name="completion")
+def install_completion(
+    shell: str = typer.Option(
+        None,
+        "--shell",
+        help="[cyan]Shell to install completion for[/cyan] (bash, zsh, fish, powershell)"
+    ),
+    install: bool = typer.Option(
+        False,
+        "--install",
+        help="[cyan]Install completion automatically[/cyan]"
+    )
+) -> None:
+    """🚀 Install shell autocompletion for bifrost commands.
+    
+    Enables tab completion for all bifrost commands, options, and parameters.
+    Supports bash, zsh, fish, and PowerShell.
+    
+    [bold green]Examples:[/bold green]
+    
+      [yellow]bifrost completion --shell bash --install[/yellow]    # Auto-install for bash
+      [yellow]bifrost completion --shell zsh[/yellow]              # Show zsh completion
+      [yellow]bifrost completion[/yellow]                         # Detect shell automatically
+    """
+    import os
+    import subprocess
+    
+    # Auto-detect shell if not specified
+    if shell is None:
+        shell = os.path.basename(os.environ.get('SHELL', 'bash'))
+    
+    # Map common shell names
+    shell_map = {
+        'bash': 'bash',
+        'zsh': 'zsh', 
+        'fish': 'fish',
+        'powershell': 'powershell',
+        'pwsh': 'powershell'
+    }
+    
+    shell = shell_map.get(shell, shell)
+    
+    if install:
+        console.print(f"🔧 Installing autocompletion for [cyan]{shell}[/cyan]...")
+        
+        try:
+            # Use typer's built-in completion installation
+            if shell == "bash":
+                completion_cmd = "_BIFROST_COMPLETE=bash_source bifrost"
+                install_cmd = f'echo "eval \\"$({completion_cmd})\\"" >> ~/.bashrc'
+                subprocess.run(install_cmd, shell=True, check=True)
+                console.print("✅ [green]Bash completion installed![/green]")
+                console.print("   Run [yellow]source ~/.bashrc[/yellow] or restart your terminal")
+                
+            elif shell == "zsh":
+                completion_cmd = "_BIFROST_COMPLETE=zsh_source bifrost"
+                install_cmd = f'echo "eval \\"$({completion_cmd})\\"" >> ~/.zshrc'
+                subprocess.run(install_cmd, shell=True, check=True)
+                console.print("✅ [green]Zsh completion installed![/green]")
+                console.print("   Run [yellow]source ~/.zshrc[/yellow] or restart your terminal")
+                
+            elif shell == "fish":
+                completion_cmd = "_BIFROST_COMPLETE=fish_source bifrost"
+                subprocess.run(f"{completion_cmd} > ~/.config/fish/completions/bifrost.fish", 
+                             shell=True, check=True)
+                console.print("✅ [green]Fish completion installed![/green]")
+                console.print("   Restart your terminal or run [yellow]exec fish[/yellow]")
+                
+            else:
+                console.print(f"❌ [red]Auto-install not supported for {shell}[/red]")
+                console.print("   Use the manual instructions below:")
+                install = False
+                
+        except subprocess.CalledProcessError as e:
+            console.print(f"❌ [red]Installation failed: {e}[/red]")
+            install = False
+    
+    if not install:
+        console.print(f"📋 [bold]Manual installation for [cyan]{shell}[/cyan]:[/bold]")
+        console.print()
+        
+        if shell == "bash":
+            console.print("Add this line to your [yellow]~/.bashrc[/yellow]:")
+            console.print("[dim]echo 'eval \"$(_BIFROST_COMPLETE=bash_source bifrost)\"' >> ~/.bashrc[/dim]")
+            
+        elif shell == "zsh":
+            console.print("Add this line to your [yellow]~/.zshrc[/yellow]:")
+            console.print("[dim]echo 'eval \"$(_BIFROST_COMPLETE=zsh_source bifrost)\"' >> ~/.zshrc[/dim]")
+            
+        elif shell == "fish":
+            console.print("Run this command:")
+            console.print("[dim]_BIFROST_COMPLETE=fish_source bifrost > ~/.config/fish/completions/bifrost.fish[/dim]")
+            
+        elif shell == "powershell":
+            console.print("Add this to your PowerShell profile:")
+            console.print("[dim]Register-ArgumentCompleter -Native -CommandName bifrost -ScriptBlock {[/dim]")
+            console.print("[dim]    param($commandName, $wordToComplete, $cursorPosition)[/dim]")
+            console.print("[dim]    $env:_BIFROST_COMPLETE = \"powershell_complete\"[/dim]")
+            console.print("[dim]    $env:COMP_WORDS = $wordToComplete[/dim]")
+            console.print("[dim]    bifrost | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }[/dim]")
+            console.print("[dim]}[/dim]")
+            
+        else:
+            console.print(f"❌ [red]Shell '{shell}' not supported[/red]")
+            console.print("   Supported shells: bash, zsh, fish, powershell")
+            
+        console.print()
+        console.print("💡 [yellow]Tip:[/yellow] Run with [cyan]--install[/cyan] flag to auto-install")
 
 
 @app.command()
@@ -239,12 +354,14 @@ def scan_modbus(
     network: str = typer.Option(
         "192.168.1.0/24", 
         "--network", "-n", 
-        help="[cyan]Network range to scan[/cyan] (CIDR notation)"
+        help="[cyan]Network range to scan[/cyan] (CIDR notation)",
+        autocompletion=complete_network_ranges
     ),
     timeout: float = typer.Option(
         1.0, 
         "--timeout", "-t", 
-        help="[cyan]Connection timeout[/cyan] in seconds (0.1-10.0)"
+        help="[cyan]Connection timeout[/cyan] in seconds (0.1-10.0)",
+        autocompletion=complete_timeouts
     ),
     max_concurrent: int = typer.Option(
         100, 
