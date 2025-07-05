@@ -23,10 +23,11 @@ dev-install: dev-setup
     @echo "📦 Installing all packages in development mode..."
     uv pip install -e packages/bifrost-core
     uv pip install -e packages/bifrost
-    uv pip install -e packages/bifrost-opcua
-    uv pip install -e packages/bifrost-analytics
-    uv pip install -e packages/bifrost-cloud
-    uv pip install -e packages/bifrost-protocols
+    # TODO: Add these packages as they are created:
+    # uv pip install -e packages/bifrost-opcua
+    # uv pip install -e packages/bifrost-analytics
+    # uv pip install -e packages/bifrost-cloud
+    # uv pip install -e packages/bifrost-protocols
     @echo "✅ All packages installed in development mode"
 
 # Format all code
