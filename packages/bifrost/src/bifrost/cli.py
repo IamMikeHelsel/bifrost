@@ -18,21 +18,95 @@ from .discovery import DiscoveryConfig, discover_devices
 
 app = typer.Typer(
     name="bifrost",
-    help="Bifrost - Industrial IoT Framework",
+    help="Bifrost - Industrial IoT Framework for device discovery and automation",
     add_completion=False,
+    rich_markup_mode="rich",
+    no_args_is_help=True,
 )
 console = Console()
 
 
+@app.command(name="about")
+def about() -> None:
+    """Show information about Bifrost and its capabilities."""
+    console.print()
+    console.print("🏭 [bold blue]Bifrost - Industrial IoT Framework[/bold blue]")
+    console.print()
+    console.print("[dim]Break down the walls between operational technology and information technology.[/dim]")
+    console.print("[dim]Make it as easy to work with a PLC as it is to work with a REST API.[/dim]")
+    console.print()
+    
+    console.print("📡 [bold green]Device Discovery Capabilities:[/bold green]")
+    console.print("  • [cyan]Modbus TCP[/cyan] - High-speed scanning for Modbus devices")
+    console.print("  • [cyan]Ethernet/IP (CIP)[/cyan] - Allen-Bradley and compatible devices") 
+    console.print("  • [cyan]BOOTP/DHCP[/cyan] - Devices requesting IP addresses")
+    console.print()
+    
+    console.print("🎯 [bold green]Quick Start Examples:[/bold green]")
+    console.print("  [dim]# Discover all devices on your network[/dim]")
+    console.print("  [yellow]bifrost discover[/yellow]")
+    console.print()
+    console.print("  [dim]# Fast Modbus scan[/dim]")
+    console.print("  [yellow]bifrost scan-modbus[/yellow]")
+    console.print()
+    console.print("  [dim]# Scan specific network with verbose output[/dim]")
+    console.print("  [yellow]bifrost discover --network 192.168.1.0/24 --verbose[/yellow]")
+    console.print()
+    
+    console.print("🔧 [bold green]Use Cases:[/bold green]")
+    console.print("  • Network commissioning and device inventory")
+    console.print("  • Troubleshooting and diagnostics") 
+    console.print("  • Security auditing and asset discovery")
+    console.print("  • SCADA/HMI system integration")
+    console.print()
+    
+    console.print("📚 [bold green]Get Help:[/bold green]")
+    console.print("  [yellow]bifrost --help[/yellow]          Show all commands")
+    console.print("  [yellow]bifrost discover --help[/yellow]  Discovery options")
+    console.print("  [yellow]bifrost scan-modbus --help[/yellow] Modbus scan options")
+    console.print()
+
+
 @app.command()
 def discover(
-    network: str = typer.Option("192.168.1.0/24", "--network", "-n", help="Network range to scan"),
-    protocols: str = typer.Option("modbus,cip,bootp", "--protocols", "-p", help="Comma-separated protocols to use"),
-    timeout: float = typer.Option(2.0, "--timeout", "-t", help="Discovery timeout in seconds"),
-    max_concurrent: int = typer.Option(50, "--max-concurrent", "-c", help="Maximum concurrent connections"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    network: str = typer.Option(
+        "192.168.1.0/24", 
+        "--network", "-n", 
+        help="[cyan]Network range to scan[/cyan] (CIDR notation, e.g., 192.168.1.0/24)"
+    ),
+    protocols: str = typer.Option(
+        "modbus,cip,bootp", 
+        "--protocols", "-p", 
+        help="[cyan]Protocols to use[/cyan] (modbus,cip,bootp or combinations)"
+    ),
+    timeout: float = typer.Option(
+        2.0, 
+        "--timeout", "-t", 
+        help="[cyan]Discovery timeout[/cyan] in seconds per device"
+    ),
+    max_concurrent: int = typer.Option(
+        50, 
+        "--max-concurrent", "-c", 
+        help="[cyan]Max concurrent connections[/cyan] (10-200)"
+    ),
+    verbose: bool = typer.Option(
+        False, 
+        "--verbose", "-v", 
+        help="[cyan]Show detailed device information[/cyan]"
+    ),
 ) -> None:
-    """Discover devices on the network using multiple protocols."""
+    """🔍 Discover industrial devices on your network.
+    
+    Scans the specified network range using multiple industrial protocols
+    to find PLCs, HMIs, and other automation devices.
+    
+    [bold green]Examples:[/bold green]
+    
+      [yellow]bifrost discover[/yellow]                    # Default scan (192.168.1.0/24)
+      [yellow]bifrost discover -n 10.0.0.0/24[/yellow]     # Scan specific network  
+      [yellow]bifrost discover -p modbus[/yellow]          # Modbus only
+      [yellow]bifrost discover -v -t 5.0[/yellow]          # Verbose with longer timeout
+    """
     
     # Parse protocols
     protocol_list = [p.strip() for p in protocols.split(",")]
@@ -132,13 +206,35 @@ def discover(
         console.print(f"\n[green]✅ Discovery complete: Found {device_count} devices[/green]")
 
 
-@app.command()
+@app.command(name="scan-modbus")
 def scan_modbus(
-    network: str = typer.Option("192.168.1.0/24", "--network", "-n", help="Network range to scan"),
-    timeout: float = typer.Option(1.0, "--timeout", "-t", help="Connection timeout"),
-    max_concurrent: int = typer.Option(100, "--max-concurrent", "-c", help="Maximum concurrent connections"),
+    network: str = typer.Option(
+        "192.168.1.0/24", 
+        "--network", "-n", 
+        help="[cyan]Network range to scan[/cyan] (CIDR notation)"
+    ),
+    timeout: float = typer.Option(
+        1.0, 
+        "--timeout", "-t", 
+        help="[cyan]Connection timeout[/cyan] in seconds (0.1-10.0)"
+    ),
+    max_concurrent: int = typer.Option(
+        100, 
+        "--max-concurrent", "-c", 
+        help="[cyan]Max concurrent connections[/cyan] (50-500)"
+    ),
 ) -> None:
-    """Fast Modbus TCP device scanning."""
+    """⚡ Fast Modbus TCP device scanning.
+    
+    High-performance scanning specifically for Modbus TCP devices
+    on port 502. Uses optimized connection handling for speed.
+    
+    [bold green]Examples:[/bold green]
+    
+      [yellow]bifrost scan-modbus[/yellow]                     # Default scan
+      [yellow]bifrost scan-modbus -n 10.0.0.0/16[/yellow]      # Large network
+      [yellow]bifrost scan-modbus -t 0.5 -c 200[/yellow]       # Fast & aggressive
+    """
     
     config = DiscoveryConfig(
         network_range=network,
@@ -193,5 +289,10 @@ def scan_modbus(
         console.print("\n[yellow]No Modbus devices found[/yellow]")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Main entry point for the bifrost CLI."""
     app()
+
+
+if __name__ == "__main__":
+    main()
