@@ -311,21 +311,23 @@ class TestModbusTCPConnection:
         mock_holding_response = MagicMock()
         mock_holding_response.isError.return_value = False
         mock_holding_response.registers = [100, 200, 300]
-        
+
         mock_coil_response = MagicMock()
         mock_coil_response.isError.return_value = False
         mock_coil_response.bits = [True, False, True]
-        
-        mock_client.read_holding_registers = AsyncMock(return_value=mock_holding_response)
+
+        mock_client.read_holding_registers = AsyncMock(
+            return_value=mock_holding_response
+        )
         mock_client.read_coils = AsyncMock(return_value=mock_coil_response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         # Test batch read with mixed register types
         addresses = ["40001", "40002", "40003", "coil:1", "coil:2", "coil:3"]
         results = await connection.read_batch(addresses)
-        
+
         assert len(results) == 6
         assert results["40001"] == [100]
         assert results["40002"] == [200]
@@ -333,7 +335,7 @@ class TestModbusTCPConnection:
         assert results["coil:1"] == [True]
         assert results["coil:2"] == [False]
         assert results["coil:3"] == [True]
-        
+
         # Verify client calls
         mock_client.read_holding_registers.assert_called()
         mock_client.read_coils.assert_called()
@@ -345,18 +347,18 @@ class TestModbusTCPConnection:
         mock_response.isError.return_value = False
         mock_response.registers = [10, 20, 30, 40, 50]  # 5 consecutive registers
         mock_client.read_holding_registers = AsyncMock(return_value=mock_response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         # Read 5 consecutive addresses
         addresses = ["40001", "40002", "40003", "40004", "40005"]
         results = await connection.read_batch(addresses)
-        
+
         assert len(results) == 5
         assert results["40001"] == [10]
         assert results["40005"] == [50]
-        
+
         # Should have made only one read call for the range
         mock_client.read_holding_registers.assert_called_once_with(1, 5, slave=1)
 
@@ -364,9 +366,9 @@ class TestModbusTCPConnection:
     async def test_batch_read_not_connected(self, connection):
         """Test batch read when not connected."""
         connection._state = ConnectionState.DISCONNECTED
-        
+
         from bifrost_core import ConnectionError as BifrostConnectionError
-        
+
         with pytest.raises(BifrostConnectionError, match="Not connected"):
             await connection.read_batch(["40001", "40002"])
 
@@ -377,21 +379,21 @@ class TestModbusTCPConnection:
         mock_response.isError.return_value = False
         mock_client.write_registers = AsyncMock(return_value=mock_response)
         mock_client.write_coils = AsyncMock(return_value=mock_response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         # Test batch write with mixed register types
         address_values = {
             "40001": 100,
             "40002": 200,
             "40003": 300,
             "coil:1": True,
-            "coil:2": False
+            "coil:2": False,
         }
-        
+
         await connection.write_batch(address_values)
-        
+
         # Verify client calls were made
         mock_client.write_registers.assert_called()
         mock_client.write_coils.assert_called()
@@ -402,19 +404,15 @@ class TestModbusTCPConnection:
         mock_response = MagicMock()
         mock_response.isError.return_value = False
         mock_client.write_registers = AsyncMock(return_value=mock_response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         # Write to consecutive addresses
-        address_values = {
-            "40001": 100,
-            "40002": 200,
-            "40003": 300
-        }
-        
+        address_values = {"40001": 100, "40002": 200, "40003": 300}
+
         await connection.write_batch(address_values)
-        
+
         # Should have made one write call for the consecutive range
         mock_client.write_registers.assert_called_once_with(1, [100, 200, 300], slave=1)
 
@@ -423,7 +421,7 @@ class TestModbusTCPConnection:
         """Test batch write to read-only registers raises error."""
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         with pytest.raises(ProtocolError, match="Cannot write to discrete registers"):
             await connection.write_batch({"10001": 100})  # Discrete input
 
@@ -431,9 +429,9 @@ class TestModbusTCPConnection:
     async def test_batch_write_not_connected(self, connection):
         """Test batch write when not connected."""
         connection._state = ConnectionState.DISCONNECTED
-        
+
         from bifrost_core import ConnectionError as BifrostConnectionError
-        
+
         with pytest.raises(BifrostConnectionError, match="Not connected"):
             await connection.write_batch({"40001": 100})
 
@@ -444,10 +442,10 @@ class TestModbusTCPConnection:
         mock_error_response = MagicMock()
         mock_error_response.isError.return_value = True
         mock_client.read_holding_registers = AsyncMock(return_value=mock_error_response)
-        
+
         connection._state = ConnectionState.CONNECTED
         connection._client = mock_client
-        
+
         with pytest.raises(ProtocolError, match="Modbus read error"):
             await connection.read_batch(["40001", "40002"])
 
@@ -455,28 +453,28 @@ class TestModbusTCPConnection:
         """Test address grouping by register type."""
         addresses = ["40001", "40002", "coil:1", "10001", "30001"]
         groups = connection._group_addresses_by_type(addresses)
-        
+
         assert len(groups["holding"]) == 2  # 40001, 40002
-        assert len(groups["coil"]) == 1     # coil:1
-        assert len(groups["discrete"]) == 1 # 10001
-        assert len(groups["input"]) == 1    # 30001
+        assert len(groups["coil"]) == 1  # coil:1
+        assert len(groups["discrete"]) == 1  # 10001
+        assert len(groups["input"]) == 1  # 30001
 
     def test_optimize_address_ranges(self, connection):
         """Test address range optimization."""
         # Test consecutive addresses
         address_list = [("40001", 0), ("40002", 1), ("40003", 2)]
         ranges = connection._optimize_address_ranges(address_list)
-        
+
         assert len(ranges) == 1
         start_addr, end_addr, addresses = ranges[0]
         assert start_addr == 0
         assert end_addr == 2
         assert len(addresses) == 3
-        
+
         # Test non-consecutive addresses
         address_list = [("40001", 0), ("40010", 9)]  # Gap of 9
         ranges = connection._optimize_address_ranges(address_list)
-        
+
         assert len(ranges) == 2  # Should split into separate ranges
 
     def test_optimize_write_ranges(self, connection):
@@ -484,15 +482,15 @@ class TestModbusTCPConnection:
         # Test consecutive writes
         writes = [(0, 100, "40001"), (1, 200, "40002"), (2, 300, "40003")]
         ranges = connection._optimize_write_ranges(writes)
-        
+
         assert len(ranges) == 1
         start_addr, values, addresses = ranges[0]
         assert start_addr == 0
         assert values == [100, 200, 300]
         assert len(addresses) == 3
-        
+
         # Test non-consecutive writes
         writes = [(0, 100, "40001"), (10, 200, "40011")]  # Gap
         ranges = connection._optimize_write_ranges(writes)
-        
+
         assert len(ranges) == 2  # Should split into separate ranges

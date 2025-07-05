@@ -178,11 +178,13 @@ The project aims for:
 ### 5. Beautiful CLI (`bifrost.cli`)
 
 **Design Philosophy**:
+
 - Visual clarity with rich colors and formatting
 - Interactive experience with progress bars and real-time feedback
 - Professional aesthetics that inspire confidence
 
 **Color Coding System**:
+
 - 🟢 **Green**: Success states, healthy connections, normal values
 - 🟡 **Yellow**: Warnings, thresholds approaching, configuration needed
 - 🔴 **Red**: Errors, failed connections, critical alerts
@@ -190,6 +192,7 @@ The project aims for:
 - 🟣 **Purple**: Special states, advanced features, admin functions
 
 **Core Commands**:
+
 ```bash
 bifrost discover                    # Network device discovery
 bifrost connect modbus://10.0.0.100 # Interactive connection wizard
@@ -235,11 +238,13 @@ bifrost export --format csv         # Data export with progress
 ### Open Source Dependencies
 
 **Selection Criteria**:
+
 - Permissive licensing (MIT, Apache 2.0, BSD)
 - Active maintenance and security updates
 - Performance proven in production
 
 **Core Protocol Libraries**:
+
 - **pymodbus**: Mature Modbus library (BSD)
 - **asyncua**: OPC UA client/server (LGPL - evaluate alternatives)
 - **open62541**: OPC UA C library (Mozilla Public License)
@@ -247,6 +252,7 @@ bifrost export --format csv         # Data export with progress
 - **cpppo**: Ethernet/IP support (GPL - need permissive alternative)
 
 **Performance Libraries**:
+
 - **uvloop**: High-performance event loop (Apache 2.0)
 - **msgpack**: Fast serialization (Apache 2.0)
 - **orjson**: Fast JSON parsing (Apache 2.0)
@@ -280,6 +286,7 @@ just release      # Release with synchronized versions
 ### Package Development
 
 Work is organized in the `packages/` directory with each package having:
+
 - Independent `pyproject.toml` configuration
 - Focused dependencies and scope
 - Smart imports with helpful error messages
@@ -288,6 +295,7 @@ Work is organized in the `packages/` directory with each package having:
 ### Version Synchronization
 
 All bifrost packages maintain synchronized versions:
+
 - `bifrost-core`: 1.0.0
 - `bifrost`: 1.0.0 (depends on bifrost-core ^1.0)
 - `bifrost-opcua`: 1.0.0 (depends on bifrost-core ^1.0)
@@ -296,31 +304,31 @@ All bifrost packages maintain synchronized versions:
 ## Development Phases
 
 1. **Foundation** (Months 1-2): Project infrastructure and core architecture
-2. **PLC Communication MVP** (Months 2-4): Modbus implementation with Rust engine
-3. **OPC UA Integration** (Months 4-7): High-performance OPC UA client/server
-4. **Edge Analytics Engine** (Months 6-9): Time-series processing for edge devices
-5. **Beautiful CLI Development** (Months 9-11): Rich terminal interface
-6. **Cloud Bridge Framework** (Months 8-11): Edge-to-cloud connectivity
-7. **Additional Protocol Support** (Months 10-12): Ethernet/IP, S7, etc.
-8. **Production Hardening** (Months 11-14): Testing, documentation, deployment tools
+1. **PLC Communication MVP** (Months 2-4): Modbus implementation with Rust engine
+1. **OPC UA Integration** (Months 4-7): High-performance OPC UA client/server
+1. **Edge Analytics Engine** (Months 6-9): Time-series processing for edge devices
+1. **Beautiful CLI Development** (Months 9-11): Rich terminal interface
+1. **Cloud Bridge Framework** (Months 8-11): Edge-to-cloud connectivity
+1. **Additional Protocol Support** (Months 10-12): Ethernet/IP, S7, etc.
+1. **Production Hardening** (Months 11-14): Testing, documentation, deployment tools
 
 ## Contributing Guidelines
 
 When implementing this project:
 
 1. Follow async-first patterns for all I/O operations
-2. Use context managers for resource management
-3. Implement comprehensive type hints
-4. Write performance-critical code in Rust with PyO3 bindings
-5. Maintain unified APIs across different protocols
-6. Focus on edge device constraints (memory, CPU, network)
-7. Create beautiful, intuitive CLI interfaces with rich visual feedback
-8. Include comprehensive error handling and logging
-9. Write extensive tests including performance benchmarks
-10. Use the modern toolchain (uv, ruff, just) for development
-11. Follow existing code conventions and patterns
-12. Never add comments unless explicitly requested
-13. Prioritize security - never expose or log secrets
+1. Use context managers for resource management
+1. Implement comprehensive type hints
+1. Write performance-critical code in Rust with PyO3 bindings
+1. Maintain unified APIs across different protocols
+1. Focus on edge device constraints (memory, CPU, network)
+1. Create beautiful, intuitive CLI interfaces with rich visual feedback
+1. Include comprehensive error handling and logging
+1. Write extensive tests including performance benchmarks
+1. Use the modern toolchain (uv, ruff, just) for development
+1. Follow existing code conventions and patterns
+1. Never add comments unless explicitly requested
+1. Prioritize security - never expose or log secrets
 
 ## API Design Philosophy
 
@@ -341,8 +349,8 @@ When implementing this project:
 ## Deployment Scenarios
 
 1. **Edge Gateway**: Collect from multiple PLCs, perform analytics, forward to cloud
-2. **SCADA Integration**: OPC UA server exposing PLC data with real-time analytics
-3. **Digital Twin Synchronization**: High-frequency collection with reliable cloud sync
+1. **SCADA Integration**: OPC UA server exposing PLC data with real-time analytics
+1. **Digital Twin Synchronization**: High-frequency collection with reliable cloud sync
 
 ## Key Files to Reference
 

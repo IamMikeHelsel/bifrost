@@ -9,6 +9,7 @@ Given Bifrost's polyglot architecture (Python + Rust + C/C++ bindings), we need 
 ### 1.1 Package Management: `uv` (Recommended)
 
 **Why uv over pip/poetry:**
+
 - **Speed**: 10-100x faster than pip for installs/dependency resolution
 - **Unified Interface**: Handles virtual environments, package management, and builds
 - **Compatibility**: Drop-in replacement for pip with better caching
@@ -29,6 +30,7 @@ uv pip install -e ".[dev,test]"
 ### 1.2 Linting and Formatting: `ruff` (Recommended)
 
 **Why Ruff over flake8/black/isort:**
+
 - **Speed**: 10-100x faster than traditional tools
 - **All-in-one**: Replaces flake8, black, isort, and more
 - **Configuration**: Single `pyproject.toml` configuration
@@ -58,6 +60,7 @@ indent-style = "space"
 ### 1.3 Testing: `pytest` + `pytest-cov` + `pytest-asyncio`
 
 **Testing Stack:**
+
 ```bash
 # Core testing dependencies
 uv pip install pytest pytest-cov pytest-asyncio pytest-mock
@@ -66,6 +69,7 @@ uv pip install pytest-benchmark  # Performance testing
 ```
 
 **Configuration:**
+
 ```toml
 # pyproject.toml
 [tool.pytest.ini_options]
@@ -110,6 +114,7 @@ check_untyped_defs = true
 ### 2.1 Package Management: `cargo` (Standard)
 
 **Cargo.toml Configuration:**
+
 ```toml
 [package]
 name = "bifrost-native"
@@ -126,6 +131,7 @@ modbus = "0.5"
 ### 2.2 Linting and Formatting: `rustfmt` + `clippy`
 
 **Configuration:**
+
 ```toml
 # rustfmt.toml
 max_width = 100
@@ -147,6 +153,7 @@ unwrap_used = "deny"
 ### 2.3 Testing: `cargo test`
 
 **Test Configuration:**
+
 ```toml
 # Cargo.toml
 [dev-dependencies]
@@ -164,6 +171,7 @@ harness = false
 ### 3.1 Build System: `cmake` + `pkg-config`
 
 For native library integration (open62541, snap7):
+
 ```cmake
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.15)
@@ -190,6 +198,7 @@ ColumnLimit: 100
 ### 4.1 Primary Build Tool: `maturin`
 
 **For Python-Rust Integration:**
+
 ```toml
 # pyproject.toml
 [build-system]
@@ -205,6 +214,7 @@ compatibility = "linux"
 ### 4.2 Task Runner: `just` (Recommended)
 
 **Why just over make:**
+
 - Cross-platform (Windows, Linux, macOS)
 - Modern syntax
 - Better error handling
@@ -471,6 +481,7 @@ cargo doc --open
 ### 9.1 Python Dependencies
 
 **Lock Files:**
+
 ```bash
 # Generate lock file
 uv pip compile requirements.in > requirements.txt
@@ -486,6 +497,7 @@ uv pip install -r requirements.txt
 ### 9.3 Native Dependencies
 
 **vcpkg** for C/C++ dependencies:
+
 ```json
 {
   "dependencies": [
@@ -501,16 +513,19 @@ uv pip install -r requirements.txt
 ### 10.1 From Current Tools
 
 **Phase 1: Core Tools (Week 1)**
+
 - Migrate from pip to uv
 - Migrate from black/flake8 to ruff
 - Set up just for task running
 
 **Phase 2: Advanced Tools (Week 2)**
+
 - Set up maturin for Rust integration
 - Configure pre-commit hooks
 - Implement CI/CD pipeline
 
 **Phase 3: Optimization (Week 3)**
+
 - Performance profiling setup
 - Documentation generation
 - Full polyglot integration
@@ -530,6 +545,7 @@ uv pip install -r requirements.txt
 The recommended modern toolchain (uv + ruff + just + maturin) provides significant performance improvements while maintaining compatibility with existing Python/Rust ecosystems. The polyglot nature of Bifrost is well-supported by these tools, with clear separation of concerns for each language while enabling seamless integration.
 
 This approach will result in:
+
 - Faster development cycles (10-100x faster linting/formatting)
 - Better developer experience (unified tooling)
 - Reliable builds across platforms

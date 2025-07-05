@@ -1,16 +1,8 @@
 """Tests for bifrost-core base classes."""
 
-from datetime import datetime
-
 import pytest
-from bifrost_core import (
-    BaseConnection,
-    ConnectionError,
-    ConnectionState,
-    DataPoint,
-    DataType,
-    ProtocolError,
-)
+from bifrost_core.base import BaseConnection, ConnectionState
+from bifrost_core.typing import DataType
 
 
 class MockConnection(BaseConnection):
@@ -24,50 +16,33 @@ class MockConnection(BaseConnection):
             "40002": 456.7,
             "coil:1": True,
         }
+        self._state = ConnectionState.DISCONNECTED
 
-    async def connect(self) -> None:
+    async def __aenter__(self) -> "MockConnection":
         if self.fail_connect:
             raise ConnectionError("Mock connection failure")
         self._state = ConnectionState.CONNECTED
+        return self
 
-    async def disconnect(self) -> None:
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         self._state = ConnectionState.DISCONNECTED
 
-    async def read_raw(self, address: str, count: int = 1):
+    @property
+    def is_connected(self) -> bool:
+        return self._state == ConnectionState.CONNECTED
+
+    async def read(self, tags):
         if not self.is_connected:
             raise ConnectionError("Not connected")
+        return {tag: self._mock_data.get(tag, 0) for tag in tags}
 
-        value = self._mock_data.get(address, 0)
-        return [value] * count
-
-    async def write_raw(self, address: str, values):
+    async def write(self, values):
         if not self.is_connected:
             raise ConnectionError("Not connected")
-        self._mock_data[address] = values[0]
+        self._mock_data.update(values)
 
-
-class TestDataPoint:
-    """Test DataPoint class."""
-
-    def test_datapoint_creation(self):
-        dp = DataPoint(
-            address="40001",
-            value=123,
-            data_type=DataType.INT32,
-            timestamp=datetime.now(),
-        )
-        assert dp.address == "40001"
-        assert dp.value == 123
-        assert dp.data_type == DataType.INT32
-
-    def test_datapoint_string_representation(self):
-        dp = DataPoint(
-            address="40001",
-            value=123,
-            data_type=DataType.INT32,
-            timestamp=datetime.now(),
-        )
-        assert "DataPoint(40001=123" in str(dp)
+    async def get_info(self):
+        return {"host": self.host, "port": self.port}
 
 
 class TestBaseConnection:
@@ -77,85 +52,29 @@ class TestBaseConnection:
     async def test_connection_lifecycle(self):
         conn = MockConnection("192.168.1.100", 502)
 
-        assert conn.state == ConnectionState.DISCONNECTED
-        assert not conn.is_connected
+        assert conn.is_connected is False
 
-        await conn.connect()
-        assert conn.state == ConnectionState.CONNECTED
-        assert conn.is_connected
+        async with conn as c:
+            assert c.is_connected is True
 
-        await conn.disconnect()
-        assert conn.state == ConnectionState.DISCONNECTED
-        assert not conn.is_connected
+        assert conn.is_connected is False
 
     @pytest.mark.asyncio
-    async def test_connection_context_manager(self):
+    async def test_read_write(self):
         async with MockConnection("192.168.1.100", 502) as conn:
-            assert conn.is_connected
-        # Connection should be automatically closed
+            readings = await conn.read(["40001"])
+            assert readings["40001"] == 123
 
-    @pytest.mark.asyncio
-    async def test_read_single(self):
-        async with MockConnection("192.168.1.100", 502) as conn:
-            dp = await conn.read_single("40001", DataType.INT32)
-            assert dp.address == "40001"
-            assert dp.value == 123
-            assert dp.data_type == DataType.INT32
-
-    @pytest.mark.asyncio
-    async def test_read_multiple(self):
-        async with MockConnection("192.168.1.100", 502) as conn:
-            addresses = ["40001", "40002"]
-            data_types = [DataType.INT32, DataType.FLOAT32]
-
-            results = await conn.read_multiple(addresses, data_types)
-            assert len(results) == 2
-            assert results[0].value == 123
-            assert results[1].value == 456.7
-
-    @pytest.mark.asyncio
-    async def test_write_single(self):
-        async with MockConnection("192.168.1.100", 502) as conn:
-            await conn.write_single("40003", 999, DataType.INT32)
-
-            # Verify the write
-            dp = await conn.read_single("40003", DataType.INT32)
-            assert dp.value == 999
-
-    @pytest.mark.asyncio
-    async def test_health_check(self):
-        async with MockConnection("192.168.1.100", 502) as conn:
-            is_healthy = await conn.health_check()
-            assert is_healthy
+            await conn.write({"40001": 999})
+            readings = await conn.read(["40001"])
+            assert readings["40001"] == 999
 
     @pytest.mark.asyncio
     async def test_connection_failure(self):
         conn = MockConnection("192.168.1.100", 502, fail_connect=True)
-
         with pytest.raises(ConnectionError):
-            await conn.connect()
-
-    def test_connection_properties(self):
-        conn = MockConnection("192.168.1.100", 502)
-        assert conn.host == "192.168.1.100"
-        assert conn.port == 502
-        assert conn.connection_id == "192.168.1.100:502"
-
-    def test_value_conversion(self):
-        conn = MockConnection("192.168.1.100", 502)
-
-        # Test boolean conversion
-        assert conn._convert_value(1, DataType.BOOL) is True
-        assert conn._convert_value(0, DataType.BOOL) is False
-
-        # Test integer conversion
-        assert conn._convert_value(123.7, DataType.INT32) == 123
-
-        # Test float conversion
-        assert conn._convert_value(123, DataType.FLOAT32) == 123.0
-
-        # Test string conversion
-        assert conn._convert_value(123, DataType.STRING) == "123"
+            async with conn:
+                pass
 
 
 class TestEnums:
@@ -166,20 +85,12 @@ class TestEnums:
         assert ConnectionState.CONNECTED.value == "connected"
 
     def test_data_type_enum(self):
-        assert DataType.BOOL.value == "bool"
+        assert DataType.INT16.value == "int16"
+        assert DataType.UINT16.value == "uint16"
         assert DataType.INT32.value == "int32"
+        assert DataType.UINT32.value == "uint32"
         assert DataType.FLOAT32.value == "float32"
-
-
-class TestExceptions:
-    """Test custom exceptions."""
-
-    def test_connection_error(self):
-        error = ConnectionError("Test error")
-        assert str(error) == "Test error"
-        assert isinstance(error, Exception)
-
-    def test_protocol_error(self):
-        error = ProtocolError("Protocol error")
-        assert str(error) == "Protocol error"
-        assert isinstance(error, Exception)
+        assert DataType.FLOAT64.value == "float64"
+        assert DataType.BOOLEAN.value == "boolean"
+        assert DataType.STRING.value == "string"
+        assert DataType.BYTE.value == "byte"

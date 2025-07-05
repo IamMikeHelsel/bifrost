@@ -1,11 +1,11 @@
 """Network device discovery for Bifrost."""
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-from bifrost_core.base import JsonDict
+from bifrost_core.typing import JsonDict
 
 
-async def discover_devices() -> AsyncGenerator[JsonDict, None]:
+async def discover_devices() -> AsyncGenerator[JsonDict]:
     """Discover devices on the network."""
     # This is a placeholder for network discovery. In a real implementation,
     # this function would use techniques like network scanning (e.g., with Nmap)

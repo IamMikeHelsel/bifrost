@@ -2,8 +2,8 @@
 
 __version__ = "0.1.0"
 
-from .base import BaseConnection, BaseDevice, Reading
+from .base import BaseConnection, BaseDevice, ConnectionState, DeviceInfo, Reading
 from .events import BaseEvent, EventBus
 from .features import Feature, FeatureRegistry, HasFeatures
 from .pooling import ConnectionPool
-from .typing import JsonDict, Tag, Timestamp, Value
+from .typing import DataType, JsonDict, Tag, Timestamp, Value

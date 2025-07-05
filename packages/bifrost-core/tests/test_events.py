@@ -1,165 +1,86 @@
 """Tests for bifrost-core event system."""
 
 import asyncio
+from unittest.mock import AsyncMock
 
 import pytest
-from bifrost_core import (
-    ConnectionState,
-    ConnectionStateEvent,
-    DataReceivedEvent,
-    ErrorEvent,
-    EventBus,
-    EventType,
-)
+from bifrost_core.events import BaseEvent, EventBus
+
+
+class MockEvent(BaseEvent):
+    """Mock event for testing."""
+
+    def __init__(self, value: str):
+        self.value = value
 
 
 class TestEventBus:
     """Test EventBus class."""
 
-    def test_subscribe_and_emit(self):
+    @pytest.mark.asyncio
+    async def test_on_and_emit(self):
         bus = EventBus()
-        events_received = []
+        mock_handler = AsyncMock()
 
-        def handler(event):
-            events_received.append(event)
+        await bus.on(MockEvent, mock_handler)
 
-        bus.subscribe(EventType.CONNECTION_STATE_CHANGED, handler)
+        event = MockEvent("test_value")
+        await bus.emit(event)
 
-        event = ConnectionStateEvent(
-            "test_device", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-        bus.emit(event)
-
-        assert len(events_received) == 1
-        assert events_received[0] == event
+        mock_handler.assert_called_once_with(event)
 
     @pytest.mark.asyncio
-    async def test_async_subscribe_and_emit(self):
+    async def test_off(self):
         bus = EventBus()
-        events_received = []
+        mock_handler = AsyncMock()
 
-        async def async_handler(event):
-            events_received.append(event)
+        await bus.on(MockEvent, mock_handler)
+        await bus.off(MockEvent, mock_handler)
 
-        bus.subscribe_async(EventType.DATA_RECEIVED, async_handler)
+        event = MockEvent("test_value")
+        await bus.emit(event)
 
-        event = DataReceivedEvent("test_device", "40001", 123, "int32")
-        bus.emit(event)
+        mock_handler.assert_not_called()
 
-        # Give async handler time to execute
-        await asyncio.sleep(0.1)
-
-        assert len(events_received) == 1
-        assert events_received[0] == event
-
-    def test_global_handler(self):
+    @pytest.mark.asyncio
+    async def test_multiple_handlers(self):
         bus = EventBus()
-        events_received = []
+        mock_handler1 = AsyncMock()
+        mock_handler2 = AsyncMock()
 
-        def global_handler(event):
-            events_received.append(event)
+        await bus.on(MockEvent, mock_handler1)
+        await bus.on(MockEvent, mock_handler2)
 
-        bus.subscribe_all(global_handler)
+        event = MockEvent("test_value")
+        await bus.emit(event)
 
-        # Emit different types of events
-        event1 = ConnectionStateEvent(
-            "device1", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-        event2 = DataReceivedEvent("device2", "40001", 456, "int32")
+        mock_handler1.assert_called_once_with(event)
+        mock_handler2.assert_called_once_with(event)
 
-        bus.emit(event1)
-        bus.emit(event2)
-
-        assert len(events_received) == 2
-
-    def test_unsubscribe(self):
+    @pytest.mark.asyncio
+    async def test_no_handlers(self):
         bus = EventBus()
-        events_received = []
+        event = MockEvent("test_value")
+        await bus.emit(event)
+        # Should not raise an error
 
-        def handler(event):
-            events_received.append(event)
+    @pytest.mark.asyncio
+    async def test_different_event_types(self):
+        class AnotherMockEvent(BaseEvent):
+            pass
 
-        bus.subscribe(EventType.CONNECTION_STATE_CHANGED, handler)
-        bus.unsubscribe(EventType.CONNECTION_STATE_CHANGED, handler)
-
-        event = ConnectionStateEvent(
-            "test_device", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-        bus.emit(event)
-
-        assert len(events_received) == 0
-
-    def test_event_history(self):
         bus = EventBus()
+        mock_handler1 = AsyncMock()
+        mock_handler2 = AsyncMock()
 
-        event1 = ConnectionStateEvent(
-            "device1", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-        event2 = DataReceivedEvent("device2", "40001", 789, "int32")
+        await bus.on(MockEvent, mock_handler1)
+        await bus.on(AnotherMockEvent, mock_handler2)
 
-        bus.emit(event1)
-        bus.emit(event2)
+        event1 = MockEvent("test_value")
+        event2 = AnotherMockEvent()
 
-        recent = bus.get_recent_events(count=5)
-        assert len(recent) == 2
-        assert recent[0] == event1
-        assert recent[1] == event2
+        await bus.emit(event1)
+        await bus.emit(event2)
 
-    def test_filtered_event_history(self):
-        bus = EventBus()
-
-        event1 = ConnectionStateEvent(
-            "device1", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-        event2 = DataReceivedEvent("device2", "40001", 789, "int32")
-
-        bus.emit(event1)
-        bus.emit(event2)
-
-        # Get only connection events
-        conn_events = bus.get_recent_events(
-            count=10, event_type=EventType.CONNECTION_STATE_CHANGED
-        )
-        assert len(conn_events) == 1
-        assert conn_events[0] == event1
-
-
-class TestEventTypes:
-    """Test specific event types."""
-
-    def test_connection_state_event(self):
-        event = ConnectionStateEvent(
-            "test_device", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-
-        assert event.event_type == EventType.CONNECTION_STATE_CHANGED
-        assert event.source == "test_device"
-        assert event.old_state == ConnectionState.DISCONNECTED
-        assert event.new_state == ConnectionState.CONNECTED
-
-    def test_data_received_event(self):
-        event = DataReceivedEvent("test_device", "40001", 123, "int32")
-
-        assert event.event_type == EventType.DATA_RECEIVED
-        assert event.source == "test_device"
-        assert event.data["address"] == "40001"
-        assert event.data["value"] == 123
-        assert event.data["data_type"] == "int32"
-
-    def test_error_event(self):
-        error = ValueError("Test error")
-        event = ErrorEvent("test_device", error, {"context": "test"})
-
-        assert event.event_type == EventType.ERROR_OCCURRED
-        assert event.source == "test_device"
-        assert event.data["error_type"] == "ValueError"
-        assert event.data["error_message"] == "Test error"
-        assert event.data["context"]["context"] == "test"
-
-    def test_event_string_representation(self):
-        event = ConnectionStateEvent(
-            "test_device", ConnectionState.DISCONNECTED, ConnectionState.CONNECTED
-        )
-
-        assert "Event(connection_state_changed" in str(event)
-        assert "test_device" in str(event)
+        mock_handler1.assert_called_once_with(event1)
+        mock_handler2.assert_called_once_with(event2)

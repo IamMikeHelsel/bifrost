@@ -1,11 +1,8 @@
 """Tests for network discovery functionality."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from bifrost_core import DeviceInfo, ProtocolType
-
 from bifrost.discovery import (
     BootPRequest,
     DiscoveredDevice,
@@ -13,6 +10,7 @@ from bifrost.discovery import (
     assign_device_ip,
     discover_devices,
 )
+from bifrost_core import ProtocolType
 
 
 class TestBootPRequest:
@@ -21,7 +19,7 @@ class TestBootPRequest:
     def test_bootp_request_creation(self):
         """Test creating a BootP request."""
         request = BootPRequest()
-        
+
         assert request.op == 1  # Boot request
         assert request.htype == 1  # Ethernet
         assert request.hlen == 6  # MAC address length
@@ -42,9 +40,9 @@ class TestBootPRequest:
         request = BootPRequest(
             xid=12345,
             ciaddr="192.168.1.100",
-            chaddr=b"\x00\x01\x02\x03\x04\x05" + b"\x00" * 10
+            chaddr=b"\x00\x01\x02\x03\x04\x05" + b"\x00" * 10,
         )
-        
+
         assert request.xid == 12345
         assert request.ciaddr == "192.168.1.100"
         assert request.chaddr.startswith(b"\x00\x01\x02\x03\x04\x05")
@@ -64,9 +62,9 @@ class TestDiscoveredDevice:
             protocol=ProtocolType.MODBUS_TCP,
             ports=[502],
             last_seen=1234567890.0,
-            additional_info={"model": "M340"}
+            additional_info={"model": "M340"},
         )
-        
+
         assert device.mac_address == "aa:bb:cc:dd:ee:ff"
         assert device.ip_address == "192.168.1.100"
         assert device.hostname == "plc-device"
@@ -88,9 +86,9 @@ class TestDiscoveredDevice:
             protocol=None,
             ports=[],
             last_seen=0.0,
-            additional_info={}
+            additional_info={},
         )
-        
+
         assert device.mac_address == "aa:bb:cc:dd:ee:ff"
         assert device.ip_address is None
         assert device.hostname is None
@@ -116,23 +114,24 @@ class TestNetworkDiscovery:
     @pytest.mark.asyncio
     async def test_discover_network_default(self):
         """Test basic network discovery."""
-        with patch.object(self.discovery, '_ping_sweep') as mock_ping, \
-             patch.object(self.discovery, '_arp_discovery') as mock_arp, \
-             patch.object(self.discovery, '_bootp_discovery') as mock_bootp, \
-             patch.object(self.discovery, '_modbus_discovery') as mock_modbus:
-            
+        with (
+            patch.object(self.discovery, "_ping_sweep") as mock_ping,
+            patch.object(self.discovery, "_arp_discovery") as mock_arp,
+            patch.object(self.discovery, "_bootp_discovery") as mock_bootp,
+            patch.object(self.discovery, "_modbus_discovery") as mock_modbus,
+        ):
             # Mock all discovery methods
             mock_ping.return_value = None
             mock_arp.return_value = None
             mock_bootp.return_value = None
             mock_modbus.return_value = None
-            
+
             devices = await self.discovery.discover_network(
                 network="192.168.1.0/24",
                 methods=["ping", "arp", "bootp", "modbus"],
-                timeout=5.0
+                timeout=5.0,
             )
-            
+
             assert isinstance(devices, list)
             mock_ping.assert_called_once()
             mock_arp.assert_called_once()
@@ -142,17 +141,16 @@ class TestNetworkDiscovery:
     @pytest.mark.asyncio
     async def test_discover_network_ping_only(self):
         """Test network discovery with ping only."""
-        with patch.object(self.discovery, '_ping_sweep') as mock_ping, \
-             patch.object(self.discovery, '_arp_discovery') as mock_arp:
-            
+        with (
+            patch.object(self.discovery, "_ping_sweep") as mock_ping,
+            patch.object(self.discovery, "_arp_discovery") as mock_arp,
+        ):
             mock_ping.return_value = None
-            
+
             devices = await self.discovery.discover_network(
-                network="192.168.1.0/24",
-                methods=["ping"],
-                timeout=5.0
+                network="192.168.1.0/24", methods=["ping"], timeout=5.0
             )
-            
+
             assert isinstance(devices, list)
             mock_ping.assert_called_once()
             mock_arp.assert_not_called()
@@ -161,11 +159,9 @@ class TestNetworkDiscovery:
     async def test_discover_network_invalid_method(self):
         """Test network discovery with invalid method."""
         devices = await self.discovery.discover_network(
-            network="192.168.1.0/24",
-            methods=["invalid_method"],
-            timeout=5.0
+            network="192.168.1.0/24", methods=["invalid_method"], timeout=5.0
         )
-        
+
         assert isinstance(devices, list)
 
     @pytest.mark.asyncio
@@ -177,9 +173,9 @@ class TestNetworkDiscovery:
             mock_process.communicate = AsyncMock(return_value=(b"", b""))
             mock_process.returncode = 0
             mock_subprocess.return_value = mock_process
-            
+
             await self.discovery._ping_sweep("192.168.1.0/30", timeout=1.0)
-            
+
             # Should have called subprocess for each IP in the range
             assert mock_subprocess.call_count > 0
 
@@ -192,9 +188,9 @@ class TestNetworkDiscovery:
             mock_writer = MagicMock()
             mock_writer.wait_closed = AsyncMock()
             mock_connection.return_value = (mock_reader, mock_writer)
-            
+
             await self.discovery._modbus_discovery("192.168.1.0/30", timeout=1.0)
-            
+
             # Should have attempted connections
             assert mock_connection.call_count >= 0
 
@@ -205,9 +201,9 @@ class TestNetworkDiscovery:
             mock_sock = MagicMock()
             mock_socket.return_value.__enter__.return_value = mock_sock
             mock_sock.recvfrom = MagicMock(side_effect=OSError("timeout"))
-            
+
             await self.discovery._bootp_discovery(timeout=0.1)
-            
+
             # Should have created a socket
             mock_socket.assert_called()
 
@@ -222,9 +218,9 @@ class TestDiscoveryFunctions:
             mock_discovery = MagicMock()
             mock_discovery.discover_network = AsyncMock(return_value=[])
             mock_discovery_class.return_value = mock_discovery
-            
+
             devices = await discover_devices()
-            
+
             assert isinstance(devices, list)
             mock_discovery_class.assert_called_once()
             mock_discovery.discover_network.assert_called_once()
@@ -236,18 +232,14 @@ class TestDiscoveryFunctions:
             mock_discovery = MagicMock()
             mock_discovery.discover_network = AsyncMock(return_value=[])
             mock_discovery_class.return_value = mock_discovery
-            
+
             devices = await discover_devices(
-                network="10.0.0.0/24",
-                methods=["ping"],
-                timeout=10.0
+                network="10.0.0.0/24", methods=["ping"], timeout=10.0
             )
-            
+
             assert isinstance(devices, list)
             mock_discovery.discover_network.assert_called_once_with(
-                network="10.0.0.0/24",
-                methods=["ping"],
-                timeout=10.0
+                network="10.0.0.0/24", methods=["ping"], timeout=10.0
             )
 
     @pytest.mark.asyncio
@@ -256,15 +248,12 @@ class TestDiscoveryFunctions:
         with patch("socket.socket") as mock_socket:
             mock_sock = MagicMock()
             mock_socket.return_value.__enter__.return_value = mock_sock
-            
+
             # Mock successful assignment
             result = await assign_device_ip(
-                "aa:bb:cc:dd:ee:ff",
-                "192.168.1.100",
-                "255.255.255.0",
-                "192.168.1.1"
+                "aa:bb:cc:dd:ee:ff", "192.168.1.100", "255.255.255.0", "192.168.1.1"
             )
-            
+
             assert result is True
             mock_sock.sendto.assert_called()
 
@@ -273,12 +262,9 @@ class TestDiscoveryFunctions:
         """Test failed device IP assignment."""
         with patch("socket.socket") as mock_socket:
             mock_socket.side_effect = OSError("Network error")
-            
-            result = await assign_device_ip(
-                "aa:bb:cc:dd:ee:ff",
-                "192.168.1.100"
-            )
-            
+
+            result = await assign_device_ip("aa:bb:cc:dd:ee:ff", "192.168.1.100")
+
             assert result is False
 
 
@@ -289,12 +275,10 @@ class TestEdgeCases:
     async def test_discovery_with_invalid_network(self):
         """Test discovery with invalid network."""
         discovery = NetworkDiscovery()
-        
+
         # Should handle invalid network gracefully
         devices = await discovery.discover_network(
-            network="invalid.network",
-            methods=["ping"],
-            timeout=1.0
+            network="invalid.network", methods=["ping"], timeout=1.0
         )
         assert isinstance(devices, list)
 
@@ -303,9 +287,7 @@ class TestEdgeCases:
         """Test discovery with very short timeout."""
         discovery = NetworkDiscovery()
         devices = await discovery.discover_network(
-            network="192.168.1.0/24",
-            methods=["ping"],
-            timeout=0.001
+            network="192.168.1.0/24", methods=["ping"], timeout=0.001
         )
         # Should handle timeout gracefully
         assert isinstance(devices, list)
@@ -313,19 +295,13 @@ class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_assign_ip_invalid_mac(self):
         """Test IP assignment with invalid MAC address."""
-        result = await assign_device_ip(
-            "invalid_mac",
-            "192.168.1.100"
-        )
+        result = await assign_device_ip("invalid_mac", "192.168.1.100")
         # Should handle invalid MAC gracefully
         assert result is False
 
     @pytest.mark.asyncio
     async def test_assign_ip_invalid_ip(self):
         """Test IP assignment with invalid IP address."""
-        result = await assign_device_ip(
-            "aa:bb:cc:dd:ee:ff",
-            "invalid.ip"
-        )
+        result = await assign_device_ip("aa:bb:cc:dd:ee:ff", "invalid.ip")
         # Should handle invalid IP gracefully
         assert result is False

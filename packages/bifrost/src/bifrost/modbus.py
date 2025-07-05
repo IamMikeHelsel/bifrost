@@ -1,12 +1,15 @@
 """Modbus implementation for Bifrost."""
 
 import asyncio
-from typing import Any, Sequence
+from collections.abc import Sequence
+from types import TracebackType
+from typing import Any
 
 from bifrost_core.base import Reading
 from bifrost_core.typing import JsonDict, Tag, Timestamp, Value
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
+from pymodbus.pdu import ReadHoldingRegistersResponse, WriteSingleRegisterResponse
 
 from .plc import PLC, PLCConnection
 
@@ -16,14 +19,19 @@ class ModbusConnection(PLCConnection):
 
     def __init__(self, host: str, port: int = 502):
         super().__init__(host, port)
-        self.client = AsyncModbusTcpClient(host, port)
+        self.client = AsyncModbusTcpClient(host=host, port=port)
 
     async def __aenter__(self) -> "ModbusConnection":
-        await self.client.connect()
-        self._is_connected = self.client.is_socket_open()
+        connected = await self.client.connect()
+        self._is_connected = connected
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.client.close()
         self._is_connected = False
 
@@ -43,12 +51,20 @@ class ModbusDevice(PLC[Any]):
                 # This is a simplified example. A real implementation would parse the tag
                 # to determine the address, function code, and data type.
                 address = int(tag)
-                result = await self.connection.client.read_holding_registers(address, 1)
+                result: ReadHoldingRegistersResponse = (
+                    await self.connection.client.read_holding_registers(
+                        address=address, count=1
+                    )
+                )
                 if isinstance(result, ModbusException):
                     raise result
-                timestamp = Timestamp(asyncio.get_running_loop().time())
-                readings[tag] = Reading(tag=tag, value=result.registers[0], timestamp=timestamp)
-            except (ModbusException, ValueError) as e:
+                timestamp = Timestamp(
+                    int(asyncio.get_running_loop().time() * 1_000_000_000)
+                )
+                readings[tag] = Reading(
+                    tag=tag, value=result.registers[0], timestamp=timestamp
+                )
+            except (ModbusException, ValueError):
                 # In a real implementation, we would log this error.
                 pass
         return readings
@@ -60,8 +76,17 @@ class ModbusDevice(PLC[Any]):
                 # This is a simplified example. A real implementation would parse the tag
                 # to determine the address, function code, and data type.
                 address = int(tag)
-                await self.connection.client.write_register(address, value)
-            except (ModbusException, ValueError) as e:
+                # Ensure value is an int for write_register
+                if not isinstance(value, int):
+                    raise ValueError("Modbus write value must be an integer")
+                result: WriteSingleRegisterResponse = (
+                    await self.connection.client.write_register(
+                        address=address, value=value
+                    )
+                )
+                if isinstance(result, ModbusException):
+                    raise result
+            except (ModbusException, ValueError):
                 # In a real implementation, we would log this error.
                 pass
 

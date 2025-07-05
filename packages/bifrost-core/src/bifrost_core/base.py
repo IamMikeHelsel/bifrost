@@ -1,19 +1,49 @@
 """Core abstractions for Bifrost."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, Sequence
+from collections.abc import Sequence
+from enum import Enum
+from types import TracebackType
+from typing import Generic, Optional, Type
 
 from pydantic import BaseModel, Field
 
 from .typing import JsonDict, Tag, Timestamp, Value
 
 
+class ConnectionState(Enum):
+    """Represents the state of a connection."""
+
+    DISCONNECTED = "disconnected"
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    DISCONNECTING = "disconnecting"
+
+
+class DeviceInfo(BaseModel):
+    """Represents information about a discovered device."""
+
+    device_id: str = Field(..., description="Unique identifier for the device.")
+    protocol: str = Field(..., description="The communication protocol used (e.g., 'modbus.tcp').")
+    host: str = Field(..., description="The IP address or hostname of the device.")
+    port: int = Field(..., description="The port number of the device.")
+    name: Optional[str] = Field(None, description="Human-readable name of the device.")
+    manufacturer: Optional[str] = Field(None, description="Manufacturer of the device.")
+    model: Optional[str] = Field(None, description="Model of the device.")
+    description: Optional[str] = Field(None, description="A brief description of the device.")
+    # Add more fields as needed for specific protocols or device types
+
+
 class Reading(BaseModel, Generic[Value]):
     """Represents a single data point read from a device."""
 
-    tag: Tag = Field(..., description="The unique identifier for the data point (e.g., a PLC tag).")
+    tag: Tag = Field(
+        ..., description="The unique identifier for the data point (e.g., a PLC tag)."
+    )
     value: Value = Field(..., description="The value read from the device.")
-    timestamp: Timestamp = Field(..., description="The nanosecond timestamp of when the value was read.")
+    timestamp: Timestamp = Field(
+        ..., description="The nanosecond timestamp of when the value was read."
+    )
 
 
 class BaseConnection(ABC):
@@ -25,7 +55,12 @@ class BaseConnection(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         """Exit the async context manager."""
         raise NotImplementedError
 

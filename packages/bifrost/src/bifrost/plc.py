@@ -1,5 +1,7 @@
 """Base classes for Programmable Logic Controllers (PLCs)."""
 
+from types import TracebackType
+
 from bifrost_core.base import BaseConnection, BaseDevice
 from bifrost_core.typing import Value
 
@@ -17,7 +19,12 @@ class PLCConnection(BaseConnection):
         self._is_connected = True
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         # In a real implementation, this would close the network connection.
         self._is_connected = False
 

@@ -7,6 +7,7 @@ This project has multiple ways to automatically format markdown files. Choose th
 **Automatically formats files on every commit**
 
 ### Setup
+
 ```bash
 # One-time setup
 just dev-setup  # This installs pre-commit hooks automatically
@@ -16,6 +17,7 @@ just install-hooks
 ```
 
 ### How it works
+
 - Every time you `git commit`, pre-commit automatically:
   - Formats Python code with `ruff`
   - Formats Rust code with `rustfmt`
@@ -24,6 +26,7 @@ just install-hooks
   - Validates YAML/TOML files
 
 ### Manual formatting
+
 ```bash
 # Format all files now
 just fmt-all
@@ -38,15 +41,18 @@ mdformat .        # Format markdown only
 **Formats files automatically when you save**
 
 ### Setup
+
 1. Install recommended extensions (VS Code will prompt you)
-2. Settings are already configured in `.vscode/settings.json`
+1. Settings are already configured in `.vscode/settings.json`
 
 ### How it works
+
 - **On Save**: Automatically formats Python, Markdown, TOML, JSON, YAML
 - **On Paste**: Formats pasted content
 - **Code Actions**: Organizes imports and fixes issues
 
 ### Key extensions
+
 - `charliermarsh.ruff` - Python formatting/linting
 - `DavidAnson.vscode-markdownlint` - Markdown formatting
 - `tamasfe.even-better-toml` - TOML formatting
@@ -56,6 +62,7 @@ mdformat .        # Format markdown only
 **Continuously watches and formats markdown files**
 
 ### Usage
+
 ```bash
 # Start watching (runs in foreground)
 just watch-md
@@ -71,11 +78,13 @@ Perfect for when you're writing documentation and want instant formatting.
 **Automatically formats code in pull requests**
 
 ### How it works
+
 - Runs on every pull request
 - If formatting is needed, automatically commits the changes
 - Configured in `.github/workflows/format.yml`
 
 ### Benefits
+
 - Ensures all code in the repo stays formatted
 - No manual intervention needed
 - Works for external contributors
@@ -83,6 +92,7 @@ Perfect for when you're writing documentation and want instant formatting.
 ## 🛠 Custom Configuration
 
 ### Markdown formatting options
+
 Edit `.pre-commit-config.yaml` to customize mdformat:
 
 ```yaml
@@ -97,6 +107,7 @@ Edit `.pre-commit-config.yaml` to customize mdformat:
 ```
 
 ### VS Code settings
+
 Edit `.vscode/settings.json` to customize editor behavior:
 
 ```json
@@ -140,6 +151,7 @@ just fmt
 ## 🔧 Troubleshooting
 
 ### Pre-commit not working?
+
 ```bash
 # Reinstall hooks
 just install-hooks
@@ -149,11 +161,13 @@ uv run pre-commit --version
 ```
 
 ### VS Code not formatting?
+
 1. Check if extensions are installed
-2. Restart VS Code
-3. Check Output panel for errors
+1. Restart VS Code
+1. Check Output panel for errors
 
 ### Watch mode not working?
+
 ```bash
 # Make sure mdformat is installed
 uv run mdformat --version

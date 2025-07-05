@@ -5,6 +5,7 @@ This directory contains simplified, practical GitHub Actions workflows for the B
 ## Workflows
 
 ### 🧪 [`test.yml`](test.yml) - Test Runner
+
 - **Triggers**: Push to main/dev, PRs to main
 - **Purpose**: Run the full test suite with coverage reporting
 - **Key Features**:
@@ -13,6 +14,7 @@ This directory contains simplified, practical GitHub Actions workflows for the B
   - Simple and fast
 
 ### 🎨 [`quality.yml`](quality.yml) - Code Quality Checks
+
 - **Triggers**: Push to main/dev, PRs to main
 - **Purpose**: Ensure code formatting and linting standards
 - **Key Features**:
@@ -21,6 +23,7 @@ This directory contains simplified, practical GitHub Actions workflows for the B
   - Optional type checking with mypy (non-blocking)
 
 ### 📦 [`build.yml`](build.yml) - Package Builder
+
 - **Triggers**: Push to main, PRs to main, version tags
 - **Purpose**: Build Python packages
 - **Key Features**:
@@ -29,7 +32,8 @@ This directory contains simplified, practical GitHub Actions workflows for the B
   - Validates package structure
 
 ### 🚀 [`release.yml`](release.yml) - Release Publisher
-- **Triggers**: Version tags (v*)
+
+- **Triggers**: Version tags (v\*)
 - **Purpose**: Create releases and publish to PyPI
 - **Key Features**:
   - Creates GitHub releases automatically
@@ -37,6 +41,7 @@ This directory contains simplified, practical GitHub Actions workflows for the B
   - Generates release notes
 
 ### 🔧 [`dev-check.yml`](dev-check.yml) - Development Helper
+
 - **Triggers**: Push to dev, manual dispatch
 - **Purpose**: Quick feedback for development
 - **Key Features**:
@@ -45,6 +50,7 @@ This directory contains simplified, practical GitHub Actions workflows for the B
   - Quick test runs
 
 ### 💬 [`pr-helper.yml`](pr-helper.yml) - PR Assistant
+
 - **Triggers**: Pull requests
 - **Purpose**: Provide helpful feedback on PRs
 - **Key Features**:
@@ -55,9 +61,9 @@ This directory contains simplified, practical GitHub Actions workflows for the B
 ## Why These Workflows?
 
 1. **Simple & Fast**: Each workflow has a single, clear purpose
-2. **Developer-Friendly**: Helpful error messages and fix suggestions
-3. **Non-Blocking**: Development workflows don't block on minor issues
-4. **Practical**: Focus on what actually matters for the project stage
+1. **Developer-Friendly**: Helpful error messages and fix suggestions
+1. **Non-Blocking**: Development workflows don't block on minor issues
+1. **Practical**: Focus on what actually matters for the project stage
 
 ## Required Secrets
 

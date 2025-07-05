@@ -9,12 +9,14 @@ After analyzing the Bifrost industrial IoT framework requirements, I recommend a
 ### 1.1 Monolithic Approach
 
 **Pros:**
+
 - Simple installation: `pip install bifrost`
 - Guaranteed compatibility between all components
 - Unified documentation and examples
 - Simpler dependency management for users
 
 **Cons:**
+
 - Large installation size (~200MB+ with all protocol libraries)
 - Unnecessary dependencies for specialized use cases
 - Slower installation, especially on edge devices
@@ -24,12 +26,14 @@ After analyzing the Bifrost industrial IoT framework requirements, I recommend a
 ### 1.2 Micro-Package Approach
 
 **Pros:**
+
 - Minimal footprint for specialized deployments
 - Clear separation of concerns
 - Independent versioning per protocol
 - Easy to maintain individual components
 
 **Cons:**
+
 - Complex dependency management across packages
 - Version compatibility matrix becomes unwieldy
 - Poor user experience for integrated use cases
@@ -39,6 +43,7 @@ After analyzing the Bifrost industrial IoT framework requirements, I recommend a
 ### 1.3 Hybrid Modular Approach (Recommended)
 
 **Architecture:**
+
 ```
 bifrost-core           # Core abstractions, async patterns
 bifrost               # Main package with common protocols
@@ -54,6 +59,7 @@ bifrost-all           # Meta-package for complete installation
 ### 2.1 Core Package: `bifrost-core`
 
 **Contents:**
+
 - Base classes and abstractions
 - Async patterns and utilities
 - Common data types (Tag, DataPoint, etc.)
@@ -61,12 +67,14 @@ bifrost-all           # Meta-package for complete installation
 - Type system and validation
 
 **Dependencies:**
+
 - Minimal: `asyncio`, `typing-extensions`, `pydantic`
 - Size: ~5MB
 
 ### 2.2 Main Package: `bifrost`
 
 **Contents:**
+
 - Modbus TCP/RTU support
 - Basic S7 support
 - Simple cloud connectors (MQTT)
@@ -74,6 +82,7 @@ bifrost-all           # Meta-package for complete installation
 - Depends on `bifrost-core`
 
 **Dependencies:**
+
 - `bifrost-core`
 - `pymodbus`, `snap7`, `asyncio-mqtt`
 - Size: ~25MB
@@ -81,18 +90,21 @@ bifrost-all           # Meta-package for complete installation
 ### 2.3 Optional Extensions
 
 #### `bifrost-opcua`
+
 - Full OPC UA client/server
 - Security policies implementation
 - Heavy native dependencies (open62541)
 - Size: ~50MB
 
 #### `bifrost-analytics`
+
 - Time-series processing engine
 - Rust-based analytics components
 - Machine learning integrations
 - Size: ~75MB
 
 #### `bifrost-cloud`
+
 - AWS IoT Core connector
 - Azure IoT Hub connector
 - Google Cloud IoT connector
@@ -100,12 +112,14 @@ bifrost-all           # Meta-package for complete installation
 - Size: ~30MB
 
 #### `bifrost-cli`
+
 - Complete CLI interface with Rich/Typer
 - Interactive dashboards
 - Can be installed independently
 - Size: ~15MB
 
 #### `bifrost-all`
+
 - Meta-package that installs everything
 - Convenience for full installations
 
@@ -136,11 +150,13 @@ extras_require = {
 ### 3.3 Native Dependencies Management
 
 **Rust Components:**
+
 - Use `maturin` for building Rust extensions
 - Provide pre-built wheels for common platforms
 - Fallback to source builds with clear error messages
 
 **System Dependencies:**
+
 - Document system requirements clearly
 - Provide installation scripts for common platforms
 - Use `pkg-config` for dependency detection
@@ -150,6 +166,7 @@ extras_require = {
 ### 4.1 Modern Polyglot Build System
 
 **Core Build Configuration:**
+
 ```toml
 # pyproject.toml
 [build-system]
@@ -212,6 +229,7 @@ warn_unused_configs = true
 ### 4.2 Task Runner Integration
 
 **justfile for Unified Commands:**
+
 ```bash
 # justfile
 default:
@@ -282,6 +300,7 @@ package-all:
 ### 4.3 Multi-Platform Build Strategy
 
 **GitHub Actions with Modern Tools:**
+
 ```yaml
 name: CI/CD
 
@@ -371,6 +390,7 @@ jobs:
 ```
 
 **Pre-built Wheels Strategy:**
+
 - Use `cibuildwheel` for comprehensive platform support
 - Include ARM64 for Raspberry Pi and Apple Silicon
 - Provide source distributions as fallback
@@ -393,6 +413,7 @@ bifrost-all           # Meta-package
 ### 5.2 Installation Patterns
 
 **For Edge Deployments:**
+
 ```bash
 # Minimal installation
 pip install bifrost
@@ -402,6 +423,7 @@ pip install bifrost[opcua]
 ```
 
 **For Development:**
+
 ```bash
 # Complete installation
 pip install bifrost-all
@@ -410,6 +432,7 @@ pip install bifrost[all]
 ```
 
 **For CLI-only Users:**
+
 ```bash
 # Standalone CLI
 pip install bifrost-cli
@@ -418,6 +441,7 @@ pip install bifrost-cli
 ### 5.3 Container Images
 
 **Base Images:**
+
 ```dockerfile
 # Minimal edge image
 FROM python:3.11-slim as bifrost-edge
@@ -433,12 +457,14 @@ RUN pip install bifrost[all]
 ### 6.1 Installation Guidance
 
 **Documentation Structure:**
+
 - Quick start for each user type
 - Platform-specific installation guides
 - Troubleshooting common issues
 - Migration guides between versions
 
 **Auto-detection:**
+
 ```python
 # Smart imports with helpful errors
 try:
@@ -453,6 +479,7 @@ except ImportError:
 ### 6.2 Progressive Installation
 
 **Start Small, Scale Up:**
+
 ```bash
 # Start with core
 pip install bifrost
@@ -487,6 +514,7 @@ install_requires = [
 ### 7.3 Release Strategy
 
 **Monthly Releases:**
+
 - Core package: Bug fixes and features
 - Extensions: Independent release cycles
 - Meta-package: Updated quarterly
@@ -494,21 +522,25 @@ install_requires = [
 ## 8. Implementation Roadmap
 
 ### Phase 1: Core Foundation (Months 1-2)
+
 - Implement `bifrost-core` with base abstractions
 - Set up build system with maturin
 - Create basic package structure
 
 ### Phase 2: Main Package (Months 2-3)
+
 - Implement `bifrost` with Modbus support
 - Add basic CLI functionality
 - Set up CI/CD for multi-platform builds
 
 ### Phase 3: Extensions (Months 3-6)
+
 - Implement `bifrost-opcua` with heavy dependencies
 - Add `bifrost-analytics` with Rust components
 - Create `bifrost-cloud` with cloud connectors
 
 ### Phase 4: CLI and Meta-package (Months 6-7)
+
 - Complete `bifrost-cli` with Rich interface
 - Create `bifrost-all` meta-package
 - Comprehensive documentation
@@ -516,16 +548,19 @@ install_requires = [
 ## 9. Risk Mitigation
 
 ### 9.1 Dependency Conflicts
+
 - Pin compatible versions in meta-package
 - Use dependency resolution tools
 - Provide isolation instructions
 
 ### 9.2 Build Complexity
+
 - Pre-built wheels for common platforms
 - Clear build documentation
 - Fallback strategies for unsupported platforms
 
 ### 9.3 User Confusion
+
 - Clear installation guides
 - Smart error messages
 - Progressive disclosure in documentation
@@ -533,11 +568,13 @@ install_requires = [
 ## 10. Success Metrics
 
 ### 10.1 Technical Metrics
+
 - Package size optimization (< 30MB for core)
 - Build time (< 5 minutes for all platforms)
 - Installation success rate (> 95%)
 
 ### 10.2 User Experience Metrics
+
 - Time to first success (< 10 minutes)
 - Documentation clarity scores
 - Support ticket volume

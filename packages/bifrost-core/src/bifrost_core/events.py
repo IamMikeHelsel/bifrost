@@ -2,9 +2,8 @@
 
 import asyncio
 from collections import defaultdict
-from typing import Callable, Coroutine, Type, TypeVar
-
-from .typing import T
+from collections.abc import Callable, Coroutine
+from typing import TypeVar, cast
 
 
 class BaseEvent:
@@ -21,19 +20,23 @@ class EventBus:
     """A simple event bus for dispatching events to listeners."""
 
     def __init__(self) -> None:
-        self._listeners: dict[Type[BaseEvent], list[EventHandler]] = defaultdict(list)
+        self._listeners: dict[type[BaseEvent], list[EventHandler[BaseEvent]]] = (
+            defaultdict(list)
+        )
         self._lock = asyncio.Lock()
 
-    async def on(self, event_type: Type[Event], handler: EventHandler[Event]) -> None:
+    async def on(self, event_type: type[Event], handler: EventHandler[Event]) -> None:
         """Register an event handler for a given event type."""
         async with self._lock:
-            self._listeners[event_type].append(handler)
+            self._listeners[event_type].append(cast(EventHandler[BaseEvent], handler))
 
-    async def off(self, event_type: Type[Event], handler: EventHandler[Event]) -> None:
+    async def off(self, event_type: type[Event], handler: EventHandler[Event]) -> None:
         """Unregister an event handler."""
         async with self._lock:
-            if handler in self._listeners[event_type]:
-                self._listeners[event_type].remove(handler)
+            if cast(EventHandler[BaseEvent], handler) in self._listeners[event_type]:
+                self._listeners[event_type].remove(
+                    cast(EventHandler[BaseEvent], handler)
+                )
 
     async def emit(self, event: BaseEvent) -> None:
         """Dispatch an event to all registered listeners."""

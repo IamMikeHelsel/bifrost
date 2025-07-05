@@ -1,10 +1,13 @@
 """A system for discovering and managing features provided by Bifrost components."""
 
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 from .typing import Feature
 
+__all__ = ["Feature", "HasFeatures", "FeatureRegistry"]
 
+
+@runtime_checkable
 class HasFeatures(Protocol):
     """An interface for objects that provide features."""
 

@@ -47,6 +47,7 @@ bifrost/
 ### 2.1 Repository Structure Setup
 
 **Week 1: Core Infrastructure**
+
 ```bash
 # Initialize repository structure
 mkdir -p packages/{bifrost-core,bifrost,bifrost-opcua,bifrost-analytics,bifrost-cloud,bifrost-cli,bifrost-all}
@@ -62,6 +63,7 @@ cargo install just
 **Week 2: Build System Configuration**
 
 Create root `pyproject.toml`:
+
 ```toml
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
@@ -110,6 +112,7 @@ warn_unused_configs = true
 **Week 3: Core Package Development**
 
 `packages/bifrost-core/pyproject.toml`:
+
 ```toml
 [build-system]
 requires = ["hatchling"]
@@ -145,6 +148,7 @@ path = "bifrost_core/__init__.py"
 **Week 4: Task Runner Setup**
 
 Root `justfile`:
+
 ```bash
 # justfile
 default:
@@ -228,6 +232,7 @@ clean:
 ### 2.2 Core Abstractions Implementation
 
 **packages/bifrost-core/bifrost_core/base.py**:
+
 ```python
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union, AsyncIterator
@@ -318,6 +323,7 @@ class BaseProtocol(ABC):
 ### 3.1 Rust Modbus Engine
 
 **rust/modbus-engine/Cargo.toml**:
+
 ```toml
 [package]
 name = "modbus-engine"
@@ -345,6 +351,7 @@ unwrap_used = "deny"
 ```
 
 **rust/modbus-engine/src/lib.rs**:
+
 ```rust
 use pyo3::prelude::*;
 use std::collections::HashMap;
@@ -402,6 +409,7 @@ fn modbus_engine(_py: Python, m: &PyModule) -> PyResult<()> {
 ### 3.2 Python Modbus Implementation
 
 **packages/bifrost/bifrost/modbus.py**:
+
 ```python
 from typing import List, Optional
 from bifrost_core.base import BaseConnection, BaseProtocol, ConnectionConfig, Tag, DataPoint, DataType
@@ -479,6 +487,7 @@ class ModbusProtocol(BaseProtocol):
 ### 4.1 Individual Package Configurations
 
 **packages/bifrost/pyproject.toml**:
+
 ```toml
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
@@ -514,6 +523,7 @@ bindings = "pyo3"
 ### 4.2 Meta-Package Configuration
 
 **packages/bifrost-all/pyproject.toml**:
+
 ```toml
 [build-system]
 requires = ["hatchling"]
@@ -543,6 +553,7 @@ path = "bifrost_all/__init__.py"
 ### 4.3 CI/CD Pipeline
 
 **.github/workflows/ci.yml**:
+
 ```yaml
 name: CI/CD
 
@@ -673,7 +684,8 @@ jobs:
 ### 5.1 Installation Patterns
 
 **Quick Start Documentation**:
-```markdown
+
+````markdown
 # Bifrost Installation Guide
 
 ## For Edge Deployments (Minimal)
@@ -689,9 +701,10 @@ async def main():
         data = await plc.read_tags(['temperature', 'pressure'])
         print(data)
 "
-```
+````
 
 ## For Full Development Environment
+
 ```bash
 # Install everything
 pip install bifrost-all
@@ -701,6 +714,7 @@ pip install bifrost[opcua,analytics,cloud,cli]
 ```
 
 ## For CLI-only Usage
+
 ```bash
 # Install standalone CLI
 pip install bifrost-cli
@@ -709,7 +723,8 @@ pip install bifrost-cli
 bifrost discover
 bifrost connect modbus://192.168.1.100
 ```
-```
+
+````
 
 ### 5.2 Smart Import System
 
@@ -762,31 +777,35 @@ def __getattr__(name):
 
 # Always available
 __all__ = ['connect', 'list_protocols', 'Tag', 'DataPoint', 'DataType']
-```
+````
 
 ## 6. Timeline and Milestones
 
 ### 6.1 Development Timeline
 
 **Phase 1: Foundation (Weeks 1-4)**
+
 - ✅ Repository structure and tooling setup
 - ✅ Core abstractions implementation
 - ✅ Build system configuration
 - ✅ CI/CD pipeline setup
 
 **Phase 2: Modbus MVP (Weeks 5-8)**
+
 - 🔄 Rust Modbus engine implementation
 - 🔄 Python Modbus wrapper
 - 🔄 Performance benchmarking
 - 🔄 Documentation and examples
 
 **Phase 3: Package Distribution (Weeks 9-12)**
+
 - 📅 Individual package configurations
 - 📅 Meta-package setup
 - 📅 PyPI publishing pipeline
 - 📅 User experience optimization
 
 **Phase 4: Additional Protocols (Weeks 13-16)**
+
 - 📅 OPC UA implementation
 - 📅 Edge analytics engine
 - 📅 Cloud connectors
@@ -795,12 +814,14 @@ __all__ = ['connect', 'list_protocols', 'Tag', 'DataPoint', 'DataType']
 ### 6.2 Success Metrics
 
 **Technical Metrics:**
+
 - Build time: < 5 minutes for all platforms
 - Package size: < 30MB for core package
 - Installation success rate: > 95%
 - Performance: 10x faster than pure Python alternatives
 
 **User Experience Metrics:**
+
 - Time to first success: < 10 minutes
 - Documentation clarity: Community feedback
 - Support ticket volume: < 5 per week after v0.5
@@ -810,24 +831,29 @@ __all__ = ['connect', 'list_protocols', 'Tag', 'DataPoint', 'DataType']
 ### 7.1 Technical Risks
 
 **Rust/Python Integration Complexity**
+
 - Mitigation: Start with simple Modbus implementation
 - Fallback: Pure Python implementation for unsupported platforms
 
 **Performance Targets**
+
 - Mitigation: Continuous benchmarking in CI
 - Validation: Performance regression tests
 
 **Dependency Management**
+
 - Mitigation: Lock files and compatibility matrices
 - Automation: Automated dependency updates with testing
 
 ### 7.2 User Adoption Risks
 
 **Complex Installation**
+
 - Mitigation: Pre-built wheels for all platforms
 - Documentation: Clear installation guides per use case
 
 **Learning Curve**
+
 - Mitigation: Progressive disclosure in API design
 - Support: Comprehensive examples and tutorials
 
@@ -836,6 +862,7 @@ __all__ = ['connect', 'list_protocols', 'Tag', 'DataPoint', 'DataType']
 This implementation plan provides a comprehensive roadmap for building Bifrost with modern tooling and packaging strategies. The hybrid modular approach balances flexibility with usability, while the modern toolchain (uv, ruff, just, maturin) provides significant performance improvements and better developer experience.
 
 Key advantages of this approach:
+
 - **Performance**: 10-100x faster tooling improves development velocity
 - **Flexibility**: Users can install only what they need
 - **Maintainability**: Clear separation of concerns and automated tooling
