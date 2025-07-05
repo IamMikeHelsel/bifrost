@@ -6,7 +6,7 @@ from enum import Enum
 from types import TracebackType
 from typing import Generic, Optional, Type
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .typing import JsonDict, Tag, Timestamp, Value
 
@@ -41,12 +41,42 @@ class DeviceInfo(BaseModel):
     description: str | None = Field(
         None, description="A brief description of the device."
     )
-    # Add more fields as needed for specific protocols or device types
+    device_type: str | None = Field(
+        None, description="Type of device (PLC, HMI, Sensor, etc.)"
+    )
+    firmware_version: str | None = Field(
+        None, description="Firmware version of the device."
+    )
+    serial_number: str | None = Field(
+        None, description="Serial number of the device."
+    )
+    vendor_id: int | None = Field(
+        None, description="Vendor ID for protocol-specific identification."
+    )
+    product_code: int | None = Field(
+        None, description="Product code for protocol-specific identification."
+    )
+    mac_address: str | None = Field(
+        None, description="MAC address of the device."
+    )
+    discovery_method: str = Field(
+        ..., description="Method used to discover this device (bootp, cip, modbus, etc.)"
+    )
+    confidence: float = Field(
+        1.0, description="Confidence level of device identification (0.0-1.0)", ge=0.0, le=1.0
+    )
+    last_seen: Timestamp | None = Field(
+        None, description="Timestamp when device was last discovered."
+    )
+    metadata: JsonDict = Field(
+        default_factory=dict, description="Additional protocol-specific metadata."
+    )
 
-    @model_post_init
-    def set_default_name(self) -> None:
+    @model_validator(mode='after')
+    def set_default_name(self):
         if self.name is None:
             self.name = self.device_id
+        return self
 
 
 class Reading(BaseModel, Generic[Value]):
