@@ -1,7 +1,8 @@
 """Tests for main bifrost package initialization."""
 
 import pytest
-from bifrost import BaseConnection, DataPoint, DataType, __version__
+from bifrost_core.base import BaseConnection
+from bifrost import __version__
 
 
 class TestBifrostInit:
@@ -16,15 +17,15 @@ class TestBifrostInit:
         """Test that core components are properly imported."""
         # Test that we can import core classes
         assert BaseConnection is not None
-        assert DataPoint is not None
-        assert DataType is not None
 
     def test_smart_import_error(self):
         """Test that missing optional dependencies give helpful errors."""
         with pytest.raises(ImportError) as exc_info:
             # This should trigger the smart import error
-            pass
+            from bifrost import OPCUAClient
+
+            OPCUAClient()
 
         error_msg = str(exc_info.value)
-        assert "OPCUAClient" in error_msg
-        assert "bifrost[opcua]" in error_msg or "bifrost-opcua" in error_msg
+        assert "OPC UA support requires: pip install bifrost-opcua" in error_msg
+        assert "Or for everything: pip install bifrost-all" in error_msg

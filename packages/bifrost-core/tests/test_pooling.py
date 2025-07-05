@@ -12,7 +12,8 @@ class MockConnection(BaseConnection):
     """Mock connection for testing."""
 
     def __init__(self, host: str, port: int = 502):
-        super().__init__(host, port)
+        self.host = host
+        self.port = port
         self._is_connected_flag = False
 
     async def __aenter__(self) -> "MockConnection":
@@ -41,7 +42,9 @@ class TestConnectionPool:
 
     @pytest.mark.asyncio
     async def test_get_new_connection(self):
-        pool = ConnectionPool(connection_factory=lambda: MockConnection("localhost"), max_size=1)
+        async def factory():
+            return MockConnection("localhost")
+        pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = await pool.get()
         assert isinstance(conn, MockConnection)
         assert conn.is_connected
@@ -71,7 +74,9 @@ class TestConnectionPool:
 
     @pytest.mark.asyncio
     async def test_put_disconnected_connection(self):
-        pool = ConnectionPool(connection_factory=lambda: MockConnection("localhost"), max_size=1)
+        async def factory():
+            return MockConnection("localhost")
+        pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = MockConnection("localhost")
         # Simulate a disconnected connection
         conn._is_connected_flag = False

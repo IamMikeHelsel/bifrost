@@ -9,7 +9,8 @@ class MockConnection(BaseConnection):
     """Mock connection for testing."""
 
     def __init__(self, host: str, port: int = 502, fail_connect: bool = False):
-        super().__init__(host, port)
+        self.host = host
+        self.port = port
         self.fail_connect = fail_connect
         self._mock_data = {
             "40001": 123,

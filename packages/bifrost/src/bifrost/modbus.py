@@ -9,7 +9,7 @@ from bifrost_core.base import Reading
 from bifrost_core.typing import JsonDict, Tag, Timestamp, Value
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
-from pymodbus.pdu import ReadHoldingRegistersResponse, WriteSingleRegisterResponse
+from pymodbus.pdu.register_message import ReadHoldingRegistersResponse, WriteSingleRegisterResponse
 
 from .plc import PLC, PLCConnection
 

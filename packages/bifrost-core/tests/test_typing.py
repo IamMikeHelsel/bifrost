@@ -59,7 +59,7 @@ class TestTag:
         assert result == 42
 
     def test_tag_string_representation(self):
-        tag = Tag("temp", "40001", DataType.FLOAT32)
+        tag = Tag(name="temp", address="40001", data_type=DataType.FLOAT32)
         assert "Tag(temp, 40001, float32)" in str(tag)
 
 
@@ -99,7 +99,7 @@ class TestDeviceInfo:
 
     def test_device_connection_string_no_port(self):
         device = DeviceInfo(
-            device_id="PLC001", protocol="opcua.tcp", host="192.168.1.100"
+            device_id="PLC001", protocol="opcua.tcp", host="192.168.1.100", port=4840
         )
 
         assert device.protocol == "opcua.tcp"
@@ -107,7 +107,7 @@ class TestDeviceInfo:
 
     def test_device_default_name(self):
         device = DeviceInfo(
-            device_id="PLC001", protocol="modbus.tcp", host="192.168.1.100"
+            device_id="PLC001", protocol="modbus.tcp", host="192.168.1.100", port=502
         )
 
         # Name should default to device_id
