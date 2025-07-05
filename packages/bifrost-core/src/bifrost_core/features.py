@@ -21,6 +21,7 @@ class FeatureRegistry:
     """A registry for discovering and managing features."""
 
     def __init__(self) -> None:
+        """Initialize the feature registry."""
         self._providers: dict[Feature, list[Any]] = {}
 
     def register(self, provider: Any) -> None:

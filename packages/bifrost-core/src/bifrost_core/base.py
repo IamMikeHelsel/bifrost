@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from enum import Enum
 from types import TracebackType
-from typing import Generic, Optional, Type
+from typing import Generic
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .typing import JsonDict, Tag, Timestamp, Value
 
@@ -43,10 +43,12 @@ class DeviceInfo(BaseModel):
     )
     # Add more fields as needed for specific protocols or device types
 
-    @model_post_init
-    def set_default_name(self) -> None:
+    @model_validator(mode="after")
+    def set_default_name(self) -> "DeviceInfo":
+        """Set default name if not provided."""
         if self.name is None:
             self.name = self.device_id
+        return self
 
 
 class Reading(BaseModel, Generic[Value]):
@@ -91,6 +93,11 @@ class BaseDevice(ABC, Generic[Value]):
     """Abstract base class for a device."""
 
     def __init__(self, connection: BaseConnection):
+        """Initialize the device with a connection.
+
+        Args:
+            connection: The connection to use for communicating with the device.
+        """
         self.connection = connection
 
     @abstractmethod

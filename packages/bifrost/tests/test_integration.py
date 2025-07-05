@@ -12,7 +12,6 @@ from bifrost.connections import ConnectionFactory
 from bifrost.discovery import discover_devices
 from bifrost.modbus import ModbusConnection
 from bifrost_core import (
-    ConnectionState,
     DataType,
     DeviceInfo,
     Tag,
@@ -25,7 +24,6 @@ class TestEndToEndModbusWorkflow:
     @pytest.mark.asyncio
     async def test_complete_modbus_workflow(self):
         """Test discovering, connecting, and reading from a Modbus device."""
-
         # Mock a complete Modbus device workflow
         with (
             patch(
@@ -113,7 +111,6 @@ class TestEndToEndModbusWorkflow:
     @pytest.mark.asyncio
     async def test_connection_context_manager_workflow(self):
         """Test using connection as async context manager."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.connect.return_value = True
@@ -141,7 +138,6 @@ class TestEndToEndModbusWorkflow:
     @pytest.mark.asyncio
     async def test_error_handling_workflow(self):
         """Test error handling in complete workflow."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.connect.return_value = False  # Connection failure
@@ -156,7 +152,6 @@ class TestEndToEndModbusWorkflow:
     @pytest.mark.asyncio
     async def test_batch_operations_workflow(self):
         """Test batch read/write operations."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.connect.return_value = True
@@ -177,7 +172,7 @@ class TestEndToEndModbusWorkflow:
 
             connection = ModbusConnection("192.168.1.100", 502)
             device = ModbusDevice(connection)
-            async with connection as conn:
+            async with connection:
                 # Test batch read
                 readings = await device.read(
                     [
@@ -247,7 +242,6 @@ class TestCLIIntegration:
     @patch("bifrost.discovery.discover_devices")
     def test_cli_discover_command(self, mock_discover_devices):
         """Test CLI discover command integration."""
-
         # Mock discovery results
         mock_discover_devices.return_value = AsyncMock(
             return_value=[
@@ -284,7 +278,6 @@ class TestConnectionPoolingIntegration:
     @pytest.mark.asyncio
     async def test_pooled_connection_workflow(self):
         """Test using pooled connections."""
-
         from bifrost_core.pooling import ConnectionPool
 
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
@@ -331,7 +324,6 @@ class TestEventSystemIntegration:
     @pytest.mark.asyncio
     async def test_event_driven_monitoring(self):
         """Test event-driven device monitoring."""
-
         from bifrost_core import EventBus
 
         # Set up event collection
@@ -341,7 +333,7 @@ class TestEventSystemIntegration:
             events_received.append(event)
 
         # Subscribe to all events
-        event_bus = EventBus()
+        EventBus()
         # event_bus.subscribe_global(event_handler) # No subscribe_global in new EventBus
 
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
@@ -381,7 +373,6 @@ class TestScalabilityScenarios:
     @pytest.mark.asyncio
     async def test_multiple_concurrent_connections(self):
         """Test handling multiple concurrent connections."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             # Create multiple mock clients
             mock_clients = []
@@ -426,7 +417,6 @@ class TestScalabilityScenarios:
     @pytest.mark.asyncio
     async def test_high_frequency_operations(self):
         """Test high-frequency read/write operations."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.connect.return_value = True
@@ -473,7 +463,6 @@ class TestRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_factory_monitoring_scenario(self):
         """Test a factory monitoring scenario with multiple devices."""
-
         # Simulate a factory with multiple PLCs and sensors
         device_configs = [
             {
@@ -563,7 +552,6 @@ class TestRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_device_failover_scenario(self):
         """Test device failover scenario."""
-
         primary_host = "192.168.1.100"
         backup_host = "192.168.1.101"
 
@@ -610,7 +598,6 @@ class TestConfigurationManagement:
     @pytest.mark.asyncio
     async def test_configuration_driven_deployment(self):
         """Test deployment driven by configuration files."""
-
         # Simulate configuration file
         config = {
             "devices": [
@@ -686,7 +673,6 @@ class TestPerformanceBenchmarks:
     @pytest.mark.asyncio
     async def test_connection_establishment_performance(self):
         """Benchmark connection establishment performance."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.connect.return_value = True
@@ -726,7 +712,6 @@ class TestPerformanceBenchmarks:
     @pytest.mark.asyncio
     async def test_data_throughput_performance(self):
         """Benchmark data read throughput."""
-
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.connect.return_value = True
@@ -751,7 +736,7 @@ class TestPerformanceBenchmarks:
                     task = asyncio.create_task(conn.read([Tag("40001")]))
                     tasks.append(task)
 
-                results = await asyncio.gather(*tasks)
+                await asyncio.gather(*tasks)
                 end_time = time.time()
 
                 # Performance assertion

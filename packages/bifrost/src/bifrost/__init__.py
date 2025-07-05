@@ -14,7 +14,16 @@ try:
     from bifrost_opcua import OPCUAClient  # type: ignore
 except ImportError:
 
-    def OPCUAClient(*args: Any, **kwargs: Any) -> Any:
+    def OPCUAClient(*args: Any, **kwargs: Any) -> Any:  # noqa: N802, ARG001
+        """Placeholder for OPC UA client when bifrost-opcua is not installed.
+
+        Args:
+            *args: Positional arguments.
+            **kwargs: Keyword arguments.
+
+        Raises:
+            ImportError: Always raised to indicate missing dependency.
+        """
         raise ImportError(
             "OPC UA support requires: pip install bifrost-opcua\n"
             "Or for everything: pip install bifrost-all"
@@ -25,7 +34,16 @@ try:
     from bifrost_analytics import AnalyticsEngine  # type: ignore
 except ImportError:
 
-    def AnalyticsEngine(*args: Any, **kwargs: Any) -> Any:
+    def AnalyticsEngine(*args: Any, **kwargs: Any) -> Any:  # noqa: N802, ARG001
+        """Placeholder for analytics engine when bifrost-analytics is not installed.
+
+        Args:
+            *args: Positional arguments.
+            **kwargs: Keyword arguments.
+
+        Raises:
+            ImportError: Always raised to indicate missing dependency.
+        """
         raise ImportError(
             "Analytics support requires: pip install bifrost-analytics\n"
             "Or for everything: pip install bifrost-all"
@@ -36,7 +54,16 @@ try:
     from bifrost_cloud import CloudBridge  # type: ignore
 except ImportError:
 
-    def CloudBridge(*args: Any, **kwargs: Any) -> Any:
+    def CloudBridge(*args: Any, **kwargs: Any) -> Any:  # noqa: N802, ARG001
+        """Placeholder for cloud bridge when bifrost-cloud is not installed.
+
+        Args:
+            *args: Positional arguments.
+            **kwargs: Keyword arguments.
+
+        Raises:
+            ImportError: Always raised to indicate missing dependency.
+        """
         raise ImportError(
             "Cloud support requires: pip install bifrost-cloud\n"
             "Or for everything: pip install bifrost-all"

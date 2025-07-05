@@ -1,7 +1,6 @@
 """Tests for connection pooling functionality."""
 
 import asyncio
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -29,7 +28,7 @@ class MockConnection(BaseConnection):
         return self._is_connected_flag
 
     async def read(self, tags):
-        return {tag: 1 for tag in tags}
+        return dict.fromkeys(tags, 1)
 
     async def write(self, values):
         pass

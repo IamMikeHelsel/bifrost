@@ -23,10 +23,5 @@ class ConnectionFactory:
 
         if scheme == "modbus.tcp":
             return ModbusConnection(hostname, port or 502)
-        # In the future, we can add support for other protocols here.
-        # elif scheme == "opcua.tcp":
-        #     return OPCUAConnection(hostname, port or 4840)
-        # elif scheme == "s7":
-        #     return S7Connection(hostname, port or 102)
-        else:
-            raise ValueError(f"Unsupported protocol: {scheme}")
+        # Future protocol support will be added here
+        raise ValueError(f"Unsupported protocol: {scheme}")
