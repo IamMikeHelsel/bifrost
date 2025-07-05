@@ -1,15 +1,33 @@
-bazel_dep(name = "rules_rust", version = "0.40.0")
-bazel_dep(name = "rules_python", version = "0.31.0")
+module(
+    name = "bifrost",
+    version = "0.1.0"
+)
 
+bazel_dep(name = "rules_rust", version = "0.62.0")
+bazel_dep(name = "rules_python", version = "0.40.0")
+
+# Rust toolchain configuration
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(name = "rust_toolchain")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.80.1"]
+)
+use_repo(rust, "rust_toolchains")
+register_toolchains("@rust_toolchains//:all")
 
-python = use_extension("@rules_python//python:extensions.bzl", "python")
-python.toolchain(name = "python_toolchain")
+# Crate universe configuration
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
 
-use_repo_rule(rust, "crates_repository")
-use_repo_rule(python, "pip_parse")
+# Use the Cargo.toml from the native package
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//packages/bifrost/native:Cargo.lock",
+    manifests = ["//packages/bifrost/native:Cargo.toml"]
+)
 
-# This is where you would define your Rust dependencies from Cargo.toml
-# For now, we'll rely on the existing Cargo.toml in packages/bifrost/native
-# and let rules_rust handle it.
+use_repo(crate, "crates")
+
+# Python toolchain configuration
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = "3.12")
+use_repo(python, "python_versions")
