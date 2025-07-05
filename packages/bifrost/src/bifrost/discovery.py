@@ -1,7 +1,12 @@
-"""Network device discovery for Bifrost."""
+"""Network device discovery for Bifrost.
+
+This module provides multi-protocol device discovery capabilities for industrial
+networks, supporting BOOTP/DHCP, Ethernet/IP (CIP), and Modbus TCP protocols.
+"""
 
 import asyncio
 import ipaddress
+import random
 import socket
 import struct
 import time
@@ -13,7 +18,14 @@ from bifrost_core.typing import JsonDict
 
 
 class DiscoveryConfig:
-    """Configuration for device discovery."""
+    """Configuration for device discovery.
+    
+    Attributes:
+        network_range: IP network range to scan (CIDR notation).
+        timeout: Timeout in seconds for each device connection attempt.
+        max_concurrent: Maximum number of concurrent connections.
+        protocols: List of protocols to use for discovery.
+    """
     
     def __init__(
         self,
@@ -22,6 +34,14 @@ class DiscoveryConfig:
         max_concurrent: int = 50,
         protocols: Sequence[str] = ("modbus", "cip", "bootp"),
     ):
+        """Initialize discovery configuration.
+        
+        Args:
+            network_range: IP network range to scan (default: 192.168.1.0/24).
+            timeout: Timeout in seconds for connections (default: 2.0).
+            max_concurrent: Max concurrent connections (default: 50).
+            protocols: Discovery protocols to use (default: all).
+        """
         self.network_range = network_range
         self.timeout = timeout
         self.max_concurrent = max_concurrent
