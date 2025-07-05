@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        
+      - name: Set up Python
+        run: uv python install 3.13
+        
+      - name: Build packages
+        run: |
+          for pkg in packages/*/; do
+            if [ -f "$pkg/pyproject.toml" ]; then
+              echo "Building $pkg"
+              (cd "$pkg" && uv build)
+            fi
+          done
+          
+      - name: List built packages
+        run: |
+          echo "Built packages:"
+          find packages -name "*.whl" -o -name "*.tar.gz" | sort
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: |
+            packages/*/dist/*.whl
+            packages/*/dist/*.tar.gz

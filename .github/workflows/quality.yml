@@ -1,0 +1,57 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        
+      - name: Set up Python
+        run: uv python install 3.13
+        
+      - name: Install dependencies
+        run: uv sync --dev
+        
+      - name: Run ruff format check
+        run: uv run ruff format --check .
+        
+      - name: Run ruff linter
+        run: uv run ruff check .
+        
+      - name: Check import sorting
+        run: uv run ruff check . --select I
+        
+  type-check:
+    name: Type Check (Optional)
+    runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail the workflow
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        
+      - name: Set up Python
+        run: uv python install 3.13
+        
+      - name: Install dependencies
+        run: uv sync --dev
+        
+      - name: Run mypy
+        run: |
+          uv run mypy packages/*/src \
+            --ignore-missing-imports \
+            --no-strict-optional \
+            --no-error-summary || true

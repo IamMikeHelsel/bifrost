@@ -1,5 +1,9 @@
 # 🌉 Bifrost - Bridge Your OT Equipment to Modern IT Infrastructure
 
+[![Test](https://github.com/yourusername/bifrost/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/bifrost/actions/workflows/test.yml)
+[![Code Quality](https://github.com/yourusername/bifrost/actions/workflows/quality.yml/badge.svg)](https://github.com/yourusername/bifrost/actions/workflows/quality.yml)
+[![Build](https://github.com/yourusername/bifrost/actions/workflows/build.yml/badge.svg)](https://github.com/yourusername/bifrost/actions/workflows/build.yml)
+
 **Bifrost** makes industrial equipment speak the language of modern software. Built for engineers stuck between the OT and IT worlds.
 
 ## 🤝 The Problem We're Solving

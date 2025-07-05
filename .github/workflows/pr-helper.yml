@@ -1,0 +1,120 @@
+name: PR Helper
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  pr-check:
+    name: PR Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        
+      - name: Set up Python
+        run: uv python install 3.13
+        
+      - name: Install dependencies
+        run: uv sync --dev
+        
+      - name: Get changed files
+        id: changed-files
+        run: |
+          echo "files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(py|toml|md)$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          
+      - name: Run checks on changed files
+        id: checks
+        run: |
+          # Initialize result tracking
+          echo "## 🔍 PR Quality Report" > pr-report.md
+          echo "" >> pr-report.md
+          
+          # Format check
+          echo "### 📝 Format Check" >> pr-report.md
+          if uv run ruff format --check . 2>&1 | tee format-check.txt; then
+            echo "✅ All files properly formatted" >> pr-report.md
+          else
+            echo "❌ Format issues found. Run \`just fmt\` to fix:" >> pr-report.md
+            echo "\`\`\`" >> pr-report.md
+            grep "would reformat" format-check.txt | head -10 >> pr-report.md
+            echo "\`\`\`" >> pr-report.md
+          fi
+          echo "" >> pr-report.md
+          
+          # Lint check
+          echo "### 🔧 Lint Check" >> pr-report.md
+          if uv run ruff check . 2>&1 | tee lint-check.txt; then
+            echo "✅ No linting issues" >> pr-report.md
+          else
+            echo "❌ Linting issues found. Run \`just lint\` to auto-fix:" >> pr-report.md
+            echo "\`\`\`" >> pr-report.md
+            head -20 lint-check.txt >> pr-report.md
+            echo "\`\`\`" >> pr-report.md
+          fi
+          echo "" >> pr-report.md
+          
+          # Test check (only test changed packages)
+          echo "### 🧪 Test Status" >> pr-report.md
+          if uv run pytest -xvs --tb=short packages/*/tests 2>&1 | tee test-check.txt | grep -E "(PASSED|FAILED|ERROR)"; then
+            if grep -q "FAILED\|ERROR" test-check.txt; then
+              echo "❌ Some tests are failing" >> pr-report.md
+            else
+              echo "✅ All tests passing" >> pr-report.md
+            fi
+          else
+            echo "⚠️ No tests found or test run failed" >> pr-report.md
+          fi
+          echo "" >> pr-report.md
+          
+          # Helpful commands
+          echo "### 💡 Quick Fixes" >> pr-report.md
+          echo "Run these commands locally to address any issues:" >> pr-report.md
+          echo "\`\`\`bash" >> pr-report.md
+          echo "just check  # Run format, lint, and tests" >> pr-report.md
+          echo "just fmt    # Auto-format code" >> pr-report.md
+          echo "just lint   # Auto-fix linting issues" >> pr-report.md
+          echo "\`\`\`" >> pr-report.md
+          
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('pr-report.md', 'utf8');
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('PR Quality Report')
+            );
+            
+            // Update or create comment
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }
