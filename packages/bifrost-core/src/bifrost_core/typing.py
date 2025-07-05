@@ -29,7 +29,24 @@ from pydantic import BaseModel, Field
 
 
 class Tag(BaseModel):
-    """Represents a unique identifier for a data point (e.g., a PLC tag or sensor reading)."""
+    """Represents a unique identifier for a data point.
+    
+    Used to identify PLC tags, sensor readings, or other data points
+    in industrial protocols. Tags are immutable and hashable for use
+    as dictionary keys.
+    
+    Attributes:
+        name: Human-readable name of the tag.
+        address: Device-specific address or identifier.
+        data_type: Expected data type of the tag.
+        description: Brief description of the tag.
+        units: Units of measurement for the tag's value.
+        read_only: True if the tag is read-only.
+        scaling_factor: Factor to multiply the raw value by.
+        offset: Value to add to the scaled value.
+    """
+    
+    model_config = {"frozen": True}  # Make the model immutable and hashable
 
     name: str = Field(..., description="Human-readable name of the tag.")
     address: str = Field(
@@ -56,7 +73,14 @@ class Tag(BaseModel):
     )
 
     def apply_scaling(self, raw_value: Any) -> Any:
-        """Applies scaling and offset to a raw value."""
+        """Apply scaling and offset to a raw value.
+        
+        Args:
+            raw_value: The raw value read from the device.
+            
+        Returns:
+            The scaled value with appropriate type conversion.
+        """
         if self.scaling_factor is not None:
             scaled_value = raw_value * self.scaling_factor
         else:

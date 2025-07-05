@@ -48,13 +48,27 @@ class DiscoveryConfig:
         self.protocols = protocols
 
 
-async def discover_bootp_devices(config: DiscoveryConfig) -> AsyncGenerator[DeviceInfo, None]:
-    """Discover devices using BOOTP/DHCP discovery."""
-    # BOOTP discovery listens for BOOTP/DHCP traffic and device announcements
-    # This is a simplified implementation - real BOOTP discovery would:
-    # 1. Listen for DHCP discover/request packets
-    # 2. Parse vendor-specific information
-    # 3. Identify industrial devices by vendor class identifiers
+async def discover_bootp_devices(
+    config: DiscoveryConfig
+) -> AsyncGenerator[DeviceInfo, None]:
+    """Discover devices using BOOTP/DHCP discovery.
+    
+    Sends DHCP discover packets and listens for responses from devices
+    requesting IP addresses. This is particularly useful for finding
+    industrial devices during commissioning.
+    
+    Args:
+        config: Discovery configuration parameters.
+        
+    Yields:
+        DeviceInfo objects for discovered BOOTP/DHCP devices.
+        
+    Note:
+        This is a simplified implementation. Production use would require:
+        - Parsing vendor-specific DHCP options
+        - Identifying industrial devices by vendor class
+        - Handling DHCP relay agents
+    """
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -73,7 +87,6 @@ async def discover_bootp_devices(config: DiscoveryConfig) -> AsyncGenerator[Devi
         dhcp_discover[3] = 0  # Hops
         
         # Transaction ID (random)
-        import random
         txid = random.randint(0, 0xFFFFFFFF)
         dhcp_discover[4:8] = struct.pack(">I", txid)
         
@@ -106,10 +119,21 @@ async def discover_bootp_devices(config: DiscoveryConfig) -> AsyncGenerator[Devi
         sock.close()
 
 
-async def discover_cip_devices(config: DiscoveryConfig) -> AsyncGenerator[DeviceInfo, None]:
-    """Discover devices using Ethernet/IP CIP ListIdentity."""
-    # CIP ListIdentity multicast discovery
-    # Sends ListIdentity (0x0063) command to multicast address 224.0.1.1:44818
+async def discover_cip_devices(
+    config: DiscoveryConfig
+) -> AsyncGenerator[DeviceInfo, None]:
+    """Discover devices using Ethernet/IP CIP ListIdentity.
+    
+    Sends CIP ListIdentity command (0x0063) to discover EtherNet/IP
+    devices on the network. Uses both multicast (224.0.1.1:44818) and
+    broadcast for maximum compatibility.
+    
+    Args:
+        config: Discovery configuration parameters.
+        
+    Yields:
+        DeviceInfo objects for discovered EtherNet/IP devices.
+    """
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -125,7 +149,8 @@ async def discover_cip_devices(config: DiscoveryConfig) -> AsyncGenerator[Device
         list_identity.extend([0x00, 0x00])  # Length: 0
         list_identity.extend([0x00, 0x00, 0x00, 0x00])  # Session Handle: 0
         list_identity.extend([0x00, 0x00, 0x00, 0x00])  # Status: 0
-        list_identity.extend([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])  # Sender Context
+        # Sender Context (8 bytes)
+        list_identity.extend([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
         list_identity.extend([0x00, 0x00, 0x00, 0x00])  # Options: 0
         
         # Send to multicast address
@@ -169,12 +194,26 @@ async def discover_cip_devices(config: DiscoveryConfig) -> AsyncGenerator[Device
         sock.close()
 
 
-async def discover_modbus_devices(config: DiscoveryConfig) -> AsyncGenerator[DeviceInfo, None]:
-    """Discover Modbus TCP devices by scanning network range."""
+async def discover_modbus_devices(
+    config: DiscoveryConfig
+) -> AsyncGenerator[DeviceInfo, None]:
+    """Discover Modbus TCP devices by scanning network range.
+    
+    Scans the specified network range for devices listening on the
+    standard Modbus TCP port (502). Attempts to read device identification
+    using function code 0x2B (Read Device Identification).
+    
+    Args:
+        config: Discovery configuration parameters.
+        
+    Yields:
+        DeviceInfo objects for discovered Modbus devices.
+    """
     network = ipaddress.ip_network(config.network_range, strict=False)
     semaphore = asyncio.Semaphore(config.max_concurrent)
     
     async def scan_host(host: str) -> DeviceInfo | None:
+        """Scan a single host for Modbus TCP service."""
         async with semaphore:
             try:
                 # Connect to Modbus TCP port (502)
@@ -184,7 +223,9 @@ async def discover_modbus_devices(config: DiscoveryConfig) -> AsyncGenerator[Dev
                 )
                 
                 # Send Modbus Read Device Identification request
-                # Transaction ID (2), Protocol ID (2), Length (6), Unit ID (1), Function (1), MEI Type (1), Read Code (1), Object ID (1)
+                # Format: Transaction ID (2), Protocol ID (2), Length (6),
+                # Unit ID (1), Function (1), MEI Type (1), Read Code (1),
+                # Object ID (1)
                 request = bytearray([
                     0x00, 0x01,  # Transaction ID
                     0x00, 0x00,  # Protocol ID
@@ -224,7 +265,8 @@ async def discover_modbus_devices(config: DiscoveryConfig) -> AsyncGenerator[Dev
                     # Try to parse device identification if available
                     if len(response) > 12 and response[7] == 0x2B:
                         # Parse vendor name, product code, etc. from response
-                        # This is simplified - real parsing would handle the full MEI response
+                        # This is simplified - real parsing would handle the
+                        # full MEI response structure
                         device_info.metadata["has_device_identification"] = True
                     
                     return device_info
@@ -256,7 +298,23 @@ async def discover_devices(
     config: DiscoveryConfig | None = None,
     protocols: Sequence[str] | None = None
 ) -> AsyncGenerator[DeviceInfo, None]:
-    """Discover devices using multiple protocols."""
+    """Discover devices using multiple protocols.
+    
+    Main entry point for device discovery. Runs protocol-specific
+    discovery methods and yields unique devices as they are found.
+    
+    Args:
+        config: Discovery configuration. If None, uses defaults.
+        protocols: List of protocols to use. If None, uses config.protocols.
+        
+    Yields:
+        DeviceInfo objects for all discovered devices, deduplicated by
+        (host, port, protocol) tuple.
+        
+    Example:
+        async for device in discover_devices():
+            print(f"Found {device.device_type} at {device.host}:{device.port}")
+    """
     if config is None:
         config = DiscoveryConfig()
     
@@ -278,31 +336,11 @@ async def discover_devices(
     # Merge results from all discovery methods
     seen_devices = set()
     
-    async def collect_from_generator(gen: AsyncGenerator[DeviceInfo, None]):
+    # Simple sequential approach for now
+    # TODO: Implement proper concurrent generator merging
+    for gen in discovery_tasks:
         async for device in gen:
             device_key = (device.host, device.port, device.protocol)
             if device_key not in seen_devices:
                 seen_devices.add(device_key)
                 yield device
-    
-    # Collect from all generators concurrently
-    import asyncio
-    from asyncio import create_task
-    
-    tasks = [create_task(collect_from_generator(gen).__anext__()) for gen in discovery_tasks]
-    
-    while tasks:
-        done, tasks = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        
-        for task in done:
-            try:
-                device = await task
-                yield device
-                # Create a new task for the same generator
-                # This is simplified - real implementation would handle generator completion
-            except StopAsyncIteration:
-                # Generator completed
-                pass
-            except Exception:
-                # Handle errors
-                pass

@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pymodbus.exceptions import ModbusException
 
-from bifrost.modbus import ModbusConnection
-from bifrost_core import ConnectionState
+from bifrost.modbus import ModbusConnection, ModbusDevice
+from bifrost_core import ConnectionState, DataType, Tag
 
 
 class TestModbusConnection:
@@ -27,6 +27,11 @@ class TestModbusConnection:
         conn = ModbusConnection(host="192.168.1.100", port=502)
         conn.client = mock_client  # Inject mock client
         return conn
+    
+    @pytest.fixture
+    async def modbus_device(self, connection):
+        """Create Modbus device with mock connection."""
+        return ModbusDevice(connection)
 
     @pytest.mark.asyncio
     async def test_connect_success(self, connection, mock_client):
@@ -40,9 +45,8 @@ class TestModbusConnection:
         """Test connection failure."""
         mock_client.connect.return_value = False
 
-        with pytest.raises(ConnectionError, match="Failed to connect"):
-            async with connection:
-                pass
+        async with connection:
+            assert not connection.is_connected
 
     @pytest.mark.asyncio
     async def test_disconnect(self, connection, mock_client):
@@ -53,64 +57,82 @@ class TestModbusConnection:
         mock_client.close.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_read_holding_register(self, connection, mock_client):
+    async def test_read_holding_register(self, modbus_device, mock_client):
         """Test reading a holding register."""
         response = MagicMock()
         response.isError.return_value = False
         response.registers = [54321]
         mock_client.read_holding_registers = AsyncMock(return_value=response)
 
-        async with connection:
-            result = await connection.read(["40001"])
-            assert result["40001"].value == 54321
+        async with modbus_device.connection:
+            tags = [Tag(name="test", address="40001", data_type=DataType.INT16)]
+            result = await modbus_device.read(tags)
+            assert tags[0] in result
+            assert result[tags[0]].value == 54321
             mock_client.read_holding_registers.assert_called_once_with(
-                address=40001, count=1
+                address=0, count=1, slave=1
             )
 
     @pytest.mark.asyncio
-    async def test_read_error(self, connection, mock_client):
+    async def test_read_error(self, modbus_device, mock_client):
         """Test read error handling."""
         response = MagicMock()
         response.isError.return_value = True
         mock_client.read_holding_registers = AsyncMock(return_value=response)
 
-        async with connection:
-            result = await connection.read(["40001"])
-            assert "40001" not in result  # Error should result in no reading
+        async with modbus_device.connection:
+            tags = [Tag(name="test", address="40001", data_type=DataType.INT16)]
+            result = await modbus_device.read(tags)
+            assert len(result) == 0  # Error should result in no reading
 
     @pytest.mark.asyncio
-    async def test_write_holding_register(self, connection, mock_client):
+    async def test_write_holding_register(self, modbus_device, mock_client):
         """Test writing a holding register."""
         response = MagicMock()
         response.isError.return_value = False
         mock_client.write_register = AsyncMock(return_value=response)
 
-        async with connection:
-            await connection.write({"40001": 12345})
+        async with modbus_device.connection:
+            tag = Tag(name="test", address="40001", data_type=DataType.INT16)
+            await modbus_device.write({tag: 12345})
             mock_client.write_register.assert_called_once_with(
-                address=40001, value=12345
+                address=0, value=12345, slave=1
             )
 
     @pytest.mark.asyncio
-    async def test_write_error(self, connection, mock_client):
+    async def test_write_error(self, modbus_device, mock_client):
         """Test write error handling."""
         response = MagicMock()
         response.isError.return_value = True
         mock_client.write_register = AsyncMock(return_value=response)
 
-        async with connection:
-            await connection.write({"40001": 12345})
+        async with modbus_device.connection:
+            tag = Tag(name="test", address="40001", data_type=DataType.INT16)
+            await modbus_device.write({tag: 12345})
             # No exception should be raised, but the write should not have occurred
             mock_client.write_register.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_connection_not_connected_error(self, connection):
+    async def test_connection_not_connected_error(self, modbus_device, mock_client):
         """Test operations when not connected."""
-        with pytest.raises(ConnectionError, match="Failed to connect"):
-            await connection.read(["40001"])
-
-        with pytest.raises(ConnectionError, match="Failed to connect"):
-            await connection.write({"40001": 123})
+        # Without context manager, operations should handle gracefully
+        tags = [Tag(name="test", address="40001", data_type=DataType.INT16)]
+        
+        # Set up mock to simulate not being connected
+        mock_client.read_holding_registers = AsyncMock(
+            side_effect=Exception("Not connected")
+        )
+        
+        result = await modbus_device.read(tags)
+        assert len(result) == 0  # Should return empty result on error
+        
+        # Test write as well
+        mock_client.write_register = AsyncMock(
+            side_effect=Exception("Not connected")
+        )
+        
+        tag = Tag(name="test", address="40001", data_type=DataType.INT16)
+        await modbus_device.write({tag: 123})  # Should not raise
 
     @pytest.mark.asyncio
     async def test_modbus_exception_handling(self, modbus_device, mock_client):

@@ -1,4 +1,9 @@
-"""Core abstractions for Bifrost."""
+"""Core abstractions for Bifrost.
+
+This module defines the core abstractions and base classes used throughout
+the Bifrost framework, including device information models, connection
+interfaces, and data reading patterns.
+"""
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence

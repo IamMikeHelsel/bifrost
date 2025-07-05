@@ -1,4 +1,8 @@
-"""Command-line interface for Bifrost."""
+"""Command-line interface for Bifrost.
+
+This module provides the CLI commands for the Bifrost industrial IoT framework,
+including device discovery and network scanning capabilities.
+"""
 
 import asyncio
 from typing import Optional, Sequence
@@ -12,7 +16,11 @@ from rich.text import Text
 
 from .discovery import DiscoveryConfig, discover_devices
 
-app = typer.Typer()
+app = typer.Typer(
+    name="bifrost",
+    help="Bifrost - Industrial IoT Framework",
+    add_completion=False,
+)
 console = Console()
 
 
