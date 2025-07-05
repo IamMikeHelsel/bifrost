@@ -108,12 +108,12 @@ class TestModbusConnection:
             await connection.write({"40001": 123})
 
     @pytest.mark.asyncio
-    async def test_modbus_exception_handling(self, connection, mock_client):
+    async def test_modbus_exception_handling(self, modbus_device, mock_client):
         """Test handling of Modbus exceptions."""
         mock_client.read_holding_registers = AsyncMock(
             side_effect=ModbusException("Test exception")
         )
 
-        async with connection:
-            result = await connection.read(["40001"])
-            assert "40001" not in result
+        async with modbus_device.connection:
+            result = await modbus_device.read([Tag(name="test", address="40001", data_type=DataType.INT16)])
+            assert Tag(name="test", address="40001", data_type=DataType.INT16) not in result

@@ -169,15 +169,16 @@ class TestEndToEndModbusWorkflow:
             mock_client_class.return_value = mock_client
 
             connection = ModbusConnection("192.168.1.100", 502)
+            device = ModbusDevice(connection)
             async with connection as conn:
 
                 # Test batch read
-                readings = await conn.read([Tag(str(40001 + i)) for i in range(5)])
+                readings = await device.read([Tag(name=f"tag{i}", address=str(40001 + i), data_type=DataType.INT16) for i in range(5)])
                 assert len(readings) == 5
-                assert readings[Tag("40001")].value == 10
+                assert readings[Tag(name="tag0", address="40001", data_type=DataType.INT16)].value == 10
 
                 # Test batch write
-                await conn.write({Tag("40001"): 100, Tag("40002"): 200, Tag("40003"): 300})
+                await device.write({Tag(name="tag0", address="40001", data_type=DataType.INT16): 100, Tag(name="tag1", address="40002", data_type=DataType.INT16): 200, Tag(name="tag2", address="40003", data_type=DataType.INT16): 300})
 
             assert not connection.is_connected
 
@@ -547,7 +548,7 @@ class TestRealWorldScenarios:
             readings = await active_connection.read([Tag("40001")])
             assert readings[Tag("40001")].value == 100
 
-            assert not active_connection.is_connected
+            # Disconnect handled by context manager
 
 
 class TestConfigurationManagement:

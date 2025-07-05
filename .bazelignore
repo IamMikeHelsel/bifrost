@@ -1,0 +1,8 @@
+# Directories and files to be ignored by Bazel
+.git/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
+dist/
+UNKNOWN.egg-info/

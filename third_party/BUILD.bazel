@@ -1,0 +1,2 @@
+# This is the BUILD.bazel file for the third_party directory.
+# It will contain rules for external dependencies like open62541 and snap7.

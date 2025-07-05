@@ -1,0 +1,11 @@
+pydantic>=2.5
+typing-extensions>=4.8
+pymodbus>=3.5
+rich>=13.7
+typer>=0.12
+uvloop>=0.19
+orjson>=3.9
+pytest>=8.0
+pytest-asyncio>=0.23
+mypy>=1.8
+ruff>=0.1.9

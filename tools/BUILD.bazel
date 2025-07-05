@@ -1,0 +1,2 @@
+# This is the BUILD.bazel file for the tools directory.
+# It can define rules for various tooling used in the project.

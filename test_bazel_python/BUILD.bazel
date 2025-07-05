@@ -1,0 +1,9 @@
+
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "hello_world_test",
+    srcs = ["hello_world.py"],
+    main = "hello_world.py",
+    python_version = "3.13",
+)

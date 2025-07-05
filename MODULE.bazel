@@ -1,0 +1,19 @@
+
+# This is the MODULE.bazel file for the modern Bazel module system.
+# It declares the modules and their dependencies.
+
+module(name = "bifrost", version = "0.1.0")
+
+bazel_dep(name = "rules_python", version = "0.31.0")
+bazel_dep(name = "rules_rust", version = "0.40.0")
+
+# For PyO3 integration, if needed
+bazel_dep(name = "bazel_skylib", version = "1.5.0")
+bazel_dep(name = "platforms", version = "0.0.10")
+
+# For crate_universe (Rust dependencies)
+# archive_override(
+#     module_name = "crate_universe",
+#     urls = ["https://github.com/bazel-contrib/rules_rust/releases/download/0.40.0/crate_universe.tar.gz"],
+#     strip_prefix = "crate_universe-0.40.0",
+# )

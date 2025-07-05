@@ -33,6 +33,11 @@ class DeviceInfo(BaseModel):
     description: Optional[str] = Field(None, description="A brief description of the device.")
     # Add more fields as needed for specific protocols or device types
 
+    @model_post_init
+    def set_default_name(self) -> None:
+        if self.name is None:
+            self.name = self.device_id
+
 
 class Reading(BaseModel, Generic[Value]):
     """Represents a single data point read from a device."""

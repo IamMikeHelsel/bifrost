@@ -1,0 +1,28 @@
+
+# This is the main Bazel workspace file.
+# It defines the root of the workspace and declares external dependencies.
+
+# Load the Bzlmod extension
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+# Use Bzlmod for dependency management
+# For rules_python
+# For rules_rust
+
+# Example of how to fetch rules if not using Bzlmod (for reference, not active)
+# git_repository(
+#     name = "rules_python",
+#     remote = "https://github.com/bazelbuild/rules_python.git",
+#     tag = "0.31.0", # Use a specific tag or commit hash
+# )
+# git_repository(
+#     name = "rules_rust",
+#     remote = "https://github.com/bazelbuild/rules_rust.git",
+#     tag = "0.40.0", # Use a specific tag or commit hash
+# )
+
+# Configure toolchain resolution (if needed for specific toolchains)
+# toolchain_resolution(
+#     python_toolchains = ["@rules_python//python/toolchains:current_py_toolchain"],
+#     rust_toolchains = ["@rules_rust//rust/toolchains:current_rust_toolchain"],
+# )
