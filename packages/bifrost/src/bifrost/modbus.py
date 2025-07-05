@@ -22,10 +22,17 @@ class ModbusConnection(PLCConnection):
     """Represents a connection to a Modbus device."""
 
     def __init__(self, host: str, port: int = 502):
+        """Initialize the Modbus connection.
+
+        Args:
+            host: The IP address or hostname of the Modbus device.
+            port: The port number to connect to (default: 502).
+        """
         super().__init__(host, port)
         self.client = AsyncModbusTcpClient(host=host, port=port)
 
     async def __aenter__(self) -> "ModbusConnection":
+        """Enter the async context manager and connect to the device."""
         connected = await self.client.connect()
         self._is_connected = connected
         return self
@@ -36,6 +43,7 @@ class ModbusConnection(PLCConnection):
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        """Exit the async context manager and disconnect from the device."""
         self.client.close()
         self._is_connected = False
 
@@ -44,6 +52,11 @@ class ModbusDevice(PLC[Any]):
     """Represents a Modbus device."""
 
     def __init__(self, connection: ModbusConnection):
+        """Initialize the Modbus device.
+
+        Args:
+            connection: The Modbus connection to use for communication.
+        """
         super().__init__(connection)
         self.connection: ModbusConnection  # For type hinting
 

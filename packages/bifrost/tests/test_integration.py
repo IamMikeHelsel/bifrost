@@ -172,7 +172,7 @@ class TestEndToEndModbusWorkflow:
 
             connection = ModbusConnection("192.168.1.100", 502)
             device = ModbusDevice(connection)
-            async with connection as conn:
+            async with connection:
                 # Test batch read
                 readings = await device.read(
                     [
@@ -333,7 +333,7 @@ class TestEventSystemIntegration:
             events_received.append(event)
 
         # Subscribe to all events
-        event_bus = EventBus()
+        EventBus()
         # event_bus.subscribe_global(event_handler) # No subscribe_global in new EventBus
 
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
@@ -736,7 +736,7 @@ class TestPerformanceBenchmarks:
                     task = asyncio.create_task(conn.read([Tag("40001")]))
                     tasks.append(task)
 
-                results = await asyncio.gather(*tasks)
+                await asyncio.gather(*tasks)
                 end_time = time.time()
 
                 # Performance assertion

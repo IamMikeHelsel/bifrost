@@ -10,11 +10,18 @@ class PLCConnection(BaseConnection):
     """Represents a connection to a PLC."""
 
     def __init__(self, host: str, port: int):
+        """Initialize the PLC connection.
+
+        Args:
+            host: The IP address or hostname of the PLC.
+            port: The port number to connect to.
+        """
         self.host = host
         self.port = port
         self._is_connected = False
 
     async def __aenter__(self) -> "PLCConnection":
+        """Enter the async context manager and connect to the PLC."""
         # In a real implementation, this would establish a network connection.
         self._is_connected = True
         return self
@@ -25,11 +32,17 @@ class PLCConnection(BaseConnection):
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        """Exit the async context manager and disconnect from the PLC."""
         # In a real implementation, this would close the network connection.
         self._is_connected = False
 
     @property
     def is_connected(self) -> bool:
+        """Check if the connection is currently active.
+
+        Returns:
+            True if connected, False otherwise.
+        """
         return self._is_connected
 
 
@@ -37,4 +50,9 @@ class PLC(BaseDevice[Value]):
     """Represents a generic PLC."""
 
     def __init__(self, connection: PLCConnection):
+        """Initialize the PLC device.
+
+        Args:
+            connection: The PLC connection to use for communication.
+        """
         super().__init__(connection)

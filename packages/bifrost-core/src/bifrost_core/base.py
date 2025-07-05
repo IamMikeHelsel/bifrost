@@ -94,7 +94,7 @@ class BaseDevice(ABC, Generic[Value]):
 
     def __init__(self, connection: BaseConnection):
         """Initialize the device with a connection.
-        
+
         Args:
             connection: The connection to use for communicating with the device.
         """
