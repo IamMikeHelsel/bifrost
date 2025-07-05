@@ -18,11 +18,13 @@ rust_library(
     crate_name = "modbus_native",
     edition = "2021",
     deps = [
-        "@rules_rust//:pyo3",
-        "@rules_rust//:tokio",
+        "@@pyo3//:pyo3",
+        "@@tokio//:tokio",
     ],
     proc_macro_deps = [
-        "@rules_rust//:pyo3-macros",
+        "@@pyo3_macros//:pyo3_macros",
     ],
 )
+
+
 

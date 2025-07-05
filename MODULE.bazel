@@ -1,4 +1,3 @@
-
 # This is the MODULE.bazel file for the modern Bazel module system.
 # It declares the modules and their dependencies.
 
@@ -19,9 +18,23 @@ rust.toolchain(
 use_repo(rust, "rust_toolchains")
 register_toolchains("@rust_toolchains//:all")
 
-# For crate_universe (Rust dependencies)
-# archive_override(
-#     module_name = "crate_universe",
-#     urls = ["https://github.com/bazel-contrib/rules_rust/releases/download/0.40.0/crate_universe.tar.gz"],
-#     strip_prefix = "crate_universe-0.40.0",
-# )
+bazel_dep(name = "pyo3", version = "0.21.0")
+archive_override(
+    module_name = "pyo3",
+    urls = ["https://crates.io/api/v1/crates/pyo3/0.21.0/download"],
+    integrity = "sha256-a02a88a17e74cadbc8ce77855e1d6c8ad0ab82901a4a9b5046bd01c1c0bd95cd",
+)
+
+bazel_dep(name = "pyo3_macros", version = "0.21.0")
+archive_override(
+    module_name = "pyo3_macros",
+    urls = ["https://crates.io/api/v1/crates/pyo3-macros/0.21.0/download"],
+    integrity = "sha256-4e80493c5965f94a747d0782a607b2328a4eea5391327b152b00e2f3b001cede",
+)
+
+bazel_dep(name = "tokio", version = "1.38.0")
+archive_override(
+    module_name = "tokio",
+    urls = ["https://crates.io/api/v1/crates/tokio/1.38.0/download"],
+    integrity = "sha256-ba4f4a02a7a80d6f274636f0aa95c7e383b912d41fe721a31f29e29698585a4a",
+)
