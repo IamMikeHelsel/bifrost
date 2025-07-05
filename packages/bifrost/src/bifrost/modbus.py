@@ -246,6 +246,241 @@ class ModbusConnection(BaseConnection):
         """String representation."""
         return f"{self.__class__.__name__}(host='{self.host}', port={self.port}, unit_id={self.unit_id})"
 
+    async def read_batch(self, addresses: list[str]) -> dict[str, list[Any]]:
+        """Read multiple addresses in batch for better performance.
+        
+        Args:
+            addresses: List of addresses to read (e.g., ["40001", "40002", "coil:1"])
+            
+        Returns:
+            Dictionary mapping addresses to their values
+            
+        Raises:
+            ConnectionError: If not connected
+            ProtocolError: If Modbus operation fails
+        """
+        if not self._client or not self.is_connected:
+            raise ConnectionError("Not connected to Modbus device")
+            
+        results = {}
+        
+        # Group addresses by register type for efficient batch reads
+        address_groups = self._group_addresses_by_type(addresses)
+        
+        try:
+            for register_type, address_list in address_groups.items():
+                if not address_list:
+                    continue
+                    
+                # Sort addresses to enable range optimization
+                sorted_addresses = sorted(address_list, key=lambda x: x[1])  # Sort by register address
+                
+                # Read ranges efficiently
+                for start_addr, end_addr, original_addresses in self._optimize_address_ranges(sorted_addresses):
+                    count = end_addr - start_addr + 1
+                    
+                    # Perform batch read
+                    if register_type == "coil":
+                        response = await self._client.read_coils(start_addr, count, slave=self.unit_id)
+                    elif register_type == "discrete":
+                        response = await self._client.read_discrete_inputs(start_addr, count, slave=self.unit_id)
+                    elif register_type == "input":
+                        response = await self._client.read_input_registers(start_addr, count, slave=self.unit_id)
+                    elif register_type == "holding":
+                        response = await self._client.read_holding_registers(start_addr, count, slave=self.unit_id)
+                    else:
+                        raise ProtocolError(f"Unknown register type: {register_type}")
+                    
+                    # Check for errors
+                    if response.isError():
+                        if isinstance(response, ExceptionResponse):
+                            raise ProtocolError(f"Modbus exception: {response}")
+                        else:
+                            raise ProtocolError(f"Modbus read error: {response}")
+                    
+                    # Extract values and map back to original addresses
+                    if register_type in ("coil", "discrete"):
+                        values = response.bits[:count]
+                    else:
+                        values = response.registers[:count]
+                    
+                    # Map values back to original addresses
+                    for original_addr, reg_addr in original_addresses:
+                        value_index = reg_addr - start_addr
+                        results[original_addr] = [values[value_index]]
+            
+            # Emit batch data received event
+            emit_event(
+                DataReceivedEvent(
+                    self.connection_id, 
+                    f"batch:{len(addresses)}", 
+                    results, 
+                    "batch"
+                )
+            )
+            
+            return results
+            
+        except ModbusException as e:
+            error = ProtocolError(f"Modbus batch read error: {e}")
+            emit_event(ErrorEvent(self.connection_id, error))
+            raise error from e
+        except builtins.TimeoutError as e:
+            error = TimeoutError("Modbus batch read timeout")
+            emit_event(ErrorEvent(self.connection_id, error))
+            raise error from e
+        except Exception as e:
+            emit_event(ErrorEvent(self.connection_id, e))
+            raise
+
+    async def write_batch(self, address_values: dict[str, Any]) -> None:
+        """Write multiple addresses in batch for better performance.
+        
+        Args:
+            address_values: Dictionary mapping addresses to values
+                           (e.g., {"40001": 100, "40002": 200, "coil:1": True})
+                           
+        Raises:
+            ConnectionError: If not connected
+            ProtocolError: If Modbus operation fails
+        """
+        if not self._client or not self.is_connected:
+            raise ConnectionError("Not connected to Modbus device")
+            
+        # Group writes by register type
+        write_groups = {}
+        for address, value in address_values.items():
+            register_type, reg_address = self._parse_address(address)
+            
+            if register_type not in write_groups:
+                write_groups[register_type] = []
+            write_groups[register_type].append((reg_address, value, address))
+        
+        try:
+            for register_type, writes in write_groups.items():
+                if register_type not in ("coil", "holding"):
+                    raise ProtocolError(f"Cannot write to {register_type} registers")
+                
+                # Sort by address for range optimization
+                sorted_writes = sorted(writes, key=lambda x: x[0])
+                
+                # Check if we can do range writes
+                ranges = self._optimize_write_ranges(sorted_writes)
+                
+                for start_addr, values, original_addresses in ranges:
+                    if len(values) == 1:
+                        # Single write
+                        value = values[0]
+                        if register_type == "coil":
+                            response = await self._client.write_coil(
+                                start_addr, bool(value), slave=self.unit_id
+                            )
+                        else:  # holding
+                            response = await self._client.write_register(
+                                start_addr, int(value), slave=self.unit_id
+                            )
+                    else:
+                        # Multiple write
+                        if register_type == "coil":
+                            response = await self._client.write_coils(
+                                start_addr, [bool(v) for v in values], slave=self.unit_id
+                            )
+                        else:  # holding
+                            response = await self._client.write_registers(
+                                start_addr, [int(v) for v in values], slave=self.unit_id
+                            )
+                    
+                    # Check for errors
+                    if response.isError():
+                        if isinstance(response, ExceptionResponse):
+                            raise ProtocolError(f"Modbus exception: {response}")
+                        else:
+                            raise ProtocolError(f"Modbus write error: {response}")
+            
+        except ModbusException as e:
+            error = ProtocolError(f"Modbus batch write error: {e}")
+            emit_event(ErrorEvent(self.connection_id, error))
+            raise error from e
+        except Exception as e:
+            emit_event(ErrorEvent(self.connection_id, e))
+            raise
+
+    def _group_addresses_by_type(self, addresses: list[str]) -> dict[str, list[tuple[str, int]]]:
+        """Group addresses by register type for efficient batch reading."""
+        groups = {"coil": [], "discrete": [], "input": [], "holding": []}
+        
+        for addr in addresses:
+            register_type, reg_address = self._parse_address(addr)
+            groups[register_type].append((addr, reg_address))
+        
+        return groups
+
+    def _optimize_address_ranges(self, address_list: list[tuple[str, int]]) -> list[tuple[int, int, list[tuple[str, int]]]]:
+        """Optimize address list into efficient read ranges.
+        
+        Returns:
+            List of (start_addr, end_addr, original_addresses) tuples
+        """
+        if not address_list:
+            return []
+        
+        ranges = []
+        current_start = address_list[0][1]
+        current_end = address_list[0][1]
+        current_addresses = [address_list[0]]
+        
+        for i in range(1, len(address_list)):
+            addr, reg_addr = address_list[i]
+            
+            # If address is consecutive or within small gap, extend range
+            if reg_addr <= current_end + 5:  # Allow small gaps for efficiency
+                current_end = max(current_end, reg_addr)
+                current_addresses.append((addr, reg_addr))
+            else:
+                # Start new range
+                ranges.append((current_start, current_end, current_addresses))
+                current_start = reg_addr
+                current_end = reg_addr
+                current_addresses = [(addr, reg_addr)]
+        
+        # Add final range
+        ranges.append((current_start, current_end, current_addresses))
+        
+        return ranges
+
+    def _optimize_write_ranges(self, writes: list[tuple[int, Any, str]]) -> list[tuple[int, list[Any], list[str]]]:
+        """Optimize write operations into efficient ranges.
+        
+        Returns:
+            List of (start_addr, values, original_addresses) tuples
+        """
+        if not writes:
+            return []
+        
+        ranges = []
+        current_start = writes[0][0]
+        current_values = [writes[0][1]]
+        current_addresses = [writes[0][2]]
+        
+        for i in range(1, len(writes)):
+            reg_addr, value, original_addr = writes[i]
+            
+            # If address is consecutive, extend range
+            if reg_addr == current_start + len(current_values):
+                current_values.append(value)
+                current_addresses.append(original_addr)
+            else:
+                # Start new range
+                ranges.append((current_start, current_values, current_addresses))
+                current_start = reg_addr
+                current_values = [value]
+                current_addresses = [original_addr]
+        
+        # Add final range
+        ranges.append((current_start, current_values, current_addresses))
+        
+        return ranges
+
 
 class ModbusTCPConnection(ModbusConnection):
     """Modbus TCP connection implementation."""
