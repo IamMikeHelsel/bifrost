@@ -16,10 +16,35 @@ from rich.text import Text
 
 from .discovery import DiscoveryConfig, discover_devices
 
+
+def complete_protocols(incomplete: str):
+    """Autocomplete function for protocol options."""
+    protocols = ["modbus", "cip", "bootp", "ethernet_ip"]
+    return [protocol for protocol in protocols if protocol.startswith(incomplete)]
+
+
+def complete_network_ranges(incomplete: str):
+    """Autocomplete function for common network ranges."""
+    common_ranges = [
+        "192.168.1.0/24",
+        "192.168.0.0/24", 
+        "10.0.0.0/24",
+        "10.0.0.0/16",
+        "172.16.0.0/24",
+        "127.0.0.1/32",
+    ]
+    return [range_str for range_str in common_ranges if range_str.startswith(incomplete)]
+
+
+def complete_timeouts(incomplete: str):
+    """Autocomplete function for timeout values."""
+    timeouts = ["0.5", "1.0", "2.0", "5.0", "10.0"]
+    return [timeout for timeout in timeouts if timeout.startswith(incomplete)]
+
 app = typer.Typer(
     name="bifrost",
     help="Bifrost - Industrial IoT Framework for device discovery and automation",
-    add_completion=False,
+    add_completion=True,
     rich_markup_mode="rich",
     no_args_is_help=True,
 )
