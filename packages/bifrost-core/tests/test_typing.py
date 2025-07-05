@@ -1,6 +1,5 @@
 """Tests for bifrost-core typing utilities."""
 
-
 from bifrost_core.base import DeviceInfo
 from bifrost_core.typing import DataType, Tag
 
