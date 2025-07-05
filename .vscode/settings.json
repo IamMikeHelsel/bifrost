@@ -32,7 +32,8 @@
   // Markdown linting configuration
   "markdownlint.config": {
     "MD040": false,  // Disable "fenced code blocks should have a language specified"
-    "MD024": false   // Disable "multiple headings with the same content"
+    "MD024": false,  // Disable "multiple headings with the same content"
+    "MD036": false   // Disable "emphasis used instead of a heading"
   },
   
   // TOML settings

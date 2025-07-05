@@ -5,6 +5,12 @@ module(name = "bifrost", version = "0.1.0")
 
 bazel_dep(name = "rules_python", version = "0.40.0")
 bazel_dep(name = "rules_rust", version = "0.62.0")
+bazel_dep(name = "crate_universe", version = "0.6.2")
+archive_override(
+    module_name = "crate_universe",
+    urls = ["https://github.com/bazel-contrib/rules_rust/releases/download/v0.6.2/crate_universe-0.6.2.tar.gz"],
+    integrity = "sha256-0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5",
+)
 
 # For PyO3 integration, if needed
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
@@ -18,23 +24,11 @@ rust.toolchain(
 use_repo(rust, "rust_toolchains")
 register_toolchains("@rust_toolchains//:all")
 
-bazel_dep(name = "pyo3", version = "0.21.0")
-archive_override(
-    module_name = "pyo3",
-    urls = ["https://crates.io/api/v1/crates/pyo3/0.21.0/download"],
-    integrity = "sha256-a02a88a17e74cadbc8ce77855e1d6c8ad0ab82901a4a9b5046bd01c1c0bd95cd",
+crate_universe_ext = use_extension("@crate_universe//:extensions.bzl", "crate_universe_ext")
+crate_universe_ext.deps(
+    name = "crate_index",
+    cargo_lockfile = "//packages/bifrost/native:Cargo.lock",
+    cargo_lockfile_path = "packages/bifrost/native/Cargo.lock",
+    cargo_toml_path = "packages/bifrost/native/Cargo.toml",
 )
-
-bazel_dep(name = "pyo3_macros", version = "0.21.0")
-archive_override(
-    module_name = "pyo3_macros",
-    urls = ["https://crates.io/api/v1/crates/pyo3-macros/0.21.0/download"],
-    integrity = "sha256-4e80493c5965f94a747d0782a607b2328a4eea5391327b152b00e2f3b001cede",
-)
-
-bazel_dep(name = "tokio", version = "1.38.0")
-archive_override(
-    module_name = "tokio",
-    urls = ["https://crates.io/api/v1/crates/tokio/1.38.0/download"],
-    integrity = "sha256-ba4f4a02a7a80d6f274636f0aa95c7e383b912d41fe721a31f29e29698585a4a",
-)
+use_repo(crate_universe_ext, "crate_index")

@@ -21,9 +21,6 @@ rust_library(
         "@@pyo3//:pyo3",
         "@@tokio//:tokio",
     ],
-    proc_macro_deps = [
-        "@@pyo3_macros//:pyo3_macros",
-    ],
 )
 
 
