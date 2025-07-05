@@ -1,34 +1,15 @@
-# This is the MODULE.bazel file for the modern Bazel module system.
-# It declares the modules and their dependencies.
-
-module(name = "bifrost", version = "0.1.0")
-
-bazel_dep(name = "rules_python", version = "0.40.0")
-bazel_dep(name = "rules_rust", version = "0.62.0")
-bazel_dep(name = "crate_universe", version = "0.6.2")
-archive_override(
-    module_name = "crate_universe",
-    urls = ["https://github.com/bazel-contrib/rules_rust/releases/download/v0.6.2/crate_universe-0.6.2.tar.gz"],
-    integrity = "sha256-0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5",
-)
-
-# For PyO3 integration, if needed
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "rules_rust", version = "0.40.0")
+bazel_dep(name = "rules_python", version = "0.31.0")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(
-    edition = "2021",
-    versions = ["1.79.0"],
-)
-use_repo(rust, "rust_toolchains")
-register_toolchains("@rust_toolchains//:all")
+rust.toolchain(name = "rust_toolchain")
 
-crate_universe_ext = use_extension("@crate_universe//:extensions.bzl", "crate_universe_ext")
-crate_universe_ext.deps(
-    name = "crate_index",
-    cargo_lockfile = "//packages/bifrost/native:Cargo.lock",
-    cargo_lockfile_path = "packages/bifrost/native/Cargo.lock",
-    cargo_toml_path = "packages/bifrost/native/Cargo.toml",
-)
-use_repo(crate_universe_ext, "crate_index")
+python = use_extension("@rules_python//python:extensions.bzl", "python")
+python.toolchain(name = "python_toolchain")
+
+use_repo_rule(rust, "crates_repository")
+use_repo_rule(python, "pip_parse")
+
+# This is where you would define your Rust dependencies from Cargo.toml
+# For now, we'll rely on the existing Cargo.toml in packages/bifrost/native
+# and let rules_rust handle it.
