@@ -5,13 +5,13 @@ from typing import Generic, Sequence
 
 from pydantic import BaseModel, Field
 
-from .typing import JsonDict, Tag, Timestamp, Value
+from .typing import JsonDict, Timestamp, Value
 
 
 class Reading(BaseModel, Generic[Value]):
     """Represents a single data point read from a device."""
 
-    tag: Tag = Field(..., description="The unique identifier for the data point (e.g., a PLC tag).")
+    tag: str = Field(..., description="The unique identifier for the data point (e.g., a PLC tag).")
     value: Value = Field(..., description="The value read from the device.")
     timestamp: Timestamp = Field(..., description="The nanosecond timestamp of when the value was read.")
 
@@ -43,12 +43,12 @@ class BaseDevice(ABC, Generic[Value]):
         self.connection = connection
 
     @abstractmethod
-    async def read(self, tags: Sequence[Tag]) -> dict[Tag, Reading[Value]]:
+    async def read(self, tags: Sequence[str]) -> dict[str, Reading[Value]]:
         """Read one or more values from the device."""
         raise NotImplementedError
 
     @abstractmethod
-    async def write(self, values: dict[Tag, Value]) -> None:
+    async def write(self, values: dict[str, Value]) -> None:
         """Write one or more values to the device."""
         raise NotImplementedError
 

@@ -4,7 +4,8 @@ import asyncio
 from typing import Any, Sequence
 
 from bifrost_core.base import Reading
-from bifrost_core.typing import JsonDict, Tag, Timestamp, Value
+from bifrost_core.typing import JsonDict, Timestamp, Value
+from bifrost_core import Tag
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 

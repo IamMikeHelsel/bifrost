@@ -2,7 +2,7 @@
 
 import asyncio
 from collections import deque
-from typing import Generic
+from typing import Callable, Generic
 
 from .base import BaseConnection
 from .typing import T
@@ -11,7 +11,7 @@ from .typing import T
 class ConnectionPool(Generic[T]):
     """A generic connection pool for managing and reusing connections."""
 
-    def __init__(self, connection_factory: callable[[], T], max_size: int = 10):
+    def __init__(self, connection_factory: Callable[[], T], max_size: int = 10):
         self._factory = connection_factory
         self._max_size = max_size
         self._pool: deque[T] = deque(maxlen=max_size)
