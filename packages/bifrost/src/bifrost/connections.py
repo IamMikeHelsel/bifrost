@@ -1,70 +1,32 @@
-"""Connection utilities and factory functions."""
+"""Connection factory for Bifrost."""
 
-from typing import Any
+from urllib.parse import urlparse
 
-from bifrost_core import BaseConnection, DeviceInfo
+from bifrost_core.base import BaseConnection
 
-
-async def connect(connection_string: str, **kwargs: Any) -> BaseConnection:
-    """Connect to a device using a connection string.
-
-    Args:
-        connection_string: Protocol connection string (e.g., "modbus://192.168.1.100")
-        **kwargs: Additional connection parameters
-
-    Returns:
-        Connected device instance
-
-    Raises:
-        ValueError: If protocol is not supported
-        ConnectionError: If connection fails
-    """
-    # Parse protocol from connection string
-    if "://" not in connection_string:
-        raise ValueError(f"Invalid connection string: {connection_string}")
-
-    protocol_name, _ = connection_string.split("://", 1)
-
-    # Map protocol names to implementations
-    if protocol_name.lower() in ("modbus", "modbus_tcp"):
-        from .modbus import ModbusTCPConnection
-
-        return ModbusTCPConnection.from_url(connection_string, **kwargs)
-
-    elif protocol_name.lower() == "opcua":
-        try:
-            from bifrost_opcua import OPCUAConnection
-
-            return OPCUAConnection.from_url(connection_string, **kwargs)
-        except ImportError as err:
-            raise ImportError(
-                "OPC UA support requires: pip install bifrost[opcua]\n"
-                "Or: pip install bifrost-opcua"
-            ) from err
-
-    else:
-        raise ValueError(f"Unsupported protocol: {protocol_name}")
+from .modbus import ModbusConnection
 
 
-async def discover_devices(
-    network: str = "192.168.1.0/24", protocols: list[str] = None, timeout: float = 5.0
-) -> list[DeviceInfo]:
-    """Discover devices on the network.
+class ConnectionFactory:
+    """A factory for creating connections to different types of devices."""
 
-    Args:
-        network: Network to scan (CIDR notation)
-        protocols: List of protocols to scan for (default: all)
-        timeout: Timeout per device in seconds
+    @staticmethod
+    def create(url: str) -> BaseConnection:
+        """Create a connection from a URL."""
+        parsed_url = urlparse(url)
+        scheme = parsed_url.scheme
+        hostname = parsed_url.hostname
+        port = parsed_url.port
 
-    Returns:
-        List of discovered devices
-    """
-    if protocols is None:
-        protocols = ["modbus"]  # Start with just Modbus for now
+        if not hostname:
+            raise ValueError("Hostname is required")
 
-    discovered = []
-
-    # For now, return empty list - will implement actual discovery later
-    # TODO: Implement network scanning for different protocols
-
-    return discovered
+        if scheme == "modbus.tcp":
+            return ModbusConnection(hostname, port or 502)
+        # In the future, we can add support for other protocols here.
+        # elif scheme == "opcua.tcp":
+        #     return OPCUAConnection(hostname, port or 4840)
+        # elif scheme == "s7":
+        #     return S7Connection(hostname, port or 102)
+        else:
+            raise ValueError(f"Unsupported protocol: {scheme}")
