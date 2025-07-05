@@ -21,7 +21,7 @@ If you've ever tried to:
 
 We're building the Python toolkit that automation professionals actually want - one that understands both worlds:
 
-- **Speaks OT**: Native support for Modbus, OPC UA, Ethernet/IP, S7 - the protocols your equipment actually uses
+- **Speaks OT**: Native support for Modbus, OPC UA, Ethernet/IP, S7 - the protocols your equipment actually uses (prioritized by [data-driven market research](PROTOCOL_POPULARITY_ANALYSIS.md))
 - **Thinks IT**: Modern async Python, JSON outputs, cloud-ready, plays nice with your IT stack
 - **Runs Everywhere**: From your industrial PC to a Raspberry Pi to the cloud - same code, same reliability
 - **Fast Enough**: Rust-powered performance that won't slow down your production line

@@ -313,27 +313,30 @@ ______________________________________________________________________
 
 ## Phase 6: Additional Protocol Support (Months 10-12)
 
-**Goal**: Expand PLC protocol coverage based on community feedback
+**Goal**: Expand PLC protocol coverage based on data-driven protocol popularity analysis
 
-### Priority Order (based on demand)
+### Priority Order (based on quantitative market research)
 
-1. **Ethernet/IP (CIP)**
+**See [PROTOCOL_POPULARITY_ANALYSIS.md](PROTOCOL_POPULARITY_ANALYSIS.md) for detailed research methodology and metrics.**
 
+1. **Ethernet/IP (CIP)** - Score: 75/100
+   - **Market Position**: 30% of industrial Ethernet, North American dominance
+   - **Key Driver**: Allen-Bradley/Rockwell market share, aging Python libraries
    - [ ] Native Rust implementation
    - [ ] Replace aging cpppo library
    - [ ] Support for Allen-Bradley PLCs
 
-1. **S7 (Siemens)**
-
+2. **Siemens S7** - Score: 70/100
+   - **Market Position**: 40% global PLC market share, European stronghold
+   - **Key Driver**: Siemens market dominance, mature ecosystem
    - [ ] Wrap snap7 library
-   - [ ] Async interface
+   - [ ] Implement async interface
    - [ ] Performance optimization
 
-1. **Other protocols** (as requested)
-
-   - DNP3
-   - IEC 61850
-   - BACnet
+3. **Specialized protocols** (Future consideration based on market demand)
+   - **DNP3** (Score: 45/100) - Utility sector standard
+   - **BACnet** (Score: 40/100) - Building automation focus
+   - **IEC 61850** - Power system automation
 
 ### Plugin Architecture
 
