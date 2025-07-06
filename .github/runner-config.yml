@@ -1,0 +1,52 @@
+# GitHub Actions Runner Configuration
+# This file defines preferences for runner selection
+
+runner_preferences:
+  # Primary runner preference
+  primary: "self-hosted"
+  
+  # Fallback runners in order of preference
+  fallback:
+    - "ubuntu-latest"
+    - "ubuntu-22.04"
+  
+  # Timeout settings
+  timeouts:
+    self_hosted_test: 60  # seconds to test self-hosted availability
+    self_hosted_job: 1800  # 30 minutes max for self-hosted jobs
+    cloud_fallback: 1200   # 20 minutes max for cloud fallback
+  
+  # Job-specific overrides
+  jobs:
+    # Force certain jobs to always use cloud runners
+    test-matrix:
+      force_cloud: true
+      reason: "Consistency across multiple OS/Python versions"
+    
+    # Allow some jobs to prefer self-hosted
+    build-rust:
+      prefer_self_hosted: true
+      reason: "Better performance for Rust/Bazel builds"
+    
+    deploy:
+      prefer_self_hosted: true
+      require_self_hosted: true  # Fail if self-hosted not available
+      reason: "Access to deployment credentials"
+
+# Self-hosted runner labels
+self_hosted_labels:
+  - "self-hosted"
+  - "linux"  # Add your runner's actual labels
+  - "x64"
+
+# Monitoring and alerts
+monitoring:
+  # Slack webhook for runner alerts (optional)
+  slack_webhook_secret: "SLACK_WEBHOOK_URL"
+  
+  # Alert conditions
+  alerts:
+    - condition: "self_hosted_unavailable"
+      message: "Self-hosted runner has been unavailable for >5 minutes"
+    - condition: "repeated_fallbacks"
+      message: "Using cloud fallback for >3 consecutive builds"

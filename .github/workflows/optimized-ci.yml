@@ -1,0 +1,210 @@
+name: Optimized CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      force-cloud-runner:
+        description: 'Force use of cloud runners'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FORCE_CLOUD: ${{ github.event.inputs.force-cloud-runner == 'true' }}
+
+jobs:
+  # Quick runner selection job
+  select-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      primary-runner: ${{ steps.runner-selection.outputs.primary-runner }}
+      fallback-runner: ${{ steps.runner-selection.outputs.fallback-runner }}
+      use-self-hosted: ${{ steps.runner-selection.outputs.use-self-hosted }}
+    steps:
+      - name: Select optimal runner
+        id: runner-selection
+        run: |
+          if [[ "$FORCE_CLOUD" == "true" ]]; then
+            echo "primary-runner=ubuntu-latest" >> $GITHUB_OUTPUT
+            echo "fallback-runner=ubuntu-latest" >> $GITHUB_OUTPUT
+            echo "use-self-hosted=false" >> $GITHUB_OUTPUT
+            echo "🔵 Forcing cloud runner usage"
+          else
+            echo "primary-runner=self-hosted" >> $GITHUB_OUTPUT
+            echo "fallback-runner=ubuntu-latest" >> $GITHUB_OUTPUT
+            echo "use-self-hosted=true" >> $GITHUB_OUTPUT
+            echo "🏠 Attempting self-hosted runner"
+          fi
+
+  # Primary build job with self-hosted preference
+  build-primary:
+    needs: select-runner
+    if: needs.select-runner.outputs.use-self-hosted == 'true'
+    runs-on: [self-hosted, FJALL]
+    timeout-minutes: 30
+    continue-on-error: true
+    outputs:
+      success: ${{ steps.build-complete.outputs.success }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        timeout-minutes: 1
+
+      - name: Runner info
+        run: |
+          echo "🏠 Running on self-hosted runner"
+          echo "Runner: $(hostname)"
+          echo "OS: $(uname -a)"
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+        timeout-minutes: 3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+        timeout-minutes: 2
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+        timeout-minutes: 5
+
+      - name: Run tests
+        run: |
+          uv run ruff check .
+          uv run pytest -x
+        timeout-minutes: 10
+
+      - name: Build Rust extensions
+        run: |
+          bazel build //packages/bifrost/native:bifrost_native
+        timeout-minutes: 10
+
+      - name: Mark build complete
+        id: build-complete
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # Fallback build job with cloud runner
+  build-fallback:
+    needs: [select-runner, build-primary]
+    if: always() && (needs.select-runner.outputs.use-self-hosted == 'false' || needs.build-primary.outputs.success != 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Runner info
+        run: |
+          echo "☁️ Running on GitHub-hosted runner"
+          if [[ "${{ needs.build-primary.result }}" == "failure" || "${{ needs.build-primary.result }}" == "cancelled" ]]; then
+            echo "⚠️ Self-hosted runner failed or timed out, using fallback"
+          else
+            echo "🔵 Using cloud runner by design"
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        run: |
+          uv run ruff check .
+          uv run pytest -x
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@0.8.5
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Build Rust extensions
+        run: |
+          bazel build //packages/bifrost/native:bifrost_native
+
+  # Matrix job for comprehensive testing (uses cloud runners for consistency)
+  test-matrix:
+    needs: [build-primary, build-fallback]
+    if: always() && (needs.build-primary.outputs.success == 'true' || needs.build-fallback.result == 'success')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.11', '3.12', '3.13']
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install and test
+        run: |
+          uv sync --all-extras --dev
+          uv run pytest
+
+  # Summary job
+  ci-summary:
+    needs: [select-runner, build-primary, build-fallback, test-matrix]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI Summary
+        run: |
+          echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.build-primary.result }}" == "success" ]]; then
+            echo "✅ **Primary build (self-hosted)**: Success" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-primary.result }}" == "failure" ]]; then
+            echo "❌ **Primary build (self-hosted)**: Failed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-primary.result }}" == "cancelled" ]]; then
+            echo "⏱️ **Primary build (self-hosted)**: Timed out" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Primary build (self-hosted)**: Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.build-fallback.result }}" == "success" ]]; then
+            echo "✅ **Fallback build (cloud)**: Success" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-fallback.result }}" == "failure" ]]; then
+            echo "❌ **Fallback build (cloud)**: Failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Fallback build (cloud)**: Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Matrix tests**: ${{ needs.test-matrix.result }}" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall status
+          if [[ ("${{ needs.build-primary.result }}" == "success" || "${{ needs.build-fallback.result }}" == "success") && "${{ needs.test-matrix.result }}" == "success" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎉 **Overall CI Status**: ✅ **PASSED**" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💥 **Overall CI Status**: ❌ **FAILED**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
