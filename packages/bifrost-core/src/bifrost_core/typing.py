@@ -23,18 +23,17 @@ class DataType(Enum):
 Value = TypeVar("Value")
 
 # Represents a unique identifier for a data point (e.g., a PLC tag or sensor reading)
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
 class Tag(BaseModel):
     """Represents a unique identifier for a data point.
-    
+
     Used to identify PLC tags, sensor readings, or other data points
     in industrial protocols. Tags are immutable and hashable for use
     as dictionary keys.
-    
+
     Attributes:
         name: Human-readable name of the tag.
         address: Device-specific address or identifier.
@@ -45,7 +44,7 @@ class Tag(BaseModel):
         scaling_factor: Factor to multiply the raw value by.
         offset: Value to add to the scaled value.
     """
-    
+
     model_config = {"frozen": True}  # Make the model immutable and hashable
 
     name: str = Field(..., description="Human-readable name of the tag.")
@@ -74,10 +73,10 @@ class Tag(BaseModel):
 
     def apply_scaling(self, raw_value: Any) -> Any:
         """Apply scaling and offset to a raw value.
-        
+
         Args:
             raw_value: The raw value read from the device.
-            
+
         Returns:
             The scaled value with appropriate type conversion.
         """
@@ -98,7 +97,7 @@ class Tag(BaseModel):
                 or self.data_type == DataType.UINT32
             ):
                 return int(scaled_value)
-            elif (
+            if (
                 self.data_type == DataType.FLOAT32
                 or self.data_type == DataType.FLOAT64
             ):

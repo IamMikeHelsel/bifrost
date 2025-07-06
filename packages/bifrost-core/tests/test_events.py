@@ -89,14 +89,14 @@ class TestEventBus:
     @pytest.mark.asyncio
     async def test_concurrent_handlers(self):
         bus = EventBus()
-        
+
         # Create two mock handlers that simulate some async work
         async def handler1(event):
-            await asyncio.sleep(0.05) # Simulate async work
+            await asyncio.sleep(0.05)  # Simulate async work
             handler1.called = True
 
         async def handler2(event):
-            await asyncio.sleep(0.03) # Simulate async work
+            await asyncio.sleep(0.03)  # Simulate async work
             handler2.called = True
 
         handler1.called = False

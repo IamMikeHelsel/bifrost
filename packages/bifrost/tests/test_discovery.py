@@ -1,6 +1,6 @@
 """Tests for network discovery functionality."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -24,15 +24,15 @@ class TestDiscoveryFunctions:
             discovery_method="modbus",
             confidence=0.95,
         )
-        
+
         # Mock the individual discovery functions
         with patch("bifrost.discovery.discover_modbus_devices") as mock_modbus:
             # Create an async generator that yields our mock device
             async def mock_generator():
                 yield mock_device
-            
+
             mock_modbus.return_value = mock_generator()
-            
+
             # Test with modbus protocol only
             config = DiscoveryConfig(protocols=["modbus"])
             devices = []
@@ -57,9 +57,11 @@ class TestDiscoveryFunctions:
     async def test_discover_devices_no_results(self):
         """Test discover_devices when no devices are found."""
         with patch("bifrost.discovery.discover_modbus_devices") as mock_modbus:
+
             async def empty_generator():
                 if False:
                     yield  # This makes it an async generator
+
             mock_modbus.return_value = empty_generator()
 
             config = DiscoveryConfig(protocols=["modbus"])

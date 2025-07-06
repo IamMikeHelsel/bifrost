@@ -519,6 +519,7 @@ Create comprehensive release card system to document tested fieldbus protocols a
 - [ ] **Issue #48**: Implement CI/CD Integration for Release Cards
 
 **Key Features**:
+
 - Automated compatibility documentation
 - Protocol/device testing matrix
 - Performance benchmark integration

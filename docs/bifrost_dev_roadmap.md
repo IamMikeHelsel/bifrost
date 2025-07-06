@@ -383,7 +383,7 @@ ______________________________________________________________________
     - [ ] Connection failure scenarios
   - [ ] **Performance benchmarking**
     - [ ] Throughput testing (10k+ tags/second)
-    - [ ] Latency measurement (<1ms targets)
+    - [ ] Latency measurement (\<1ms targets)
     - [ ] Concurrent connection testing (100+)
     - [ ] Resource utilization monitoring
   - [ ] **Protocol compliance testing**
@@ -432,24 +432,28 @@ ______________________________________________________________________
 **Four-Tier Testing Approach**:
 
 1. **Unit Testing with Mocks** (All Phases)
+
    - Lightweight, in-memory protocol implementations
-   - Fast execution (<1ms per test)
+   - Fast execution (\<1ms per test)
    - Predictable behavior for edge cases
    - No network dependencies
 
-2. **Integration Testing with Simulators** (Phase 1+)
+1. **Integration Testing with Simulators** (Phase 1+)
+
    - Full protocol implementations
    - Realistic timing and behavior
    - Network-based communication
    - Stateful device simulation
 
-3. **Scenario Testing** (Phase 3+)
+1. **Scenario Testing** (Phase 3+)
+
    - Multi-device, multi-protocol environments
    - Industrial use case validation
    - End-to-end workflow testing
    - Performance under realistic loads
 
-4. **Stress and Performance Testing** (Phase 7)
+1. **Stress and Performance Testing** (Phase 7)
+
    - High-throughput scenarios
    - Network condition simulation
    - Resource constraint testing
@@ -481,29 +485,33 @@ virtual-devices/
 
 | Protocol | Throughput Target | Latency Target | Concurrent Connections |
 |----------|------------------|----------------|------------------------|
-| Modbus TCP | 1,000+ regs/sec | <1ms | 100+ |
-| OPC UA | 10,000+ tags/sec | <10ms | 1,000+ |
-| Ethernet/IP | 5,000+ tags/sec | <5ms | 50+ |
-| S7 | 2,000+ tags/sec | <2ms | 20+ |
+| Modbus TCP | 1,000+ regs/sec | \<1ms | 100+ |
+| OPC UA | 10,000+ tags/sec | \<10ms | 1,000+ |
+| Ethernet/IP | 5,000+ tags/sec | \<5ms | 50+ |
+| S7 | 2,000+ tags/sec | \<2ms | 20+ |
 
 ### Testing Integration Timeline
 
 **Phase 0-1**: Foundation
+
 - Base mock and simulator classes
 - Modbus TCP/RTU simulators
 - Basic performance benchmarks
 
-**Phase 2-3**: Protocol Expansion  
+**Phase 2-3**: Protocol Expansion
+
 - OPC UA server simulators
 - Security policy testing
 - Edge analytics scenarios
 
 **Phase 4-6**: Industrial Scenarios
+
 - Factory floor scenarios
 - Process control testing
 - Cloud bridge validation
 
 **Phase 7**: Production Validation
+
 - Comprehensive stress testing
 - Network condition simulation
 - Performance regression testing
@@ -519,6 +527,7 @@ virtual-devices/
 ### Real-World Validation
 
 While virtual devices provide comprehensive testing, the framework also supports:
+
 - Hardware-in-the-loop (HIL) testing
 - Real device integration testing
 - Customer site validation

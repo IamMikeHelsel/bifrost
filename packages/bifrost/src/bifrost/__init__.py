@@ -5,13 +5,13 @@ __version__ = "0.1.0"
 from typing import Any
 
 from .connections import ConnectionFactory
-from .discovery import discover_devices
-from .modbus import ModbusDevice
-from .plc import PLC
 
 # Import core components
 from .core import BaseConnection, BaseProtocol, DataPoint, Pipeline
 from .core.logging import BifrostLogger, get_logger, setup_exception_handling
+from .discovery import discover_devices
+from .modbus import ModbusDevice
+from .plc import PLC
 
 # Smart imports for optional dependencies
 try:

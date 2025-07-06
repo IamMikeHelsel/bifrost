@@ -11,10 +11,6 @@ from typing import Any
 
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
-from pymodbus.pdu.register_message import (
-    ReadHoldingRegistersResponse,
-    WriteSingleRegisterResponse,
-)
 
 from bifrost_core.base import Reading
 from bifrost_core.typing import JsonDict, Tag, Timestamp, Value
@@ -24,17 +20,17 @@ from .plc import PLC, PLCConnection
 
 class ModbusConnection(PLCConnection):
     """Represents a connection to a Modbus device.
-    
+
     Manages the async Modbus TCP client connection lifecycle and provides
     context manager support for automatic connection management.
-    
+
     Attributes:
         client: The underlying pymodbus async TCP client.
     """
 
     def __init__(self, host: str, port: int = 502):
         """Initialize Modbus TCP connection.
-        
+
         Args:
             host: IP address or hostname of the Modbus device.
             port: TCP port number (default: 502).
@@ -53,7 +49,7 @@ class ModbusConnection(PLCConnection):
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        if hasattr(self.client, 'close'):
+        if hasattr(self.client, "close"):
             if asyncio.iscoroutinefunction(self.client.close):
                 await self.client.close()
             else:
@@ -74,7 +70,7 @@ class ModbusDevice(PLC[Any]):
         for tag in tags:
             try:
                 function_code, address, count = self._parse_address(tag.address)
-                
+
                 if function_code == 1:  # Read Coils
                     result = await self.connection.client.read_coils(
                         address=address, count=count, slave=1
@@ -86,8 +82,10 @@ class ModbusDevice(PLC[Any]):
                     )
                     value = result.bits
                 elif function_code == 3:  # Read Holding Registers
-                    result = await self.connection.client.read_holding_registers(
-                        address=address, count=count, slave=1
+                    result = (
+                        await self.connection.client.read_holding_registers(
+                            address=address, count=count, slave=1
+                        )
                     )
                     value = result.registers
                 elif function_code == 4:  # Read Input Registers
@@ -96,20 +94,26 @@ class ModbusDevice(PLC[Any]):
                     )
                     value = result.registers
                 else:
-                    raise ValueError(f"Unsupported Modbus function code: {function_code}")
+                    raise ValueError(
+                        f"Unsupported Modbus function code: {function_code}"
+                    )
 
                 if isinstance(result, ModbusException):
                     raise result
-                if hasattr(result, 'isError') and result.isError():
+                if hasattr(result, "isError") and result.isError():
                     continue  # Skip this tag on error
                 timestamp = Timestamp(
                     int(asyncio.get_running_loop().time() * 1_000_000_000)
                 )
-                
+
                 if isinstance(value, list):
-                    converted_value = [self._convert_to_python(v, tag.data_type) for v in value]
+                    converted_value = [
+                        self._convert_to_python(v, tag.data_type) for v in value
+                    ]
                 else:
-                    converted_value = self._convert_to_python(value, tag.data_type)
+                    converted_value = self._convert_to_python(
+                        value, tag.data_type
+                    )
                 readings[tag] = Reading(
                     tag=tag, value=converted_value, timestamp=timestamp
                 )
@@ -124,31 +128,41 @@ class ModbusDevice(PLC[Any]):
         for tag, value in values.items():
             try:
                 function_code, address, _ = self._parse_address(tag.address)
-                
+
                 if function_code == 1:  # Write Coils
                     if isinstance(value, bool):
                         await self.connection.client.write_coil(
                             address=address, value=value, slave=1
                         )
-                    elif isinstance(value, list) and all(isinstance(v, bool) for v in value):
+                    elif isinstance(value, list) and all(
+                        isinstance(v, bool) for v in value
+                    ):
                         await self.connection.client.write_coils(
                             address=address, values=value, slave=1
                         )
                     else:
-                        raise ValueError("Coil write value must be a boolean or a list of booleans")
+                        raise ValueError(
+                            "Coil write value must be a boolean or a list of booleans"
+                        )
                 elif function_code == 3:  # Write Holding Registers
                     if isinstance(value, int):
                         await self.connection.client.write_register(
                             address=address, value=value, slave=1
                         )
-                    elif isinstance(value, list) and all(isinstance(v, int) for v in value):
+                    elif isinstance(value, list) and all(
+                        isinstance(v, int) for v in value
+                    ):
                         await self.connection.client.write_registers(
                             address=address, values=value, slave=1
                         )
                     else:
-                        raise ValueError("Register write value must be an integer or a list of integers")
+                        raise ValueError(
+                            "Register write value must be an integer or a list of integers"
+                        )
                 else:
-                    raise ValueError(f"Unsupported Modbus function code for writing: {function_code}")
+                    raise ValueError(
+                        f"Unsupported Modbus function code for writing: {function_code}"
+                    )
 
             except (ModbusException, ValueError, Exception):
                 # In a real implementation, we would log this error.

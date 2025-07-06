@@ -1,10 +1,16 @@
 """Tests for bifrost-core base classes."""
 
+from collections.abc import Sequence
+
 import pytest
 
-from collections.abc import Sequence
-from bifrost_core.base import BaseConnection, ConnectionState, Reading, BaseDevice
-from bifrost_core.typing import DataType, Tag, Value, Timestamp, JsonDict
+from bifrost_core.base import (
+    BaseConnection,
+    BaseDevice,
+    ConnectionState,
+    Reading,
+)
+from bifrost_core.typing import DataType, JsonDict, Tag, Timestamp, Value
 
 
 class MockConnection(BaseConnection):
@@ -16,8 +22,12 @@ class MockConnection(BaseConnection):
         self.fail_connect = fail_connect
         self._mock_data: dict[Tag, Value] = {
             Tag(name="reg1", address="40001", data_type=DataType.INT16): 123,
-            Tag(name="reg2", address="40002", data_type=DataType.FLOAT32): 456.7,
-            Tag(name="coil1", address="coil:1", data_type=DataType.BOOLEAN): True,
+            Tag(
+                name="reg2", address="40002", data_type=DataType.FLOAT32
+            ): 456.7,
+            Tag(
+                name="coil1", address="coil:1", data_type=DataType.BOOLEAN
+            ): True,
         }
         self._state = ConnectionState.DISCONNECTED
 
@@ -41,7 +51,9 @@ class MockConnection(BaseConnection):
         for tag in tags:
             value = self._mock_data.get(tag)
             if value is not None:
-                readings[tag] = Reading(tag=tag, value=value, timestamp=Timestamp(0)) # Mock timestamp
+                readings[tag] = Reading(
+                    tag=tag, value=value, timestamp=Timestamp(0)
+                )  # Mock timestamp
         return readings
 
     async def write(self, values: dict[Tag, Value]) -> None:
@@ -120,40 +132,49 @@ class TestDeviceInfo:
 
     def test_default_name(self):
         from bifrost_core.base import DeviceInfo
-        device = DeviceInfo(
-            device_id="test_id",
-            protocol="test_protocol",
-            host="localhost",
-            port=1234,
-            discovery_method="test_method"
-        )
-        assert device.name == "test_id"
 
-    def test_explicit_name(self):
-        from bifrost_core.base import DeviceInfo
         device = DeviceInfo(
             device_id="test_id",
             protocol="test_protocol",
             host="localhost",
             port=1234,
             discovery_method="test_method",
-            name="My Device"
+        )
+        assert device.name == "test_id"
+
+    def test_explicit_name(self):
+        from bifrost_core.base import DeviceInfo
+
+        device = DeviceInfo(
+            device_id="test_id",
+            protocol="test_protocol",
+            host="localhost",
+            port=1234,
+            discovery_method="test_method",
+            name="My Device",
         )
         assert device.name == "My Device"
 
 
 class MockDevice(BaseDevice[Value]):
     """Mock device for testing BaseDevice."""
+
     def __init__(self, connection: BaseConnection):
         super().__init__(connection)
         self._mock_readings: dict[Tag, Reading[Value]] = {}
 
     async def read(self, tags: Sequence[Tag]) -> dict[Tag, Reading[Value]]:
-        return {tag: self._mock_readings.get(tag) for tag in tags if tag in self._mock_readings}
+        return {
+            tag: self._mock_readings.get(tag)
+            for tag in tags
+            if tag in self._mock_readings
+        }
 
     async def write(self, values: dict[Tag, Value]) -> None:
         for tag, value in values.items():
-            self._mock_readings[tag] = Reading(tag=tag, value=value, timestamp=Timestamp(0))
+            self._mock_readings[tag] = Reading(
+                tag=tag, value=value, timestamp=Timestamp(0)
+            )
 
     async def get_info(self) -> JsonDict:
         return {"device_type": "Mock Device"}

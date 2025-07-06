@@ -1,7 +1,6 @@
 """Tests for connection pooling functionality."""
 
 import asyncio
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -29,7 +28,7 @@ class MockConnection(BaseConnection):
         return self._is_connected_flag
 
     async def read(self, tags):
-        return {tag: 1 for tag in tags}
+        return dict.fromkeys(tags, 1)
 
     async def write(self, values):
         pass
@@ -126,9 +125,9 @@ class TestConnectionPool:
         pool = ConnectionPool(connection_factory=factory, max_size=2)
         conn1 = await pool.get()
         conn2 = await pool.get()
-        
+
         await pool.close()
-        
+
         assert not conn1.is_connected
         assert not conn2.is_connected
         assert len(pool._pool) == 0
@@ -138,7 +137,7 @@ class TestConnectionPool:
     async def test_get_with_timeout(self):
         async def factory():
             # This factory will never return a connection, simulating a timeout
-            await asyncio.sleep(100) 
+            await asyncio.sleep(100)
             return MockConnection("localhost")
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
@@ -154,7 +153,7 @@ class TestConnectionPool:
         async with pool as conn:
             assert isinstance(conn, MockConnection)
             assert conn.is_connected
-        assert not conn.is_connected # Should be closed after exiting context
+        assert not conn.is_connected  # Should be closed after exiting context
 
     @pytest.mark.asyncio
     async def test_release_connection(self):
@@ -174,9 +173,9 @@ class TestConnectionPool:
         )
         conn1 = await pool.get()
         conn2 = await pool.get()
-        
+
         await pool.close()
-        
+
         assert not conn1.is_connected
         assert not conn2.is_connected
         assert len(pool._pool) == 0
@@ -185,7 +184,8 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_get_with_timeout(self):
         pool = ConnectionPool(
-            connection_factory=lambda: MockConnection("localhost"), max_size=0 # No connections available
+            connection_factory=lambda: MockConnection("localhost"),
+            max_size=0,  # No connections available
         )
         with pytest.raises(asyncio.TimeoutError):
             await asyncio.wait_for(pool.get(), timeout=0.01)
@@ -199,4 +199,4 @@ class TestConnectionPool:
         async with pool as conn:
             assert isinstance(conn, MockConnection)
             assert conn.is_connected
-        assert not conn.is_connected # Should be closed after exiting context
+        assert not conn.is_connected  # Should be closed after exiting context

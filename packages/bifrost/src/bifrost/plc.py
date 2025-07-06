@@ -55,22 +55,14 @@ class PLC(BaseDevice[Value], ABC):
 
     def _convert_to_python(self, value: Any, data_type: DataType) -> Any:
         """Convert a value from the PLC to a Python type."""
-        if data_type == DataType.INT16:
+        if data_type == DataType.INT16 or data_type == DataType.UINT16 or data_type == DataType.INT32 or data_type == DataType.UINT32:
             return int(value)
-        elif data_type == DataType.UINT16:
-            return int(value)
-        elif data_type == DataType.INT32:
-            return int(value)
-        elif data_type == DataType.UINT32:
-            return int(value)
-        elif data_type == DataType.FLOAT32:
+        if data_type == DataType.FLOAT32 or data_type == DataType.FLOAT64:
             return float(value)
-        elif data_type == DataType.FLOAT64:
-            return float(value)
-        elif data_type == DataType.BOOLEAN:
+        if data_type == DataType.BOOLEAN:
             return bool(value)
-        elif data_type == DataType.STRING:
+        if data_type == DataType.STRING:
             return str(value)
-        elif data_type == DataType.BYTE:
+        if data_type == DataType.BYTE:
             return bytes(value)
         return value

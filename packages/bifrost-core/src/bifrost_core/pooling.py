@@ -77,12 +77,14 @@ class ConnectionPool(Generic[C]):
             while self._pool:
                 conn = self._pool.popleft()
                 if conn.is_connected:
-                    await conn.__aexit__(None, None, None)  # Manually exit context
-            
+                    await conn.__aexit__(
+                        None, None, None
+                    )  # Manually exit context
+
             # Close connections currently in use
-            for conn in list(self._used_connections): # Iterate over a copy
+            for conn in list(self._used_connections):  # Iterate over a copy
                 if conn.is_connected:
                     await conn.__aexit__(None, None, None)
                 self._used_connections.remove(conn)
-            
+
             self._created_connections = 0

@@ -16,7 +16,10 @@ fn main() {
     let cmake_status = Command::new("cmake")
         .current_dir(&open62541_build_dir)
         .arg(open62541_dir.to_str().unwrap())
-        .arg(format!("-DCMAKE_INSTALL_PREFIX={}", open62541_install_dir.to_str().unwrap()))
+        .arg(format!(
+            "-DCMAKE_INSTALL_PREFIX={}",
+            open62541_install_dir.to_str().unwrap()
+        ))
         .arg("-DUA_ENABLE_AMALGAMATION=ON") // Build as a single file
         .arg("-DUA_BUILD_EXAMPLES=OFF")
         .arg("-DUA_BUILD_UNIT_TESTS=OFF")
@@ -52,12 +55,20 @@ fn main() {
     }
 
     // Link against the compiled library
-    println!("cargo:rustc-link-search=native={}/lib", open62541_install_dir.to_str().unwrap());
+    println!(
+        "cargo:rustc-link-search=native={}/lib",
+        open62541_install_dir.to_str().unwrap()
+    );
     println!("cargo:rustc-link-lib=static=open62541");
 
     // Generate bindings
     let bindings = bindgen::Builder::default()
-        .header(open62541_install_dir.join("include/open62541/open62541.h").to_str().unwrap())
+        .header(
+            open62541_install_dir
+                .join("include/open62541/open62541.h")
+                .to_str()
+                .unwrap(),
+        )
         .parse_callbacks(Box::new(<dyn bindgen::callbacks::ParseCallbacks>::default()))
         .generate()
         .expect("Unable to generate bindings");

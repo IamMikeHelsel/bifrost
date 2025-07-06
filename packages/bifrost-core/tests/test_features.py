@@ -1,6 +1,6 @@
 """Tests for bifrost-core feature system."""
 
-from typing import Any, Protocol, Set, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import pytest
 
@@ -116,8 +116,12 @@ class TestFeatureRegistry:
         assert not isinstance(not_provider, HasFeatures)
 
     def test_unregister(self, registry: FeatureRegistry):
-        provider1 = ConcreteFeatureProvider("Provider1", {"feature_a", "feature_b"})
-        provider2 = ConcreteFeatureProvider("Provider2", {"feature_b", "feature_c"})
+        provider1 = ConcreteFeatureProvider(
+            "Provider1", {"feature_a", "feature_b"}
+        )
+        provider2 = ConcreteFeatureProvider(
+            "Provider2", {"feature_b", "feature_c"}
+        )
 
         registry.register(provider1)
         registry.register(provider2)

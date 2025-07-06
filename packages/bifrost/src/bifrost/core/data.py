@@ -1,13 +1,15 @@
 """Unified data model for industrial data points."""
 
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
 from enum import Enum
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DataQuality(str, Enum):
     """Data quality indicators following OPC UA standards."""
+
     GOOD = "good"
     BAD = "bad"
     UNCERTAIN = "uncertain"
@@ -22,6 +24,7 @@ class DataQuality(str, Enum):
 
 class DataType(str, Enum):
     """Supported data types across protocols."""
+
     BOOL = "bool"
     INT16 = "int16"
     INT32 = "int32"
@@ -38,45 +41,73 @@ class DataType(str, Enum):
 
 class DataPoint(BaseModel):
     """Unified data point representation across all protocols."""
-    
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
+
     # Core fields
     name: str = Field(..., description="Human-readable name for the data point")
-    address: str = Field(..., description="Protocol-specific address (e.g., 'HR1000', 'ns=2;i=1001')")
+    address: str = Field(
+        ...,
+        description="Protocol-specific address (e.g., 'HR1000', 'ns=2;i=1001')",
+    )
     value: Any = Field(None, description="Current value of the data point")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="UTC timestamp of the reading")
-    
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="UTC timestamp of the reading",
+    )
+
     # Type and quality
     data_type: DataType = Field(..., description="Data type of the value")
-    quality: DataQuality = Field(DataQuality.GOOD, description="Quality indicator for the data")
-    
+    quality: DataQuality = Field(
+        DataQuality.GOOD, description="Quality indicator for the data"
+    )
+
     # Protocol information
-    protocol: str = Field(..., description="Protocol used (modbus, opcua, s7, etc.)")
-    source_device: Optional[str] = Field(None, description="Source device identifier")
-    
+    protocol: str = Field(
+        ..., description="Protocol used (modbus, opcua, s7, etc.)"
+    )
+    source_device: str | None = Field(
+        None, description="Source device identifier"
+    )
+
     # Metadata
-    unit: Optional[str] = Field(None, description="Engineering unit (e.g., '°C', 'bar', 'rpm')")
-    description: Optional[str] = Field(None, description="Additional description")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Protocol-specific metadata")
-    
+    unit: str | None = Field(
+        None, description="Engineering unit (e.g., '°C', 'bar', 'rpm')"
+    )
+    description: str | None = Field(
+        None, description="Additional description"
+    )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Protocol-specific metadata"
+    )
+
     # Value bounds (optional)
-    min_value: Optional[Union[int, float]] = Field(None, description="Minimum expected value")
-    max_value: Optional[Union[int, float]] = Field(None, description="Maximum expected value")
-    
+    min_value: int | float | None = Field(
+        None, description="Minimum expected value"
+    )
+    max_value: int | float | None = Field(
+        None, description="Maximum expected value"
+    )
+
     def is_valid(self) -> bool:
         """Check if the data point has good quality."""
         return self.quality == DataQuality.GOOD
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = self.model_dump()
-        data['timestamp'] = self.timestamp.isoformat()
+        data["timestamp"] = self.timestamp.isoformat()
         return data
-    
+
     @classmethod
-    def from_modbus(cls, name: str, address: int, value: Any, 
-                    function_code: int, unit: Optional[str] = None) -> "DataPoint":
+    def from_modbus(
+        cls,
+        name: str,
+        address: int,
+        value: Any,
+        function_code: int,
+        unit: str | None = None,
+    ) -> "DataPoint":
         """Create DataPoint from Modbus data."""
         # Map Modbus function codes to data types
         type_map = {
@@ -85,7 +116,7 @@ class DataPoint(BaseModel):
             3: DataType.UINT16,  # Holding registers
             4: DataType.UINT16,  # Input registers
         }
-        
+
         return cls(
             name=name,
             address=f"HR{address}" if function_code == 3 else f"IR{address}",
@@ -93,12 +124,18 @@ class DataPoint(BaseModel):
             data_type=type_map.get(function_code, DataType.UINT16),
             protocol="modbus",
             unit=unit,
-            metadata={"function_code": function_code}
+            metadata={"function_code": function_code},
         )
-    
+
     @classmethod
-    def from_opcua(cls, name: str, node_id: str, value: Any, 
-                   data_type: str, unit: Optional[str] = None) -> "DataPoint":
+    def from_opcua(
+        cls,
+        name: str,
+        node_id: str,
+        value: Any,
+        data_type: str,
+        unit: str | None = None,
+    ) -> "DataPoint":
         """Create DataPoint from OPC UA data."""
         return cls(
             name=name,
@@ -107,5 +144,5 @@ class DataPoint(BaseModel):
             data_type=DataType(data_type.lower()),
             protocol="opcua",
             unit=unit,
-            metadata={"node_id": node_id}
+            metadata={"node_id": node_id},
         )

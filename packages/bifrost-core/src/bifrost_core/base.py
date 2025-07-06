@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from enum import Enum
 from types import TracebackType
-from typing import Generic, Optional, Type
+from typing import Generic
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -65,19 +65,24 @@ class DeviceInfo(BaseModel):
         None, description="MAC address of the device."
     )
     discovery_method: str = Field(
-        ..., description="Method used to discover this device (bootp, cip, modbus, etc.)"
+        ...,
+        description="Method used to discover this device (bootp, cip, modbus, etc.)",
     )
     confidence: float = Field(
-        1.0, description="Confidence level of device identification (0.0-1.0)", ge=0.0, le=1.0
+        1.0,
+        description="Confidence level of device identification (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
     )
     last_seen: Timestamp | None = Field(
         None, description="Timestamp when device was last discovered."
     )
     metadata: JsonDict = Field(
-        default_factory=dict, description="Additional protocol-specific metadata."
+        default_factory=dict,
+        description="Additional protocol-specific metadata.",
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def set_default_name(self):
         if self.name is None:
             self.name = self.device_id

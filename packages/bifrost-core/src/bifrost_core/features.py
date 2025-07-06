@@ -44,7 +44,10 @@ class FeatureRegistry:
         """Unregister a feature provider."""
         if isinstance(provider, HasFeatures):
             for feature in provider.features:
-                if feature in self._providers and provider in self._providers[feature]:
+                if (
+                    feature in self._providers
+                    and provider in self._providers[feature]
+                ):
                     self._providers[feature].remove(provider)
                     if not self._providers[feature]:
                         del self._providers[feature]

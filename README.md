@@ -59,6 +59,32 @@ async with connect("modbus://10.0.0.100") as equipment:
 
 **We need**: Your war stories, protocol expertise, and vision for unified OT/IT
 
+## 🚀 Current Development Status
+
+**Phase 1 - Foundation (In Progress)**
+
+- ✅ Project infrastructure and architecture
+- ✅ GitHub Actions CI/CD with self-hosted runner support
+- ✅ Virtual device testing framework (Modbus TCP + OPC UA simulators)
+- ✅ Rust-Python integration with PyO3 and Bazel
+- 🔄 Modbus TCP/RTU implementation (Rust core)
+- 🔄 Beautiful CLI with Rich terminal interface
+- 📅 OPC UA client implementation
+
+**Coming Next**
+
+- Edge analytics engine for real-time processing
+- Cloud bridge connectors (AWS IoT, Azure IoT Hub)
+- Additional protocols (Ethernet/IP, S7)
+- Production hardening and security features
+
+**Get Involved**
+
+- 📖 Read the [Technical Specifications](bifrost_spec.md)
+- 🗺️ Check the [Development Roadmap](bifrost_dev_roadmap.md)
+- 🔧 Try the [Virtual Device Simulators](virtual-devices/)
+- 💻 Browse [GitHub Issues](https://github.com/yourusername/bifrost/issues)
+
 ______________________________________________________________________
 
 *Expect more from your machines* 🌉

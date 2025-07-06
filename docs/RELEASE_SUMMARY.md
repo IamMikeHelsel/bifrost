@@ -12,17 +12,20 @@ bifrost scan-modbus --network 10.0.0.0/24  # Fast Modbus scanning
 ## Key Features
 
 ### 🏭 **Three Industrial Protocols**
+
 - **BOOTP/DHCP** - Devices requesting IP addresses
-- **Ethernet/IP (CIP)** - Allen-Bradley and compatible devices  
+- **Ethernet/IP (CIP)** - Allen-Bradley and compatible devices
 - **Modbus TCP** - High-speed network scanning
 
 ### 🎨 **Beautiful CLI Experience**
+
 - Real-time progress with spinners
 - Color-coded confidence levels
 - Rich table output with device details
 - Helpful suggestions and error guidance
 
 ### ⚡ **High Performance**
+
 - Async-first architecture
 - Concurrent scanning (50-100 connections)
 - Configurable timeouts and network ranges
@@ -31,6 +34,7 @@ bifrost scan-modbus --network 10.0.0.0/24  # Fast Modbus scanning
 ## Technical Highlights
 
 **Enhanced Device Model:**
+
 ```python
 DeviceInfo(
     host="192.168.1.100",
@@ -43,13 +47,14 @@ DeviceInfo(
 ```
 
 **Smart Protocol Implementation:**
+
 - BOOTP: Broadcasts DHCP discover packets
-- CIP: ListIdentity multicast to 224.0.1.1:44818  
+- CIP: ListIdentity multicast to 224.0.1.1:44818
 - Modbus: TCP connections with device identification
 
 ## Impact
 
-**Before:** Manual IP scanning, protocol-specific tools, tedious configuration  
+**Before:** Manual IP scanning, protocol-specific tools, tedious configuration\
 **After:** `bifrost discover` finds everything with beautiful output
 
 This brings consumer-grade UX to industrial network discovery - making it as easy to find PLCs as it is to scan for WiFi networks.
