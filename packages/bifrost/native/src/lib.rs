@@ -1,4 +1,5 @@
 mod modbus;
+mod opcua;
 
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -87,14 +88,21 @@ fn parse_read_holding_registers_response(data: &[u8]) -> PyResult<Vec<u16>> {
     }
 }
 
-/// A Python module implemented in Rust for high-performance Modbus operations
+/// Placeholder for OPC UA functionality
+#[pyfunction]
+fn opcua_placeholder() -> PyResult<String> {
+    Ok("OPC UA functionality will be implemented here.".to_string())
+}
+
+/// A Python module implemented in Rust for high-performance Bifrost operations
 #[pymodule]
-fn modbus_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn bifrost_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(encode_rtu_frame, m)?)?;
     m.add_function(wrap_pyfunction!(decode_rtu_frame, m)?)?;
     m.add_function(wrap_pyfunction!(encode_tcp_frame, m)?)?;
     m.add_function(wrap_pyfunction!(decode_tcp_frame, m)?)?;
     m.add_function(wrap_pyfunction!(create_read_holding_registers_request, m)?)?;
     m.add_function(wrap_pyfunction!(parse_read_holding_registers_response, m)?)?;
+    m.add_function(wrap_pyfunction!(opcua_placeholder, m)?)?;
     Ok(())
 }

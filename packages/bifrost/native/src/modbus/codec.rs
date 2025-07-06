@@ -1,6 +1,6 @@
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use crc16::*;
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, ByteOrder};
 use std::io::Cursor;
 
 use super::error::ModbusError;
@@ -75,12 +75,10 @@ impl ModbusDecoder {
             });
         }
         
-        let mut cursor = Cursor::new(data);
-        
         // Read MBAP header
-        let transaction_id = cursor.read_u16::<BigEndian>().unwrap();
-        let protocol_id = cursor.read_u16::<BigEndian>().unwrap();
-        let length = cursor.read_u16::<BigEndian>().unwrap() as usize;
+        let transaction_id = BigEndian::read_u16(&data[0..2]);
+        let protocol_id = BigEndian::read_u16(&data[2..4]);
+        let length = BigEndian::read_u16(&data[4..6]) as usize;
         
         if protocol_id != 0 {
             return Err(ModbusError::InvalidFrame);
@@ -94,11 +92,11 @@ impl ModbusDecoder {
         }
         
         // Parse PDU
-        let unit_id = cursor.read_u8().unwrap();
-        let function_code = FunctionCode::from_u8(cursor.read_u8().unwrap())
+        let unit_id = data[6];
+        let function_code = FunctionCode::from_u8(data[7])
             .ok_or_else(|| ModbusError::InvalidFunctionCode(data[7]))?;
         
-        let data_start = cursor.position() as usize;
+        let data_start = 8;
         let data_end = 6 + length;
         let frame_data = Bytes::copy_from_slice(&data[data_start..data_end]);
         
@@ -115,20 +113,22 @@ impl ModbusDecoder {
             });
         }
         
-        let mut cursor = Cursor::new(frame.data.as_ref());
+        let data = frame.data.as_ref();
         
         match frame.function_code {
             FunctionCode::ReadCoils | FunctionCode::ReadDiscreteInputs => {
-                let byte_count = cursor.read_u8()
-                    .map_err(|_| ModbusError::InvalidFrame)? as usize;
+                if data.is_empty() {
+                    return Err(ModbusError::InvalidFrame);
+                }
+                let byte_count = data[0] as usize;
                 
-                if cursor.get_ref().len() < 1 + byte_count {
+                if data.len() < 1 + byte_count {
                     return Err(ModbusError::InvalidFrame);
                 }
                 
                 let mut coils = Vec::new();
                 for i in 0..byte_count {
-                    let byte = cursor.read_u8().unwrap();
+                    let byte = data[1 + i];
                     for bit in 0..8 {
                         if i * 8 + bit < byte_count * 8 {
                             coils.push((byte >> bit) & 1 != 0);
