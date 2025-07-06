@@ -42,39 +42,53 @@ jobs:
     steps:
       - name: Quick runner check (15 second window)
         timeout-minutes: 1  # This gives us the ~15 second window
+        shell: pwsh
         run: |
-          echo "⚡ FJALL runner responding within 15 seconds!"
-          echo "Timestamp: $(date)"
+          Write-Host "⚡ FJALL runner responding within 15 seconds!"
+          Write-Host "Timestamp: $(Get-Date)"
 
       - name: Get runner info
         id: info
+        shell: pwsh
         run: |
-          echo "🏠 Successfully running on FJALL!"
-          echo "Runner: $(hostname)"
-          echo "User: $(whoami)"
-          echo "OS: $(uname -a)"
-          echo "Working directory: $(pwd)"
-          echo "runner=$(hostname)" >> $GITHUB_OUTPUT
+          Write-Host "🏠 Successfully running on FJALL!"
+          $hostname = $env:COMPUTERNAME
+          Write-Host "Runner: $hostname"
+          Write-Host "User: $env:USERNAME"
+          Write-Host "OS: $(Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty Caption)"
+          Write-Host "Working directory: $(Get-Location)"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "runner=$hostname"
 
       - name: Quick system check
+        shell: pwsh
         run: |
-          echo "💻 System resources:"
-          echo "Load: $(uptime)"
-          echo "Memory: $(free -h 2>/dev/null || echo 'free command not available')"
-          echo "Disk: $(df -h . | tail -1)"
+          Write-Host "💻 System resources:"
+          $memory = Get-WmiObject -Class Win32_ComputerSystem
+          $memoryGB = [math]::Round($memory.TotalPhysicalMemory / 1GB, 2)
+          Write-Host "Total Memory: $memoryGB GB"
+          
+          $disk = Get-WmiObject -Class Win32_LogicalDisk -Filter "DeviceID='C:'"
+          $freeSpaceGB = [math]::Round($disk.FreeSpace / 1GB, 2)
+          $totalSpaceGB = [math]::Round($disk.Size / 1GB, 2)
+          Write-Host "Disk C: $freeSpaceGB GB free of $totalSpaceGB GB"
+          
+          $cpu = Get-WmiObject -Class Win32_Processor
+          Write-Host "CPU: $($cpu.Name)"
 
       - name: Test Git operations
+        shell: pwsh
         run: |
-          echo "📁 Testing Git operations..."
+          Write-Host "📁 Testing Git operations..."
           git --version
           # Don't actually checkout to keep test fast
-          echo "Git is working!"
+          Write-Host "Git is working!"
 
       - name: Mark success
         id: complete
+        shell: pwsh
         run: |
-          echo "✅ FJALL runner test completed successfully!"
-          echo "success=true" >> $GITHUB_OUTPUT
+          Write-Host "✅ FJALL runner test completed successfully!"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "success=true"
 
   # Fallback job that runs if FJALL fails or times out
   test-fallback:

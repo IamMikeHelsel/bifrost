@@ -37,7 +37,7 @@ runner_preferences:
 self_hosted_labels:
   - "self-hosted"
   - "FJALL"  # Your specific runner name
-  - "linux"
+  - "windows"  # Windows host
   - "x64"
 
 # Monitoring and alerts

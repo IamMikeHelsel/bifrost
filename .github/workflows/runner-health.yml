@@ -57,12 +57,22 @@ jobs:
     steps:
       - name: Quick health test
         id: test
+        shell: pwsh
         run: |
-          echo "🏠 Self-hosted runner direct test"
-          echo "Runner: $(hostname)"
-          echo "Load: $(uptime)"
-          echo "Disk: $(df -h / | tail -1)"
-          echo "Memory: $(free -h | grep '^Mem')"
+          Write-Host "🏠 FJALL self-hosted runner health test"
+          Write-Host "Runner: $env:COMPUTERNAME"
+          
+          # Windows system info
+          $memory = Get-WmiObject -Class Win32_ComputerSystem
+          $memoryGB = [math]::Round($memory.TotalPhysicalMemory / 1GB, 2)
+          Write-Host "Memory: $memoryGB GB total"
+          
+          $disk = Get-WmiObject -Class Win32_LogicalDisk -Filter "DeviceID='C:'"
+          $freeSpaceGB = [math]::Round($disk.FreeSpace / 1GB, 2)
+          Write-Host "Disk C: $freeSpaceGB GB free"
+          
+          $uptime = (Get-Date) - (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime
+          Write-Host "Uptime: $($uptime.Days) days, $($uptime.Hours) hours"
 
   # Report results
   report-health:

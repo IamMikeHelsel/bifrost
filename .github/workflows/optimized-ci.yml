@@ -56,10 +56,11 @@ jobs:
         timeout-minutes: 1
 
       - name: Runner info
+        shell: pwsh
         run: |
-          echo "🏠 Running on self-hosted runner"
-          echo "Runner: $(hostname)"
-          echo "OS: $(uname -a)"
+          Write-Host "🏠 Running on FJALL self-hosted runner"
+          Write-Host "Runner: $env:COMPUTERNAME"
+          Write-Host "OS: $(Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty Caption)"
           
       - name: Set up Python
         uses: actions/setup-python@v5
