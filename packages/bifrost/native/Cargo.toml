@@ -1,5 +1,5 @@
 [package]
-name = "modbus_native"
+name = "bifrost_native"
 version = "0.1.0"
 edition = "2021"
 

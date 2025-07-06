@@ -1,7 +1,6 @@
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use crc16::*;
 use byteorder::{BigEndian, ByteOrder};
-use std::io::Cursor;
 
 use super::error::ModbusError;
 use super::frame::{FunctionCode, ModbusFrame, ModbusResponse};
@@ -144,18 +143,21 @@ impl ModbusDecoder {
             }
             
             FunctionCode::ReadHoldingRegisters | FunctionCode::ReadInputRegisters => {
-                let byte_count = cursor.read_u8()
-                    .map_err(|_| ModbusError::InvalidFrame)? as usize;
+                if data.is_empty() {
+                    return Err(ModbusError::InvalidFrame);
+                }
+                let byte_count = data[0] as usize;
                 
-                if byte_count % 2 != 0 || cursor.get_ref().len() < 1 + byte_count {
+                if byte_count % 2 != 0 || data.len() < 1 + byte_count {
                     return Err(ModbusError::InvalidFrame);
                 }
                 
                 let register_count = byte_count / 2;
                 let mut registers = Vec::with_capacity(register_count);
                 
-                for _ in 0..register_count {
-                    let value = cursor.read_u16::<BigEndian>().unwrap();
+                for i in 0..register_count {
+                    let offset = 1 + i * 2;
+                    let value = BigEndian::read_u16(&data[offset..offset + 2]);
                     registers.push(value);
                 }
                 
@@ -167,10 +169,11 @@ impl ModbusDecoder {
             }
             
             FunctionCode::WriteSingleCoil => {
-                let address = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
-                let value = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
+                if data.len() < 4 {
+                    return Err(ModbusError::InvalidFrame);
+                }
+                let address = BigEndian::read_u16(&data[0..2]);
+                let value = BigEndian::read_u16(&data[2..4]);
                 
                 Ok(ModbusResponse::WriteSingleCoil {
                     address,
@@ -179,28 +182,31 @@ impl ModbusDecoder {
             }
             
             FunctionCode::WriteSingleRegister => {
-                let address = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
-                let value = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
+                if data.len() < 4 {
+                    return Err(ModbusError::InvalidFrame);
+                }
+                let address = BigEndian::read_u16(&data[0..2]);
+                let value = BigEndian::read_u16(&data[2..4]);
                 
                 Ok(ModbusResponse::WriteSingleRegister { address, value })
             }
             
             FunctionCode::WriteMultipleCoils => {
-                let address = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
-                let quantity = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
+                if data.len() < 4 {
+                    return Err(ModbusError::InvalidFrame);
+                }
+                let address = BigEndian::read_u16(&data[0..2]);
+                let quantity = BigEndian::read_u16(&data[2..4]);
                 
                 Ok(ModbusResponse::WriteMultipleCoils { address, quantity })
             }
             
             FunctionCode::WriteMultipleRegisters => {
-                let address = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
-                let quantity = cursor.read_u16::<BigEndian>()
-                    .map_err(|_| ModbusError::InvalidFrame)?;
+                if data.len() < 4 {
+                    return Err(ModbusError::InvalidFrame);
+                }
+                let address = BigEndian::read_u16(&data[0..2]);
+                let quantity = BigEndian::read_u16(&data[2..4]);
                 
                 Ok(ModbusResponse::WriteMultipleRegisters { address, quantity })
             }
