@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv:*)",
+      "Bash(just:*)",
+      "Bash(ruff:*)",
+      "Bash(git --version)"
+    ],
+    "deny": []
+  }
+}
