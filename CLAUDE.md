@@ -309,7 +309,7 @@ All bifrost packages maintain synchronized versions:
 1. **Edge Analytics Engine** (Months 6-9): Time-series processing for edge devices
 1. **Beautiful CLI Development** (Months 9-11): Rich terminal interface
 1. **Cloud Bridge Framework** (Months 8-11): Edge-to-cloud connectivity
-1. **Additional Protocol Support** (Months 10-12): Ethernet/IP, S7, etc.
+1. **Additional Protocol Support** (Months 10-12): Ethernet/IP, S7, etc. (prioritized by [quantitative market research](PROTOCOL_POPULARITY_ANALYSIS.md))
 1. **Production Hardening** (Months 11-14): Testing, documentation, deployment tools
 
 ## Contributing Guidelines

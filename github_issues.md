@@ -362,10 +362,12 @@ ______________________________________________________________________
 
 ### Issue #20: 🏭 Ethernet/IP Implementation
 
-**Labels**: `epic`, `protocol`, `priority-medium`
+**Labels**: `epic`, `protocol`, `priority-high`
 **Milestone**: v0.7.0
 
-Implement Ethernet/IP (CIP) protocol support.
+Implement Ethernet/IP (CIP) protocol support - **Priority Score: 75/100**
+
+**Market Justification**: 30% of industrial Ethernet market share, North American dominance, aging Python ecosystem needs modernization (cpppo replacement).
 
 **Subtasks**:
 
@@ -377,10 +379,12 @@ Implement Ethernet/IP (CIP) protocol support.
 
 ### Issue #21: 🔧 Siemens S7 Protocol
 
-**Labels**: `feature`, `protocol`, `priority-medium`
+**Labels**: `feature`, `protocol`, `priority-high`
 **Milestone**: v0.7.0
 
-Add support for Siemens S7 protocol.
+Add support for Siemens S7 protocol - **Priority Score: 70/100**
+
+**Market Justification**: Siemens holds 40% global PLC market share, strong European presence, mature ecosystem via snap7.
 
 **Subtasks**:
 
@@ -404,6 +408,47 @@ Create plugin architecture for protocol extensions.
 - [ ] Add plugin validation
 - [ ] Create example plugin
 - [ ] Write plugin documentation
+
+### Issue #22b: 📊 Protocol Popularity Research
+
+**Labels**: `research`, `documentation`, `priority-medium`
+**Milestone**: v0.7.0
+
+Research and document industrial protocol popularity metrics for data-driven prioritization.
+
+**Deliverables**:
+
+- [x] Protocol popularity analysis document
+- [x] Market research methodology
+- [x] Quantitative scoring framework
+- [ ] Quarterly research updates
+- [ ] Community feedback integration
+
+______________________________________________________________________
+
+## Future Protocol Considerations (Based on Research)
+
+### Issue #33: ⚡ DNP3 Protocol Support
+
+**Labels**: `feature`, `protocol`, `priority-low`, `utility-sector`
+**Milestone**: Future
+
+Add DNP3 protocol support for utility sector applications - **Priority Score: 45/100**
+
+**Market Justification**: Standard for electric power systems, critical infrastructure requirement, smaller but stable market.
+
+**Target Applications**: Electric utilities, water systems, SCADA networks
+
+### Issue #34: 🏢 BACnet Protocol Support  
+
+**Labels**: `feature`, `protocol`, `priority-low`, `building-automation`
+**Milestone**: Future
+
+Add BACnet protocol support for building automation - **Priority Score: 40/100**
+
+**Market Justification**: ASHRAE standard for building automation, HVAC dominance, commercial building focus.
+
+**Target Applications**: Building management systems, HVAC control, energy management
 
 ______________________________________________________________________
 
