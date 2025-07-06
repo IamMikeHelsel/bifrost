@@ -499,58 +499,88 @@ Comprehensive performance analysis and optimization.
 
 ______________________________________________________________________
 
+## Release Card System (Later Phase)
+
+### Issue #41: 📋 Release Card System Implementation
+
+**Labels**: `epic`, `documentation`, `testing`, `later-phase`, `priority-medium`
+**Milestone**: Future (Post v1.0.0)
+
+Create comprehensive release card system to document tested fieldbus protocols and device compatibility for each software release.
+
+**Epic Subtasks**:
+
+- [ ] **Issue #42**: Design Release Card Format and Schema
+- [ ] **Issue #43**: Create Protocol Testing Matrix Tracking
+- [ ] **Issue #44**: Implement Device Registry System
+- [ ] **Issue #45**: Build Performance Benchmark Integration
+- [ ] **Issue #46**: Develop Automated Documentation Generation
+- [ ] **Issue #47**: Create Real Hardware Testing Framework
+- [ ] **Issue #48**: Implement CI/CD Integration for Release Cards
+
+**Key Features**:
+- Automated compatibility documentation
+- Protocol/device testing matrix
+- Performance benchmark integration
+- Real hardware validation tracking
+- Customer-facing compatibility cards
+
+**Detailed Specifications**: See `docs/github_issues_release_cards.md` for complete issue definitions and requirements.
+
+______________________________________________________________________
+
 ## Additional Feature Issues
 
-### Issue #28: 🌐 Web Dashboard (Optional)
+### Issue #49: 🌐 Web Dashboard (Optional)
 
 **Labels**: `feature`, `web`, `priority-low`
 **Milestone**: Future
 
 Create web-based monitoring dashboard.
 
-### Issue #29: 📱 Mobile App Support
+### Issue #50: 📱 Mobile App Support
 
 **Labels**: `feature`, `mobile`, `priority-low`
 **Milestone**: Future
 
 Mobile application for monitoring.
 
-### Issue #30: 🤝 Third-party Integrations
+### Issue #51: 🤝 Third-party Integrations
 
 **Labels**: `feature`, `integration`, `priority-medium`
 **Milestone**: v1.0.0
 
 Integrate with popular industrial software.
 
-### Issue #31: 📊 Advanced Analytics
+### Issue #52: 📊 Advanced Analytics
 
 **Labels**: `feature`, `ml`, `priority-low`
 **Milestone**: Future
 
 Machine learning capabilities for predictive analytics.
 
-### Issue #32: 🔐 Enterprise Features
+### Issue #53: 🔐 Enterprise Features
 
 **Labels**: `feature`, `enterprise`, `priority-medium`
 **Milestone**: Future
 
 Enterprise-grade features like LDAP, SSO.
 
-### Issue #33: 🌍 Internationalization
+### Issue #54: 🌍 Internationalization
 
 **Labels**: `feature`, `i18n`, `priority-low`
 **Milestone**: Future
 
 Multi-language support for global deployment.
 
-### Issue #34: 📡 Edge Computing Federation
+### Issue #55: 📡 Edge Computing Federation
 
 **Labels**: `feature`, `distributed`, `priority-low`
 **Milestone**: Future
 
 Multi-site edge coordination.
 
-### Issue #35: 🔄 Data Transformation Engine
+### Issue #56: 🔄 Data Transformation Engine
 
 **Labels**: `feature`, `etl`, `priority-medium`
 **Milestone**: v1.0.0
@@ -561,31 +591,31 @@ ______________________________________________________________________
 
 ## Bug and Maintenance Issues Template
 
-### Issue #36: 🐛 Bug Report Template
+### Issue #57: 🐛 Bug Report Template
 
 **Labels**: `bug`, `template`
 
 Bug report template for community.
 
-### Issue #37: ✨ Feature Request Template
+### Issue #58: ✨ Feature Request Template
 
 **Labels**: `enhancement`, `template`
 
 Feature request template.
 
-### Issue #38: 📝 Documentation Update Template
+### Issue #59: 📝 Documentation Update Template
 
 **Labels**: `documentation`, `template`
 
 Documentation improvement template.
 
-### Issue #39: 🔧 Refactoring Tasks
+### Issue #60: 🔧 Refactoring Tasks
 
 **Labels**: `refactor`, `code-quality`
 
 Code refactoring and cleanup tasks.
 
-### Issue #40: 🚨 Security Vulnerability Template
+### Issue #61: 🚨 Security Vulnerability Template
 
 **Labels**: `security`, `template`
 
@@ -617,6 +647,9 @@ ______________________________________________________________________
 - `cloud` - Cloud connectivity
 - `rust` - Rust/native code
 - `security` - Security related
+- `testing` - Testing infrastructure
+- `release-cards` - Release card system
+- `device-registry` - Device compatibility tracking
 
 **Priority Labels**:
 
@@ -638,3 +671,6 @@ ______________________________________________________________________
 - `help-wanted` - Community help needed
 - `breaking-change` - Breaking API change
 - `needs-tests` - Needs test coverage
+- `later-phase` - Post v1.0.0 implementation
+- `automation` - CI/CD and automation related
+- `schema` - Data schema and format design

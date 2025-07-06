@@ -361,3 +361,6 @@ When implementing this project:
 - `justfile`: Modern task runner with all development commands
 - `pyproject.toml`: Workspace configuration and tooling setup
 - `packages/*/pyproject.toml`: Individual package configurations
+- `github_issues.md`: Comprehensive GitHub issues roadmap for development
+- `github_issues_release_cards.md`: Release card system specifications for later phases
+- `virtual-devices/README.md`: Virtual device testing framework documentation
