@@ -1,0 +1,32 @@
+{
+  "name": "bifrost-gui-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "start": "echo \"TODO: Implement start script with a dev server like Vite or CRA\"",
+    "build": "echo \"TODO: Implement build script with a bundler like Vite or Webpack\"",
+    "test": "echo \"TODO: Implement test script\""
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

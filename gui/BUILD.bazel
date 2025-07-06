@@ -1,0 +1,23 @@
+# This BUILD file serves as the main entry point for GUI-related targets.
+
+# Alias for the backend server, making it easier to run from this package level.
+# e.g., `bazel run //gui:server`
+alias(
+    name = "server",
+    actual = "//gui/backend:bifrost_gui_server",
+    visibility = ["//visibility:public"], # Or restrict as needed
+)
+
+# Grouping the frontend sources.
+# This could be used later if the server is configured to serve these files,
+# or if another process needs to consume them.
+filegroup(
+    name = "frontend_assets_sources",
+    srcs = ["//gui/frontend:bifrost_gui_frontend_sources"],
+    visibility = ["//visibility:public"], # Or restrict as needed
+)
+
+# Future: This BUILD file could also contain:
+# - Rules to package the entire GUI application (backend + compiled frontend assets).
+# - Shared libraries or utilities used by both backend and frontend (if applicable, e.g. protobuf definitions).
+# - Test suites that cover integration between frontend and backend.
