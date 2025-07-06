@@ -12,7 +12,7 @@ runner_preferences:
   
   # Timeout settings
   timeouts:
-    self_hosted_test: 60  # seconds to test self-hosted availability
+    self_hosted_test: 15  # seconds to test self-hosted availability
     self_hosted_job: 1800  # 30 minutes max for self-hosted jobs
     cloud_fallback: 1200   # 20 minutes max for cloud fallback
   
@@ -36,7 +36,8 @@ runner_preferences:
 # Self-hosted runner labels
 self_hosted_labels:
   - "self-hosted"
-  - "linux"  # Add your runner's actual labels
+  - "FJALL"  # Your specific runner name
+  - "linux"
   - "x64"
 
 # Monitoring and alerts

@@ -47,10 +47,10 @@ jobs:
             echo "❌ Self-hosted runner is not responding"
           fi
 
-  # Test job that actually runs on self-hosted runner
+  # Test job that actually runs on FJALL self-hosted runner
   test-self-hosted-direct:
-    runs-on: self-hosted
-    timeout-minutes: 2
+    runs-on: [self-hosted, FJALL]
+    timeout-minutes: 1  # 1 minute timeout for health check
     continue-on-error: true
     outputs:
       success: ${{ steps.test.outcome == 'success' }}
