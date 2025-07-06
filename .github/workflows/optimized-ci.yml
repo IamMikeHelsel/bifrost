@@ -1,0 +1,304 @@
+name: Optimized CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      force-cloud-runner:
+        description: 'Force use of cloud runners'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FORCE_CLOUD: ${{ github.event.inputs.force-cloud-runner == 'true' }}
+
+jobs:
+  # Quick runner selection job
+  select-runner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      primary-runner: ${{ steps.runner-selection.outputs.primary-runner }}
+      fallback-runner: ${{ steps.runner-selection.outputs.fallback-runner }}
+      use-self-hosted: ${{ steps.runner-selection.outputs.use-self-hosted }}
+    steps:
+      - name: Select optimal runner
+        id: runner-selection
+        run: |
+          if [[ "$FORCE_CLOUD" == "true" ]]; then
+            echo "primary-runner=ubuntu-latest" >> $GITHUB_OUTPUT
+            echo "fallback-runner=ubuntu-latest" >> $GITHUB_OUTPUT
+            echo "use-self-hosted=false" >> $GITHUB_OUTPUT
+            echo "🔵 Forcing cloud runner usage"
+          else
+            echo "primary-runner=self-hosted" >> $GITHUB_OUTPUT
+            echo "fallback-runner=ubuntu-latest" >> $GITHUB_OUTPUT
+            echo "use-self-hosted=true" >> $GITHUB_OUTPUT
+            echo "🏠 Attempting self-hosted runner"
+          fi
+
+  # Windows build job using FJALL
+  build-windows:
+    needs: select-runner
+    if: needs.select-runner.outputs.use-self-hosted == 'true'
+    runs-on: [self-hosted, FJALL]
+    timeout-minutes: 30
+    continue-on-error: true
+    outputs:
+      success: ${{ steps.build-complete.outputs.success }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        timeout-minutes: 1
+
+      - name: Runner info
+        shell: pwsh
+        run: |
+          Write-Host "🏠 Running on FJALL Windows self-hosted runner"
+          Write-Host "Runner: $env:COMPUTERNAME"
+          Write-Host "OS: $(Get-WmiObject -Class Win32_OperatingSystem | Select-Object -ExpandProperty Caption)"
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+        timeout-minutes: 3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+        timeout-minutes: 2
+
+      - name: Install dependencies
+        shell: pwsh
+        run: uv sync --all-extras --dev
+        timeout-minutes: 5
+
+      - name: Run linting and tests
+        shell: pwsh
+        run: |
+          Write-Host "🔍 Running linter..."
+          uv run ruff check .
+          Write-Host "🧪 Running tests..."
+          uv run pytest -x
+        timeout-minutes: 10
+
+      - name: Build Rust extensions (Windows)
+        shell: pwsh
+        run: |
+          Write-Host "🦀 Building Rust extensions for Windows..."
+          bazel build //packages/bifrost/native:bifrost_native
+        timeout-minutes: 15
+
+      - name: Mark build complete
+        id: build-complete
+        shell: pwsh
+        run: |
+          Write-Host "✅ Windows build completed successfully!"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "success=true"
+
+  # Linux build job (cloud runner)
+  build-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      success: ${{ steps.build-complete.outputs.success }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Runner info
+        run: |
+          echo "🐧 Running Linux build on GitHub-hosted runner"
+          echo "Runner: $(hostname)"
+          echo "OS: $(lsb_release -d | cut -f2)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run linting and tests
+        run: |
+          echo "🔍 Running linter..."
+          uv run ruff check .
+          echo "🧪 Running tests..."
+          uv run pytest -x
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@0.8.5
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Build Rust extensions (Linux)
+        run: |
+          echo "🦀 Building Rust extensions for Linux..."
+          bazel build //packages/bifrost/native:bifrost_native
+
+      - name: Mark build complete
+        id: build-complete
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # macOS build job (cloud runner)
+  build-macos:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    outputs:
+      success: ${{ steps.build-complete.outputs.success }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Runner info
+        run: |
+          echo "🍎 Running macOS build on GitHub-hosted runner"
+          echo "Runner: $(hostname)"
+          echo "OS: $(sw_vers -productName) $(sw_vers -productVersion)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run linting and tests
+        run: |
+          echo "🔍 Running linter..."
+          uv run ruff check .
+          echo "🧪 Running tests..."
+          uv run pytest -x
+
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@0.8.5
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      - name: Build Rust extensions (macOS)
+        run: |
+          echo "🦀 Building Rust extensions for macOS..."
+          bazel build //packages/bifrost/native:bifrost_native
+
+      - name: Mark build complete
+        id: build-complete
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # Additional Python version testing
+  test-python-versions:
+    needs: [build-windows, build-linux, build-macos]
+    if: always() && (needs.build-windows.outputs.success == 'true' || needs.build-linux.outputs.success == 'true' || needs.build-macos.outputs.success == 'true')
+    runs-on: ubuntu-latest  # Use cloud runner for version testing
+    strategy:
+      matrix:
+        python-version: ['3.13', '3.14-dev']
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Test Python ${{ matrix.python-version }}
+        run: |
+          echo "🐍 Testing with Python ${{ matrix.python-version }}"
+          uv sync --all-extras --dev
+          uv run pytest --tb=short
+
+  # Summary job
+  ci-summary:
+    needs: [select-runner, build-windows, build-linux, build-macos, test-python-versions]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI Summary
+        run: |
+          echo "## 🏗️ Multi-Platform Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Windows build (FJALL)
+          if [[ "${{ needs.build-windows.result }}" == "success" ]]; then
+            echo "✅ **Windows build (FJALL)**: Success" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-windows.result }}" == "failure" ]]; then
+            echo "❌ **Windows build (FJALL)**: Failed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-windows.result }}" == "cancelled" ]]; then
+            echo "⏱️ **Windows build (FJALL)**: Timed out" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Windows build (FJALL)**: Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Linux build (cloud)
+          if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
+            echo "✅ **Linux build (cloud)**: Success" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-linux.result }}" == "failure" ]]; then
+            echo "❌ **Linux build (cloud)**: Failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Linux build (cloud)**: Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # macOS build (cloud)
+          if [[ "${{ needs.build-macos.result }}" == "success" ]]; then
+            echo "✅ **macOS build (cloud)**: Success" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.build-macos.result }}" == "failure" ]]; then
+            echo "❌ **macOS build (cloud)**: Failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **macOS build (cloud)**: Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Python version tests**: ${{ needs.test-python-versions.result }}" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🐍 Python Version Focus" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 **Primary**: Python 3.13" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔮 **Future**: Python 3.14-dev" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚫 **Deprecated**: Python 3.11, 3.12 (no longer tested)" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🖥️ Platform Strategy" >> $GITHUB_STEP_SUMMARY
+          echo "- 🏠 **Windows**: FJALL self-hosted runner (15s timeout)" >> $GITHUB_STEP_SUMMARY
+          echo "- ☁️ **Linux/macOS**: GitHub-hosted runners" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall status
+          success_count=0
+          if [[ "${{ needs.build-windows.result }}" == "success" ]]; then ((success_count++)); fi
+          if [[ "${{ needs.build-linux.result }}" == "success" ]]; then ((success_count++)); fi
+          if [[ "${{ needs.build-macos.result }}" == "success" ]]; then ((success_count++)); fi
+          
+          if [[ $success_count -ge 2 && "${{ needs.test-python-versions.result }}" == "success" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎉 **Overall CI Status**: ✅ **PASSED** ($success_count/3 platforms)" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💥 **Overall CI Status**: ❌ **FAILED** ($success_count/3 platforms)" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

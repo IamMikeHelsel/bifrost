@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Main build job for Linux/macOS (cloud runners)
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.13']
+        os: [ubuntu-latest, macos-latest]
+      fail-fast: false
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        enable-cache: true
+        cache-dependency-glob: "**/pyproject.toml"
+
+    - name: Install dependencies
+      run: |
+        uv sync --all-extras --dev
+
+    - name: Run linter
+      run: |
+        uv run ruff check .
+
+    - name: Run type checker
+      run: |
+        uv run mypy .
+
+    - name: Run tests
+      run: |
+        uv run pytest -xvs
+
+  # Windows build job using FJALL
+  build-windows:
+    runs-on: [self-hosted, FJALL]
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+
+    - name: Test on Windows
+      shell: pwsh
+      run: |
+        Write-Host "🏠 Testing on FJALL Windows runner"
+        uv sync --all-extras --dev
+        uv run pytest --tb=short
+
+  # Rust/Bazel build job (Linux only)
+  build-rust:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Bazel
+      uses: bazel-contrib/setup-bazel@0.8.5
+      with:
+        bazelisk-cache: true
+        disk-cache: ${{ github.workflow }}
+        repository-cache: true
+
+    - name: Build Rust extensions
+      run: |
+        bazel build //packages/bifrost/native:bifrost_native
+
+    - name: Run Rust tests
+      run: |
+        bazel test //packages/bifrost/native:all
+

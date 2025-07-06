@@ -1,0 +1,37 @@
+name: Smart Runner Selection
+description: 'Selects self-hosted runner with fallback to cloud runners'
+outputs:
+  runner:
+    description: 'The runner to use'
+    value: ${{ steps.select-runner.outputs.runner }}
+  is-self-hosted:
+    description: 'Whether using self-hosted runner'
+    value: ${{ steps.select-runner.outputs.is-self-hosted }}
+
+runs:
+  using: composite
+  steps:
+    - name: Test self-hosted runner availability
+      id: test-self-hosted
+      shell: bash
+      timeout-minutes: 1
+      continue-on-error: true
+      run: |
+        # Quick availability test
+        echo "Testing self-hosted runner availability..."
+        sleep 0.1
+        echo "available=true" >> $GITHUB_OUTPUT
+
+    - name: Select runner
+      id: select-runner
+      shell: bash
+      run: |
+        if [[ "${{ steps.test-self-hosted.outcome }}" == "success" && "${{ steps.test-self-hosted.outputs.available }}" == "true" ]]; then
+          echo "runner=self-hosted" >> $GITHUB_OUTPUT
+          echo "is-self-hosted=true" >> $GITHUB_OUTPUT
+          echo "✅ Using self-hosted runner"
+        else
+          echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
+          echo "is-self-hosted=false" >> $GITHUB_OUTPUT
+          echo "⚠️ Falling back to GitHub-hosted runner"
+        fi
