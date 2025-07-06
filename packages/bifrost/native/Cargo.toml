@@ -1,5 +1,5 @@
 [package]
-name = "modbus_native"
+name = "bifrost_native"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,3 +9,12 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.21", features = ["extension-module"] }
 tokio = { version = "1.38", features = ["full"] }
+bytes = "1.5"
+crc16 = "0.4"
+thiserror = "1.0"
+num-traits = "0.2"
+byteorder = "1.5"
+
+[build-dependencies]
+bindgen = "0.69"
+cc = "1.0"

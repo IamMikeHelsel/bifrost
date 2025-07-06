@@ -9,6 +9,10 @@ from .discovery import discover_devices
 from .modbus import ModbusDevice
 from .plc import PLC
 
+# Import core components
+from .core import BaseConnection, BaseProtocol, DataPoint, Pipeline
+from .core.logging import BifrostLogger, get_logger, setup_exception_handling
+
 # Smart imports for optional dependencies
 try:
     from bifrost_opcua import OPCUAClient  # type: ignore
