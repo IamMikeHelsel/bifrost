@@ -14,7 +14,7 @@ install-hooks:
 # Set up development environment
 dev-setup: install-uv install-hooks
     @echo "🔧 Setting up Bifrost development environment..."
-    uv python install 3.13
+    uv python install 3.12
     uv sync --all-extras --dev
     @echo "✅ Development environment ready!"
 

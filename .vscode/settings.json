@@ -7,6 +7,9 @@
     "source.organizeImports": "explicit"
   },
   
+  // Auto-run pre-commit on save
+  "git.postCommitCommand": "none",
+  
   // Python settings
   "python.defaultInterpreterPath": "./.venv/bin/python",
   "[python]": {

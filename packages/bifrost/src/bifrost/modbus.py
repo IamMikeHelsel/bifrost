@@ -39,7 +39,7 @@ class ModbusConnection(PLCConnection):
             host: IP address or hostname of the Modbus device.
             port: TCP port number (default: 502).
         """
-        super().__init__(host, port)
+        super().__init__(host, port, "modbus")
         self.client = AsyncModbusTcpClient(host=host, port=port)
 
     async def __aenter__(self) -> "ModbusConnection":
@@ -73,11 +73,9 @@ class ModbusDevice(PLC[Any]):
         readings: dict[Tag, Reading[Value]] = {}
         for tag in tags:
             try:
-                # Parse Modbus address from tag.address (e.g., "40001" -> 0)
-                # Modbus holding registers start at 40001, but use 0-based addressing
-                address = int(tag.address) - 40001
+                address, num_registers = self._parse_address(tag.address)
                 result = await self.connection.client.read_holding_registers(
-                    address=address, count=1, slave=1
+                    address=address, count=num_registers, slave=1
                 )
                 if isinstance(result, ModbusException):
                     raise result
@@ -86,8 +84,13 @@ class ModbusDevice(PLC[Any]):
                 timestamp = Timestamp(
                     int(asyncio.get_running_loop().time() * 1_000_000_000)
                 )
+                value = result.registers
+                if num_registers > 1:
+                    converted_value = [self._convert_to_python(v, tag.data_type) for v in value]
+                else:
+                    converted_value = self._convert_to_python(value[0], tag.data_type)
                 readings[tag] = Reading(
-                    tag=tag, value=result.registers[0], timestamp=timestamp
+                    tag=tag, value=converted_value, timestamp=timestamp
                 )
             except (ModbusException, ValueError, Exception):
                 # In a real implementation, we would log this error.
@@ -99,23 +102,35 @@ class ModbusDevice(PLC[Any]):
         """Write one or more values to the Modbus device."""
         for tag, value in values.items():
             try:
-                # Parse Modbus address from tag.address (e.g., "40001" -> 0)
-                # Modbus holding registers start at 40001, but use 0-based addressing
-                address = int(tag.address) - 40001
-                # Ensure value is an int for write_register
-                if not isinstance(value, int):
-                    raise ValueError("Modbus write value must be an integer")
-                result: WriteSingleRegisterResponse = (
+                address, _ = self._parse_address(tag.address)
+                if isinstance(value, list):
+                    await self.connection.client.write_registers(
+                        address=address, values=value, slave=1
+                    )
+                elif isinstance(value, int):
                     await self.connection.client.write_register(
                         address=address, value=value, slave=1
                     )
-                )
-                if isinstance(result, ModbusException):
-                    raise result
+                else:
+                    raise ValueError("Modbus write value must be an integer or a list of integers")
             except (ModbusException, ValueError, Exception):
                 # In a real implementation, we would log this error.
                 # Catch all exceptions to handle connection errors gracefully
                 pass
+
+    def _parse_address(self, address: str) -> tuple[int, int]:
+        """Parse a Modbus address string.
+
+        Args:
+            address: The address string to parse.
+
+        Returns:
+            A tuple containing the address and the number of registers to read.
+        """
+        if ":" in address:
+            addr, num_registers = address.split(":")
+            return int(addr) - 40001, int(num_registers)
+        return int(address) - 40001, 1
 
     async def get_info(self) -> JsonDict:
         """Get information about the Modbus device."""

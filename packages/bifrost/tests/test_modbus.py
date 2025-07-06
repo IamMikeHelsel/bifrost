@@ -74,6 +74,23 @@ class TestModbusConnection:
             )
 
     @pytest.mark.asyncio
+    async def test_read_multiple_holding_registers(self, modbus_device, mock_client):
+        """Test reading multiple holding registers."""
+        response = MagicMock()
+        response.isError.return_value = False
+        response.registers = [123, 456, 789]
+        mock_client.read_holding_registers = AsyncMock(return_value=response)
+
+        async with modbus_device.connection:
+            tags = [Tag(name="test", address="40001:3", data_type=DataType.INT16)]
+            result = await modbus_device.read(tags)
+            assert tags[0] in result
+            assert result[tags[0]].value == [123, 456, 789]
+            mock_client.read_holding_registers.assert_called_once_with(
+                address=0, count=3, slave=1
+            )
+
+    @pytest.mark.asyncio
     async def test_read_error(self, modbus_device, mock_client):
         """Test read error handling."""
         response = MagicMock()
@@ -97,6 +114,20 @@ class TestModbusConnection:
             await modbus_device.write({tag: 12345})
             mock_client.write_register.assert_called_once_with(
                 address=0, value=12345, slave=1
+            )
+
+    @pytest.mark.asyncio
+    async def test_write_multiple_holding_registers(self, modbus_device, mock_client):
+        """Test writing multiple holding registers."""
+        response = MagicMock()
+        response.isError.return_value = False
+        mock_client.write_registers = AsyncMock(return_value=response)
+
+        async with modbus_device.connection:
+            tag = Tag(name="test", address="40001", data_type=DataType.INT16)
+            await modbus_device.write({tag: [123, 456, 789]})
+            mock_client.write_registers.assert_called_once_with(
+                address=0, values=[123, 456, 789], slave=1
             )
 
     @pytest.mark.asyncio

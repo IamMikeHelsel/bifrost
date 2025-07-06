@@ -26,6 +26,7 @@ rust_shared_library(
         "@crates//:crc16",
         "@crates//:thiserror",
         "@crates//:byteorder",
+        "@crates//:tokio-util",
     ],
     # Tell the linker this is a Python extension
     rustc_flags = [
