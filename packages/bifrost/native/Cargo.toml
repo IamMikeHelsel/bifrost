@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.21", features = ["extension-module"] }
+pyo3 = { version = "0.25", features = ["extension-module"] }
 tokio = { version = "1.38", features = ["full"] }
 bytes = "1.5"
 crc16 = "0.4"
