@@ -1,5 +1,11 @@
 # GitHub Actions Runner Configuration
 # This file defines preferences for runner selection
+#
+# Strategy:
+# - FJALL (Windows 11): Self-hosted runner for Windows builds
+# - Linux/macOS: GitHub-hosted runners for consistency  
+# - Python versions: Focus on 3.13+ (3.11/3.12 deprecated)
+# - 15-second timeout for self-hosted availability
 
 runner_preferences:
   # Primary runner preference
@@ -18,20 +24,25 @@ runner_preferences:
   
   # Job-specific overrides
   jobs:
-    # Force certain jobs to always use cloud runners
-    test-matrix:
+    # Windows builds use FJALL self-hosted runner
+    build-windows:
+      prefer_self_hosted: true
+      require_self_hosted: false  # Fall back to cloud if unavailable
+      reason: "Windows-specific testing on FJALL runner"
+    
+    # Linux/macOS builds use cloud runners
+    build-linux:
       force_cloud: true
-      reason: "Consistency across multiple OS/Python versions"
+      reason: "Consistent cloud environment for Linux builds"
     
-    # Allow some jobs to prefer self-hosted
-    build-rust:
-      prefer_self_hosted: true
-      reason: "Better performance for Rust/Bazel builds"
+    build-macos:
+      force_cloud: true
+      reason: "Consistent cloud environment for macOS builds"
     
-    deploy:
-      prefer_self_hosted: true
-      require_self_hosted: true  # Fail if self-hosted not available
-      reason: "Access to deployment credentials"
+    # Python version testing uses cloud for consistency
+    test-python-versions:
+      force_cloud: true
+      reason: "Consistent environment for version testing"
 
 # Self-hosted runner labels
 self_hosted_labels:

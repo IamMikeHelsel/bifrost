@@ -7,27 +7,13 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  # First job attempts to use self-hosted runner
-  test-self-hosted:
-    runs-on: self-hosted
-    timeout-minutes: 5  # Prevent hanging if runner is stuck
-    continue-on-error: true  # Don't fail the workflow if this job fails
-    outputs:
-      runner-available: ${{ steps.check.outcome == 'success' }}
-    steps:
-      - id: check
-        name: Check runner availability
-        run: echo "Self-hosted runner is available"
-        timeout-minutes: 1
-
-  # Main build job that runs on appropriate runner
+  # Main build job for Linux/macOS (cloud runners)
   build:
-    needs: test-self-hosted
-    runs-on: ${{ needs.test-self-hosted.outputs.runner-available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.13']
+        os: [ubuntu-latest, macos-latest]
       fail-fast: false
     
     steps:
@@ -62,10 +48,32 @@ jobs:
       run: |
         uv run pytest -xvs
 
-  # Rust/Bazel build job
+  # Windows build job using FJALL
+  build-windows:
+    runs-on: [self-hosted, FJALL]
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+
+    - name: Test on Windows
+      shell: pwsh
+      run: |
+        Write-Host "🏠 Testing on FJALL Windows runner"
+        uv sync --all-extras --dev
+        uv run pytest --tb=short
+
+  # Rust/Bazel build job (Linux only)
   build-rust:
-    needs: test-self-hosted
-    runs-on: ${{ needs.test-self-hosted.outputs.runner-available == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
@@ -85,15 +93,3 @@ jobs:
       run: |
         bazel test //packages/bifrost/native:all
 
-  # Alternative approach using workflow dispatch for manual control
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    needs: [build, build-rust]
-    runs-on: ${{ github.event.inputs.use-self-hosted == 'true' && 'self-hosted' || 'ubuntu-latest' }}
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Deploy or publish
-      run: |
-        echo "Deployment steps would go here"
