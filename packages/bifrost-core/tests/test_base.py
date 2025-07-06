@@ -2,8 +2,9 @@
 
 import pytest
 
-from bifrost_core.base import BaseConnection, ConnectionState
-from bifrost_core.typing import DataType
+from collections.abc import Sequence
+from bifrost_core.base import BaseConnection, ConnectionState, Reading, BaseDevice
+from bifrost_core.typing import DataType, Tag, Value, Timestamp, JsonDict
 
 
 class MockConnection(BaseConnection):
@@ -13,10 +14,10 @@ class MockConnection(BaseConnection):
         self.host = host
         self.port = port
         self.fail_connect = fail_connect
-        self._mock_data = {
-            "40001": 123,
-            "40002": 456.7,
-            "coil:1": True,
+        self._mock_data: dict[Tag, Value] = {
+            Tag(name="reg1", address="40001", data_type=DataType.INT16): 123,
+            Tag(name="reg2", address="40002", data_type=DataType.FLOAT32): 456.7,
+            Tag(name="coil1", address="coil:1", data_type=DataType.BOOLEAN): True,
         }
         self._state = ConnectionState.DISCONNECTED
 
@@ -33,17 +34,22 @@ class MockConnection(BaseConnection):
     def is_connected(self) -> bool:
         return self._state == ConnectionState.CONNECTED
 
-    async def read(self, tags):
+    async def read(self, tags: Sequence[Tag]) -> dict[Tag, Reading[Value]]:
         if not self.is_connected:
             raise ConnectionError("Not connected")
-        return {tag: self._mock_data.get(tag, 0) for tag in tags}
+        readings = {}
+        for tag in tags:
+            value = self._mock_data.get(tag)
+            if value is not None:
+                readings[tag] = Reading(tag=tag, value=value, timestamp=Timestamp(0)) # Mock timestamp
+        return readings
 
-    async def write(self, values):
+    async def write(self, values: dict[Tag, Value]) -> None:
         if not self.is_connected:
             raise ConnectionError("Not connected")
         self._mock_data.update(values)
 
-    async def get_info(self):
+    async def get_info(self) -> JsonDict:
         return {"host": self.host, "port": self.port}
 
 
@@ -64,12 +70,16 @@ class TestBaseConnection:
     @pytest.mark.asyncio
     async def test_read_write(self):
         async with MockConnection("192.168.1.100", 502) as conn:
-            readings = await conn.read(["40001"])
-            assert readings["40001"] == 123
+            tag1 = Tag(name="reg1", address="40001", data_type=DataType.INT16)
+            tag2 = Tag(name="reg2", address="40002", data_type=DataType.FLOAT32)
 
-            await conn.write({"40001": 999})
-            readings = await conn.read(["40001"])
-            assert readings["40001"] == 999
+            readings = await conn.read([tag1, tag2])
+            assert readings[tag1].value == 123
+            assert readings[tag2].value == 456.7
+
+            await conn.write({tag1: 999})
+            readings = await conn.read([tag1])
+            assert readings[tag1].value == 999
 
     @pytest.mark.asyncio
     async def test_connection_failure(self):
@@ -77,6 +87,13 @@ class TestBaseConnection:
         with pytest.raises(ConnectionError):
             async with conn:
                 pass
+
+    @pytest.mark.asyncio
+    async def test_get_info(self):
+        async with MockConnection("192.168.1.100", 502) as conn:
+            info = await conn.get_info()
+            assert info["host"] == "192.168.1.100"
+            assert info["port"] == 502
 
 
 class TestEnums:
@@ -96,3 +113,71 @@ class TestEnums:
         assert DataType.BOOLEAN.value == "boolean"
         assert DataType.STRING.value == "string"
         assert DataType.BYTE.value == "byte"
+
+
+class TestDeviceInfo:
+    """Test DeviceInfo model."""
+
+    def test_default_name(self):
+        from bifrost_core.base import DeviceInfo
+        device = DeviceInfo(
+            device_id="test_id",
+            protocol="test_protocol",
+            host="localhost",
+            port=1234,
+            discovery_method="test_method"
+        )
+        assert device.name == "test_id"
+
+    def test_explicit_name(self):
+        from bifrost_core.base import DeviceInfo
+        device = DeviceInfo(
+            device_id="test_id",
+            protocol="test_protocol",
+            host="localhost",
+            port=1234,
+            discovery_method="test_method",
+            name="My Device"
+        )
+        assert device.name == "My Device"
+
+
+class MockDevice(BaseDevice[Value]):
+    """Mock device for testing BaseDevice."""
+    def __init__(self, connection: BaseConnection):
+        super().__init__(connection)
+        self._mock_readings: dict[Tag, Reading[Value]] = {}
+
+    async def read(self, tags: Sequence[Tag]) -> dict[Tag, Reading[Value]]:
+        return {tag: self._mock_readings.get(tag) for tag in tags if tag in self._mock_readings}
+
+    async def write(self, values: dict[Tag, Value]) -> None:
+        for tag, value in values.items():
+            self._mock_readings[tag] = Reading(tag=tag, value=value, timestamp=Timestamp(0))
+
+    async def get_info(self) -> JsonDict:
+        return {"device_type": "Mock Device"}
+
+
+class TestBaseDevice:
+    """Test BaseDevice abstract class."""
+
+    @pytest.mark.asyncio
+    async def test_read_write_info(self):
+        conn = MockConnection("127.0.0.1")
+        device = MockDevice(conn)
+
+        tag1 = Tag(name="test_tag", address="1", data_type=DataType.INT16)
+        tag2 = Tag(name="another_tag", address="2", data_type=DataType.STRING)
+
+        # Test write
+        await device.write({tag1: 100, tag2: "hello"})
+
+        # Test read
+        readings = await device.read([tag1, tag2])
+        assert readings[tag1].value == 100
+        assert readings[tag2].value == "hello"
+
+        # Test get_info
+        info = await device.get_info()
+        assert info["device_type"] == "Mock Device"

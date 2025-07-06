@@ -73,10 +73,31 @@ class ModbusDevice(PLC[Any]):
         readings: dict[Tag, Reading[Value]] = {}
         for tag in tags:
             try:
-                address, num_registers = self._parse_address(tag.address)
-                result = await self.connection.client.read_holding_registers(
-                    address=address, count=num_registers, slave=1
-                )
+                function_code, address, count = self._parse_address(tag.address)
+                
+                if function_code == 1:  # Read Coils
+                    result = await self.connection.client.read_coils(
+                        address=address, count=count, slave=1
+                    )
+                    value = result.bits
+                elif function_code == 2:  # Read Discrete Inputs
+                    result = await self.connection.client.read_discrete_inputs(
+                        address=address, count=count, slave=1
+                    )
+                    value = result.bits
+                elif function_code == 3:  # Read Holding Registers
+                    result = await self.connection.client.read_holding_registers(
+                        address=address, count=count, slave=1
+                    )
+                    value = result.registers
+                elif function_code == 4:  # Read Input Registers
+                    result = await self.connection.client.read_input_registers(
+                        address=address, count=count, slave=1
+                    )
+                    value = result.registers
+                else:
+                    raise ValueError(f"Unsupported Modbus function code: {function_code}")
+
                 if isinstance(result, ModbusException):
                     raise result
                 if hasattr(result, 'isError') and result.isError():
@@ -84,11 +105,11 @@ class ModbusDevice(PLC[Any]):
                 timestamp = Timestamp(
                     int(asyncio.get_running_loop().time() * 1_000_000_000)
                 )
-                value = result.registers
-                if num_registers > 1:
+                
+                if isinstance(value, list):
                     converted_value = [self._convert_to_python(v, tag.data_type) for v in value]
                 else:
-                    converted_value = self._convert_to_python(value[0], tag.data_type)
+                    converted_value = self._convert_to_python(value, tag.data_type)
                 readings[tag] = Reading(
                     tag=tag, value=converted_value, timestamp=timestamp
                 )
@@ -102,35 +123,71 @@ class ModbusDevice(PLC[Any]):
         """Write one or more values to the Modbus device."""
         for tag, value in values.items():
             try:
-                address, _ = self._parse_address(tag.address)
-                if isinstance(value, list):
-                    await self.connection.client.write_registers(
-                        address=address, values=value, slave=1
-                    )
-                elif isinstance(value, int):
-                    await self.connection.client.write_register(
-                        address=address, value=value, slave=1
-                    )
+                function_code, address, _ = self._parse_address(tag.address)
+                
+                if function_code == 1:  # Write Coils
+                    if isinstance(value, bool):
+                        await self.connection.client.write_coil(
+                            address=address, value=value, slave=1
+                        )
+                    elif isinstance(value, list) and all(isinstance(v, bool) for v in value):
+                        await self.connection.client.write_coils(
+                            address=address, values=value, slave=1
+                        )
+                    else:
+                        raise ValueError("Coil write value must be a boolean or a list of booleans")
+                elif function_code == 3:  # Write Holding Registers
+                    if isinstance(value, int):
+                        await self.connection.client.write_register(
+                            address=address, value=value, slave=1
+                        )
+                    elif isinstance(value, list) and all(isinstance(v, int) for v in value):
+                        await self.connection.client.write_registers(
+                            address=address, values=value, slave=1
+                        )
+                    else:
+                        raise ValueError("Register write value must be an integer or a list of integers")
                 else:
-                    raise ValueError("Modbus write value must be an integer or a list of integers")
+                    raise ValueError(f"Unsupported Modbus function code for writing: {function_code}")
+
             except (ModbusException, ValueError, Exception):
                 # In a real implementation, we would log this error.
                 # Catch all exceptions to handle connection errors gracefully
                 pass
 
-    def _parse_address(self, address: str) -> tuple[int, int]:
-        """Parse a Modbus address string.
+    def _parse_address(self, address: str) -> tuple[int, int, int]:
+        """Parse a Modbus address string and determine the function code.
 
         Args:
-            address: The address string to parse.
+            address: The address string to parse (e.g., "40001", "00001:10").
 
         Returns:
-            A tuple containing the address and the number of registers to read.
+            A tuple containing (function_code, address, count).
         """
-        if ":" in address:
-            addr, num_registers = address.split(":")
-            return int(addr) - 40001, int(num_registers)
-        return int(address) - 40001, 1
+        parts = address.split(":")
+        addr_str = parts[0]
+        count = int(parts[1]) if len(parts) > 1 else 1
+
+        if addr_str.startswith("0"):
+            # Coils (0xxxx)
+            function_code = 1  # Read Coils
+            address = int(addr_str) - 1
+        elif addr_str.startswith("1"):
+            # Discrete Inputs (1xxxx)
+            function_code = 2  # Read Discrete Inputs
+            address = int(addr_str) - 10001
+        elif addr_str.startswith("3"):
+            # Input Registers (3xxxx)
+            function_code = 4  # Read Input Registers
+            address = int(addr_str) - 30001
+        elif addr_str.startswith("4"):
+            # Holding Registers (4xxxx)
+            function_code = 3  # Read Holding Registers
+            address = int(addr_str) - 40001
+        else:
+            raise ValueError(f"Invalid Modbus address format: {address}")
+
+        return function_code, address, count
 
     async def get_info(self) -> JsonDict:
         """Get information about the Modbus device."""

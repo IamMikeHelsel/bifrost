@@ -4,6 +4,58 @@
 
 This directory contains virtual devices and testing infrastructure for comprehensive end-to-end, integration, and functional testing of Bifrost's industrial IoT capabilities. The framework simulates real industrial environments and devices to enable reliable testing without requiring physical hardware.
 
+## Current Implementation (Phase 1)
+
+The following simulators are currently implemented and ready for use:
+
+### Modbus TCP Simulator
+- **Location**: `modbus-tcp-sim/`
+- **Features**: Realistic device simulation with error injection, dynamic sensor data
+- **Docker**: Ready-to-use container with health checks
+- **Port**: 502 (standard), 503 (faulty variant)
+
+### OPC UA Simulator  
+- **Location**: `opcua-sim/`
+- **Features**: Industrial node hierarchy, real-time data updates, subscription support
+- **Docker**: Ready-to-use container with health checks
+- **Port**: 4840
+
+### Quick Start
+```bash
+# Start all simulators
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all simulators  
+docker-compose down
+```
+
+### Testing Your Implementation
+```bash
+# Test Modbus TCP
+python -c "
+from pyModbusTCP.client import ModbusClient
+client = ModbusClient(host='localhost', port=502)
+client.open()
+print('Temperature sensors:', client.read_holding_registers(0, 10))
+client.close()
+"
+
+# Test OPC UA
+python -c "
+from opcua import Client
+client = Client('opc.tcp://localhost:4840')
+client.connect()
+factory = client.get_node('ns=2;s=Factory')
+print('Factory nodes:', [child.get_browse_name() for child in factory.get_children()])
+client.disconnect()
+"
+```
+
+See the detailed documentation sections below for the complete framework vision and future development plans.
+
 ## Directory Structure
 
 ```

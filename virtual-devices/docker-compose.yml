@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  modbus-tcp-sim:
+    build: ./modbus-tcp-sim
+    container_name: bifrost-modbus-sim
+    ports:
+      - "502:502"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "modbus_server.py", "--host", "0.0.0.0", "--port", "502", "--log-level", "INFO"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 502)); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - industrial-net
+
+  opcua-sim:
+    build: ./opcua-sim
+    container_name: bifrost-opcua-sim
+    ports:
+      - "4840:4840"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "opcua_server.py", "--endpoint", "opc.tcp://0.0.0.0:4840", "--log-level", "INFO"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 4840)); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - industrial-net
+
+  # Error simulation variants for testing resilience
+  modbus-tcp-sim-faulty:
+    build: ./modbus-tcp-sim
+    container_name: bifrost-modbus-sim-faulty
+    ports:
+      - "503:502"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "modbus_server.py", "--host", "0.0.0.0", "--port", "502", "--error-rate", "0.1", "--response-delay", "0.1", "--log-level", "INFO"]
+    restart: unless-stopped
+    profiles:
+      - testing
+    networks:
+      - industrial-net
+
+networks:
+  industrial-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  modbus-data:
+  opcua-data:

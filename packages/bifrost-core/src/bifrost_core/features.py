@@ -39,3 +39,12 @@ class FeatureRegistry:
         """Return the first provider for a given feature."""
         providers = self.discover(feature)
         return providers[0] if providers else None
+
+    def unregister(self, provider: Any) -> None:
+        """Unregister a feature provider."""
+        if isinstance(provider, HasFeatures):
+            for feature in provider.features:
+                if feature in self._providers and provider in self._providers[feature]:
+                    self._providers[feature].remove(provider)
+                    if not self._providers[feature]:
+                        del self._providers[feature]

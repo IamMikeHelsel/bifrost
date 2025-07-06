@@ -43,3 +43,27 @@ class TestDiscoveryFunctions:
             assert devices[0].host == "192.168.1.10"
             assert devices[0].protocol == "modbus.tcp"
             assert devices[0].device_type == "PLC"
+
+    @pytest.mark.asyncio
+    async def test_discover_devices_unsupported_protocol(self):
+        """Test discover_devices with an unsupported protocol."""
+        config = DiscoveryConfig(protocols=["unsupported_protocol"])
+        devices = []
+        async for device in discover_devices(config):
+            devices.append(device)
+        assert len(devices) == 0
+
+    @pytest.mark.asyncio
+    async def test_discover_devices_no_results(self):
+        """Test discover_devices when no devices are found."""
+        with patch("bifrost.discovery.discover_modbus_devices") as mock_modbus:
+            async def empty_generator():
+                if False:
+                    yield  # This makes it an async generator
+            mock_modbus.return_value = empty_generator()
+
+            config = DiscoveryConfig(protocols=["modbus"])
+            devices = []
+            async for device in discover_devices(config):
+                devices.append(device)
+            assert len(devices) == 0

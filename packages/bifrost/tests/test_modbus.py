@@ -68,7 +68,7 @@ class TestModbusConnection:
             tags = [Tag(name="test", address="40001", data_type=DataType.INT16)]
             result = await modbus_device.read(tags)
             assert tags[0] in result
-            assert result[tags[0]].value == 54321
+            assert result[tags[0]].value == [54321]
             mock_client.read_holding_registers.assert_called_once_with(
                 address=0, count=1, slave=1
             )
@@ -142,6 +142,71 @@ class TestModbusConnection:
             await modbus_device.write({tag: 12345})
             # No exception should be raised, but the write should not have occurred
             mock_client.write_register.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_read_coils(self, modbus_device, mock_client):
+        """Test reading coils."""
+        response = MagicMock()
+        response.isError.return_value = False
+        response.bits = [True, False, True]
+        mock_client.read_coils = AsyncMock(return_value=response)
+
+        async with modbus_device.connection:
+            tags = [Tag(name="test", address="00001:3", data_type=DataType.BOOLEAN)]
+            result = await modbus_device.read(tags)
+            assert tags[0] in result
+            assert result[tags[0]].value == [True, False, True]
+            mock_client.read_coils.assert_called_once_with(
+                address=0, count=3, slave=1
+            )
+
+    @pytest.mark.asyncio
+    async def test_write_coil(self, modbus_device, mock_client):
+        """Test writing a coil."""
+        response = MagicMock()
+        response.isError.return_value = False
+        mock_client.write_coil = AsyncMock(return_value=response)
+
+        async with modbus_device.connection:
+            tag = Tag(name="test", address="00001", data_type=DataType.BOOLEAN)
+            await modbus_device.write({tag: True})
+            mock_client.write_coil.assert_called_once_with(
+                address=0, value=True, slave=1
+            )
+
+    @pytest.mark.asyncio
+    async def test_read_discrete_inputs(self, modbus_device, mock_client):
+        """Test reading discrete inputs."""
+        response = MagicMock()
+        response.isError.return_value = False
+        response.bits = [True, False]
+        mock_client.read_discrete_inputs = AsyncMock(return_value=response)
+
+        async with modbus_device.connection:
+            tags = [Tag(name="test", address="10001:2", data_type=DataType.BOOLEAN)]
+            result = await modbus_device.read(tags)
+            assert tags[0] in result
+            assert result[tags[0]].value == [True, False]
+            mock_client.read_discrete_inputs.assert_called_once_with(
+                address=0, count=2, slave=1
+            )
+
+    @pytest.mark.asyncio
+    async def test_read_input_registers(self, modbus_device, mock_client):
+        """Test reading input registers."""
+        response = MagicMock()
+        response.isError.return_value = False
+        response.registers = [1234, 5678]
+        mock_client.read_input_registers = AsyncMock(return_value=response)
+
+        async with modbus_device.connection:
+            tags = [Tag(name="test", address="30001:2", data_type=DataType.INT16)]
+            result = await modbus_device.read(tags)
+            assert tags[0] in result
+            assert result[tags[0]].value == [1234, 5678]
+            mock_client.read_input_registers.assert_called_once_with(
+                address=0, count=2, slave=1
+            )
 
     @pytest.mark.asyncio
     async def test_connection_not_connected_error(self, modbus_device, mock_client):

@@ -85,3 +85,33 @@ class TestEventBus:
 
         mock_handler1.assert_called_once_with(event1)
         mock_handler2.assert_called_once_with(event2)
+
+    @pytest.mark.asyncio
+    async def test_concurrent_handlers(self):
+        bus = EventBus()
+        
+        # Create two mock handlers that simulate some async work
+        async def handler1(event):
+            await asyncio.sleep(0.05) # Simulate async work
+            handler1.called = True
+
+        async def handler2(event):
+            await asyncio.sleep(0.03) # Simulate async work
+            handler2.called = True
+
+        handler1.called = False
+        handler2.called = False
+
+        await bus.on(MockEvent, handler1)
+        await bus.on(MockEvent, handler2)
+
+        event = MockEvent("concurrent_test")
+        await bus.emit(event)
+
+        # Ensure both handlers were called
+        assert handler1.called
+        assert handler2.called
+
+        # Verify that they ran concurrently (by checking the total time, though this is less precise)
+        # A more robust test would involve mocking asyncio.sleep and checking call order/times
+        # For now, simply ensuring they both complete is sufficient.

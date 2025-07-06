@@ -114,3 +114,27 @@ class TestFeatureRegistry:
 
         not_provider = NotAFeatureProvider()
         assert not isinstance(not_provider, HasFeatures)
+
+    def test_unregister(self, registry: FeatureRegistry):
+        provider1 = ConcreteFeatureProvider("Provider1", {"feature_a", "feature_b"})
+        provider2 = ConcreteFeatureProvider("Provider2", {"feature_b", "feature_c"})
+
+        registry.register(provider1)
+        registry.register(provider2)
+
+        assert len(registry.discover("feature_b")) == 2
+
+        registry.unregister(provider1)
+
+        discovered_b = registry.discover("feature_b")
+        assert len(discovered_b) == 1
+        assert provider2 in discovered_b
+        assert provider1 not in discovered_b
+
+        # Unregistering a non-existent provider should not raise an error
+        registry.unregister(ConcreteFeatureProvider("NonExistent", set()))
+
+        # Unregistering the last provider for a feature
+        registry.unregister(provider2)
+        assert len(registry.discover("feature_b")) == 0
+        assert len(registry.discover("feature_c")) == 0
