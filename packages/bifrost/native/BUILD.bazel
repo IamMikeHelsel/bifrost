@@ -1,7 +1,8 @@
 # This BUILD.bazel file is for the native Rust components.
 # It primarily serves to make Cargo.lock and Cargo.toml visible to Bazel.
 
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+load("@rules_python//python:defs.bzl", "py_library")
 
 filegroup(
     name = "cargo_files",
@@ -12,8 +13,9 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-rust_library(
-    name = "modbus_native_lib",
+# Build the Rust shared library for Python
+rust_shared_library(
+    name = "modbus_native",
     srcs = glob(["src/**/*.rs"]),
     crate_name = "modbus_native",
     edition = "2021",
@@ -21,6 +23,19 @@ rust_library(
         "@crates//:pyo3",
         "@crates//:tokio",
     ],
+    # Tell the linker this is a Python extension
+    rustc_flags = [
+        "-C", "link-arg=-undefined",
+        "-C", "link-arg=dynamic_lookup",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Wrap it as a Python library
+py_library(
+    name = "modbus_native_py",
+    data = [":modbus_native"],
+    visibility = ["//visibility:public"],
 )
 
 
