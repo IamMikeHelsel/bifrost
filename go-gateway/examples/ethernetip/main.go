@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/bifrost/go-gateway/internal/protocols"
+	"bifrost-gateway/internal/protocols"
 )
 
 // EtherNet/IP Demo Application
@@ -245,7 +245,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 			if err := handler.WriteTag(device, test.tag, test.value); err == nil {
 				logger.Info("Tag write successful",
 					zap.String("tag_id", test.tag.ID),
-					zap.Any("value", test.value),
+				zap.Any("value", test.value),
 				)
 
 				// Verify write by reading back

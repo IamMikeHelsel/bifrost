@@ -685,14 +685,14 @@ func (bs *BenchmarkSuite) runEdgeBenchmark(ctx context.Context) error {
 	defer runtime.GOMAXPROCS(originalGOMAXPROCS)
 
 	// Set memory limits
-	memoryLimit := int64(bs.config.EdgeMemoryLimitMB * 1024 * 1024)
+	_ = int64(bs.config.EdgeMemoryLimitMB * 1024 * 1024)
 
 	// Run performance tests under constraints
 	performanceUnderConstraints := make(map[string]float64)
 
 	// Test throughput under edge constraints
 	throughput, _ := bs.runThroughputTest(ctx, 100, time.Minute)
-	performanceUnderConstraints["throughput"] = throughput
+	performanceUnderConstraints["throughput"] = float64(throughput)
 
 	// Test latency under edge constraints
 	latencySamples := bs.measureLatencyUnderConstraints(ctx, 1000)

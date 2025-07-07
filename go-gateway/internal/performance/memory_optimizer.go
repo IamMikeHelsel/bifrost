@@ -1,6 +1,10 @@
 package performance
 
 import (
+	"errors"
+	"runtime"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -564,12 +568,4 @@ func (mo *MemoryOptimizer) GetAllocationStats() *AllocationStats {
 var (
 	ErrBufferOverflow     = errors.New("buffer overflow")
 	ErrZeroCopyNotEnabled = errors.New("zero-copy operations not enabled")
-)
-
-// Import required packages
-import (
-	"debug"
-	"errors"
-	"runtime"
-	"strings"
 )

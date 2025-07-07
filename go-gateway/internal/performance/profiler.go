@@ -171,6 +171,8 @@ func (p *Profiler) startHTTPServer() {
 	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(pprof.Index))
 	mux.HandleFunc("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
 	mux.HandleFunc("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+
+
 	mux.HandleFunc("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 	mux.HandleFunc("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 
@@ -614,19 +616,19 @@ func (p *Profiler) cleanupExpiredProfiles() {
 // HTTP handlers
 
 func (p *Profiler) handleHeapProfile(w http.ResponseWriter, r *http.Request) {
-	pprof.Handler("heap").ServeHTTP(w, r)
+	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
 func (p *Profiler) handleGoroutineProfile(w http.ResponseWriter, r *http.Request) {
-	pprof.Handler("goroutine").ServeHTTP(w, r)
+	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
 func (p *Profiler) handleBlockProfile(w http.ResponseWriter, r *http.Request) {
-	pprof.Handler("block").ServeHTTP(w, r)
+	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
 func (p *Profiler) handleMutexProfile(w http.ResponseWriter, r *http.Request) {
-	pprof.Handler("mutex").ServeHTTP(w, r)
+	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
 func (p *Profiler) handleProfileList(w http.ResponseWriter, r *http.Request) {

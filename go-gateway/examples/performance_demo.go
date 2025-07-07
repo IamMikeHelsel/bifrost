@@ -1,4 +1,4 @@
-package main
+package examples
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/bifrost/gateway/internal/protocols"
+	"bifrost-gateway/internal/protocols"
 )
 
 // PerformanceTest demonstrates the high-performance capabilities of the Go gateway
-func main() {
+func performanceDemo() {
 	logger, _ := zap.NewDevelopment()
 
 	fmt.Println("Bifrost Go Gateway Performance Test")

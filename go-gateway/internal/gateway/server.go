@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
-	"github.com/bifrost/gateway/internal/protocols"
+	"bifrost-gateway/internal/protocols"
 )
 
 // IndustrialGateway is the main server handling multiple industrial protocols
@@ -143,9 +143,9 @@ func (g *IndustrialGateway) registerProtocols() {
 	g.protocols["modbus-tcp"] = modbusHandler
 	g.protocols["modbus-rtu"] = modbusHandler
 
-	// TODO: Register OPC UA handler
-	// opcuaHandler := protocols.NewOPCUAHandler(g.logger)
-	// g.protocols["opcua"] = opcuaHandler
+	// Register OPC UA handler
+	opcuaHandler := protocols.NewOPCUAHandler(g.logger)
+	g.protocols["opcua"] = opcuaHandler
 
 	// TODO: Add Ethernet/IP, S7, etc.
 }

@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 
-	"github.com/bifrost/gateway/internal/gateway"
+	"bifrost-gateway/internal/gateway"
 )
 
 // Config represents the gateway configuration
