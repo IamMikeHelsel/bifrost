@@ -33,75 +33,106 @@ ______________________________________________________________________
 
 ### 2.2 System Architecture
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   TypeScript    │    │   Go Gateway     │    │   Industrial    │
-│   Frontend      │◄──►│   (REST API)     │◄──►│   Devices       │
-│   (VS Code)     │    │   WebSocket      │    │   (Modbus/IP)   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+```mermaid
+graph LR
+    A["🖥️ TypeScript Frontend<br/>VS Code Extension<br/>Real-time Monitoring"] <-->|"REST API<br/>WebSocket"| B["⚡ Go Gateway<br/>High-Performance Core<br/>18,879 ops/sec"]
+    B <-->|"Industrial Protocols<br/>Modbus TCP/RTU<br/>Ethernet/IP<br/>OPC-UA"| C["🏭 Industrial Devices<br/>PLCs & Controllers<br/>SCADA Systems"]
+    
+    classDef frontend fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef gateway fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef devices fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    
+    class A frontend
+    class B gateway
+    class C devices
 ```
 
 ### 2.3 Component Structure
 
-```
-bifrost/
-├── go-gateway/              # Go-based industrial gateway (PRODUCTION READY)
-│   ├── cmd/
-│   │   ├── gateway/         # Main server binary
-│   │   └── performance_test/
-│   ├── internal/
-│   │   ├── protocols/       # Protocol implementations
-│   │   │   ├── modbus.go    # Production-ready Modbus TCP/RTU
-│   │   │   └── protocol.go  # Protocol interface
-│   │   ├── gateway/         # Core gateway logic
-│   │   │   └── server.go    # REST API + WebSocket server
-│   │   └── performance/     # Performance optimizations
-│   ├── config/              # Configuration files
-│   ├── examples/            # Usage examples and demos
-│   ├── bin/                 # Compiled binaries
-│   ├── k8s/                 # Kubernetes deployment
-│   ├── monitoring/          # Prometheus metrics
-│   └── security/            # Security configurations
-├── vscode-extension/        # TypeScript-Go VS Code extension (ACTIVE DEVELOPMENT)
-│   ├── src/
-│   │   ├── extension.ts     # Main extension logic
-│   │   ├── services/        # Device management services
-│   │   │   ├── deviceManager.ts
-│   │   │   └── gatewayClient.ts
-│   │   ├── providers/       # VS Code tree providers
-│   │   └── utils/           # Utility functions
-│   ├── media/               # Extension icons and assets
-│   └── package.json
-├── virtual-devices/         # Testing framework (COMPREHENSIVE)
-│   ├── simulators/          # Device simulators
-│   │   ├── modbus-tcp-sim/  # Modbus TCP simulator
-│   │   ├── opcua-sim/       # OPC UA simulator
-│   │   └── network/         # Network condition simulation
-│   ├── scenarios/           # Industrial scenarios
-│   │   ├── factory_floor/
-│   │   ├── process_control/
-│   │   └── scada/
-│   └── benchmarks/          # Performance testing
-├── packages/                # Python package structure (LEGACY/MIGRATION)
-│   ├── bifrost-core/        # Core abstractions
-│   └── bifrost/             # Main package
-├── docs/                    # Comprehensive documentation
-├── examples/                # Integration examples
-├── third_party/             # External dependencies
-│   ├── open62541/           # OPC UA library
-│   ├── rust/                # Rust components
-│   └── snap7/               # S7 protocol library
-└── tools/                   # Development tools
-    ├── BUILD.bazel          # Bazel build configuration
-    ├── python/              # Python tooling
-    └── rust/                # Rust tooling
+```mermaid
+mindmap
+  root((Bifrost<br/>Project))
+    [Go Gateway]
+      (Production Ready)
+        cmd/
+          gateway/
+          performance_test/
+        internal/
+          protocols/
+            modbus.go
+            protocol.go
+          gateway/
+            server.go
+          performance/
+        config/
+        examples/
+        k8s/
+        monitoring/
+        security/
+    [VS Code Extension]
+      (TypeScript-Go)
+        src/
+          extension.ts
+          services/
+            deviceManager.ts
+            gatewayClient.ts
+          providers/
+          utils/
+        media/
+        package.json
+    [Virtual Devices]
+      (Testing Framework)
+        simulators/
+          modbus-tcp-sim/
+          opcua-sim/
+          network/
+        scenarios/
+          factory_floor/
+          process_control/
+          scada/
+        benchmarks/
+    [Support]
+      (Infrastructure)
+        packages/
+          bifrost-core/
+          bifrost/
+        docs/
+        examples/
+        third_party/
+          open62541/
+          rust/
+          snap7/
+        tools/
+          BUILD.bazel
+          python/
+          rust/
 ```
 
 ______________________________________________________________________
 
-## 3. Component Specifications
+## 3. Detailed Architecture Diagrams
 
-### 3.1 Go Gateway Core (`go-gateway/`)
+For detailed technical diagrams, see the [diagrams directory](./diagrams/):
+
+### Component Architecture
+- **[Gateway Components](./diagrams/architecture/gateway-components.puml)** - Detailed Go gateway internal structure
+- **[Protocol Handler Interface](./diagrams/architecture/gateway-components.puml)** - Unified protocol abstraction
+
+### API Interactions  
+- **[Modbus Read Sequence](./diagrams/sequences/modbus-read-sequence.puml)** - Complete Modbus read operation flow
+- **[WebSocket Streaming](./diagrams/sequences/)** - Real-time data streaming architecture
+
+### Deployment Architecture
+- **[Production Deployment](./diagrams/deployment/production-deployment.puml)** - Complete production environment setup
+- **[Cloud Integration](./diagrams/deployment/)** - Cloud platform integration patterns
+
+> **Note**: PlantUML diagrams can be viewed in VS Code with the PlantUML extension or online at [plantuml.com](http://www.plantuml.com/plantuml/uml/)
+
+______________________________________________________________________
+
+## 4. Component Specifications
+
+### 4.1 Go Gateway Core (`go-gateway/`)
 
 #### Features
 
