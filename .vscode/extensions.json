@@ -4,9 +4,13 @@
     "ms-python.python",
     "charliermarsh.ruff",
     
-    // Markdown
+    // Markdown and Diagrams
     "DavidAnson.vscode-markdownlint",
     "yzhang.markdown-all-in-one",
+    "jebbs.plantuml",
+    "bierner.markdown-mermaid",
+    "shd101wyy.markdown-preview-enhanced",
+    "hediet.vscode-drawio",
     
     // Configuration files
     "tamasfe.even-better-toml",

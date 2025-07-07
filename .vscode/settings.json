@@ -66,8 +66,30 @@
   "files.associations": {
     "*.toml": "toml",
     "justfile": "makefile",
-    "Justfile": "makefile"
+    "Justfile": "makefile",
+    "*.puml": "plantuml",
+    "*.plantuml": "plantuml"
   },
+  
+  // PlantUML settings
+  "plantuml.server": "https://www.plantuml.com/plantuml",
+  "plantuml.render": "PlantUMLServer",
+  "plantuml.exportFormat": "svg",
+  "plantuml.exportSubFolder": false,
+  "plantuml.exportConcurrency": 3,
+  "plantuml.exportOutDir": "docs/diagrams/exports",
+  "plantuml.fileExtensions": ".puml,.plantuml,.pu",
+  
+  // Mermaid settings
+  "mermaid-preview.backgroundColor": "white",
+  "mermaid-preview.theme": "default",
+  
+  // Markdown Preview Enhanced settings
+  "markdown-preview-enhanced.enableWikiLinkSyntax": true,
+  "markdown-preview-enhanced.wikiLinkFileExtension": ".md",
+  "markdown-preview-enhanced.enableEmojiSyntax": true,
+  "markdown-preview-enhanced.previewTheme": "github-light.css",
+  "markdown-preview-enhanced.codeBlockTheme": "default.css",
   
   // Exclude files from search/watch
   "files.exclude": {
