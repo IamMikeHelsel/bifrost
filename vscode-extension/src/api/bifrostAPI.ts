@@ -1,23 +1,19 @@
 import * as vscode from 'vscode';
 import { Device, DeviceStatus, Tag, DeviceStats } from '../services/deviceManager';
 
-// WebSocket types for Node.js environment
-declare global {
-    const WebSocket: {
-        new(url: string): {
-            onopen: ((event: any) => void) | null;
-            onmessage: ((event: { data: string }) => void) | null;
-            onclose: (() => void) | null;
-            onerror: ((error: any) => void) | null;
-            send(data: string): void;
-            close(): void;
-        };
-    };
+// WebSocket interface for VS Code environment
+interface WebSocketLike {
+    onopen: ((event: any) => void) | null;
+    onmessage: ((event: { data: string }) => void) | null;
+    onclose: (() => void) | null;
+    onerror: ((error: any) => void) | null;
+    send(data: string): void;
+    close(): void;
 }
 
 export class BifrostAPI {
     private readonly gatewayUrl: string;
-    private websocket?: WebSocket;
+    private websocket?: WebSocketLike;
     private reconnectTimer?: NodeJS.Timeout;
     private readonly maxReconnectAttempts = 5;
     private reconnectAttempts = 0;
@@ -351,47 +347,51 @@ export class BifrostAPI {
     private connectWebSocket(onDataUpdate: (data: any) => void): void {
         try {
             const wsUrl = this.getWebSocketUrl();
-            this.websocket = new WebSocket(wsUrl);
+            // Use dynamic require to avoid TypeScript issues
+            const ws = require('ws');
+            this.websocket = new ws(wsUrl);
             
-            this.websocket.onopen = () => {
-                console.log('WebSocket connected to Go gateway');
-                this.reconnectAttempts = 0;
-                
-                // Subscribe to real-time data updates
-                this.websocket?.send(JSON.stringify({
-                    type: 'subscribe',
-                    topics: ['device_data', 'device_status']
-                }));
-            };
-            
-            this.websocket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    onDataUpdate(data);
-                } catch (error) {
-                    console.error('Failed to parse WebSocket message:', error);
-                }
-            };
-            
-            this.websocket.onclose = () => {
-                console.log('WebSocket disconnected');
-                this.websocket = undefined;
-                
-                // Attempt to reconnect
-                if (this.reconnectAttempts < this.maxReconnectAttempts) {
-                    this.reconnectAttempts++;
-                    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+            if (this.websocket) {
+                this.websocket.onopen = () => {
+                    console.log('WebSocket connected to Go gateway');
+                    this.reconnectAttempts = 0;
                     
-                    this.reconnectTimer = setTimeout(() => {
-                        console.log(`Attempting WebSocket reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-                        this.connectWebSocket(onDataUpdate);
-                    }, delay);
-                }
-            };
+                    // Subscribe to real-time data updates
+                    this.websocket?.send(JSON.stringify({
+                        type: 'subscribe',
+                        topics: ['device_data', 'device_status']
+                    }));
+                };
             
-            this.websocket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
+                this.websocket.onmessage = (event: { data: string }) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        onDataUpdate(data);
+                    } catch (error) {
+                        console.error('Failed to parse WebSocket message:', error);
+                    }
+                };
+            
+                this.websocket.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    this.websocket = undefined;
+                    
+                    // Attempt to reconnect
+                    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                        this.reconnectAttempts++;
+                        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+                        
+                        this.reconnectTimer = setTimeout(() => {
+                            console.log(`Attempting WebSocket reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+                            this.connectWebSocket(onDataUpdate);
+                        }, delay);
+                    }
+                };
+            
+                this.websocket.onerror = (error: any) => {
+                    console.error('WebSocket error:', error);
+                };
+            }
             
         } catch (error) {
             console.error('Failed to create WebSocket connection:', error);

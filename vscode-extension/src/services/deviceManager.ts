@@ -25,6 +25,7 @@ export interface Device {
     status: DeviceStatus;
     connectionTime?: number;
     lastError?: string;
+    lastSeen?: Date;
     stats?: DeviceStats;
     tags?: Tag[];
 }
@@ -36,6 +37,7 @@ export interface Tag {
     dataType: string;
     value?: any;
     lastUpdate?: number;
+    timestamp?: Date;
     writable: boolean;
     unit?: string;
     description?: string;

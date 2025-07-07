@@ -234,7 +234,7 @@
         },
         "bifrost.gateway.port": {
           "type": "number",
-          "default": 8080,
+          "default": 8081,
           "description": "Bifrost Go gateway port"
         },
         "bifrost.gateway.autoConnect": {
@@ -287,7 +287,9 @@
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
     "benchmark": "node scripts/benchmark-compilation.js",
-    "performance:analyze": "node scripts/analyze-performance.js"
+    "performance:analyze": "node scripts/analyze-performance.js",
+    "performance:compare": "node scripts/performance-comparison.js",
+    "test:stack-decision": "npm run performance:compare"
   },
   "devDependencies": {
     "@types/node": "20.x",

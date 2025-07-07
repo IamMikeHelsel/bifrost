@@ -172,7 +172,7 @@ export class DeviceTreeProvider implements vscode.TreeDataProvider<DeviceTreeIte
     updateDeviceStatus(data: any): void {
         // Process device status updates from Go gateway
         if (data.device_id && data.status) {
-            const device = this.deviceManager.getDeviceById(data.device_id);
+            const device = this.deviceManager.getDevice(data.device_id);
             if (device) {
                 const newStatus = data.status === 'connected' ? 
                     DeviceStatus.Connected : 

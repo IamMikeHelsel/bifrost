@@ -1,5 +1,5 @@
 gateway:
-  port: 8080
+  port: 8081
   grpc_port: 9090
   max_connections: 1000
   data_buffer_size: 10000
