@@ -84,6 +84,7 @@ class DeviceInfo(BaseModel):
 
     @model_validator(mode="after")
     def set_default_name(self):
+        """Sets the default name of the device if not already set."""
         if self.name is None:
             self.name = self.device_id
         return self
@@ -131,6 +132,7 @@ class BaseDevice(ABC, Generic[Value]):
     """Abstract base class for a device."""
 
     def __init__(self, connection: BaseConnection):
+        """Initializes the BaseDevice with a connection."""
         self.connection = connection
 
     @abstractmethod

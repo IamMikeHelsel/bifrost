@@ -1,24 +1,22 @@
 #!/usr/bin/env python3
-"""
-Python Modbus Performance Benchmark
+"""Python Modbus Performance Benchmark.
 
 This script provides a direct comparison with the Go gateway implementation
 to demonstrate the performance improvements achieved with the Go backend.
 """
 
-import time
-import threading
 import statistics
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from pymodbus.client import ModbusTcpClient
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadDecoder
 
 
 class PythonModbusBenchmark:
     """Python Modbus performance benchmark for comparison with Go gateway."""
 
     def __init__(self, host="127.0.0.1", port=502, unit_id=1):
+        """Initializes the PythonModbusBenchmark with host, port, and unit ID."""
         self.host = host
         self.port = port
         self.unit_id = unit_id
@@ -49,7 +47,8 @@ class PythonModbusBenchmark:
                 return None
 
             # Convert from Modbus address format (40001+) to zero-based
-            modbus_addr = address - 40001 if address >= 40001 else address
+            MODBUS_REGISTER_OFFSET = 40001
+            modbus_addr = address - MODBUS_REGISTER_OFFSET if address >= MODBUS_REGISTER_OFFSET else address
 
             result = self.client.read_holding_registers(
                 modbus_addr, count, slave=self.unit_id
@@ -69,15 +68,13 @@ class PythonModbusBenchmark:
                 return False
 
             # Convert from Modbus address format (40001+) to zero-based
-            modbus_addr = address - 40001 if address >= 40001 else address
+            MODBUS_REGISTER_OFFSET = 40001
+            modbus_addr = address - MODBUS_REGISTER_OFFSET if address >= MODBUS_REGISTER_OFFSET else address
 
             result = self.client.write_register(
                 modbus_addr, value, slave=self.unit_id
             )
-            if result.isError():
-                return False
-
-            return True
+            return not result.isError()
         except Exception as e:
             print(f"Write error: {e}")
             return False
@@ -91,13 +88,12 @@ class PythonModbusBenchmark:
         if not self.connect():
             return None
 
-        address = 40001  # First holding register
-        latencies = []
+        _address = 40001  # First holding register
         success_count = 0
 
         start_time = time.time()
 
-        for i in range(iterations):
+        for _i in range(iterations):
             read_start = time.time()
             result = self.read_holding_register(address)
             read_end = time.time()
@@ -148,7 +144,7 @@ class PythonModbusBenchmark:
             f"\nPython Concurrent Read Benchmark ({num_threads} threads, {reads_per_thread} reads each)..."
         )
 
-        address = 40001  # First holding register
+
         total_operations = num_threads * reads_per_thread
         success_count = 0
         latencies = []
@@ -163,7 +159,7 @@ class PythonModbusBenchmark:
             thread_success = 0
 
             try:
-                for i in range(reads_per_thread):
+                for _i in range(iterations):
                     read_start = time.time()
                     result = client.read_holding_registers(
                         0, 1, slave=self.unit_id
@@ -242,7 +238,7 @@ class PythonModbusBenchmark:
         if not self.connect():
             return None
 
-        read_address = 40001  # Read from sensor
+
         write_address = 40050  # Write to setpoint
 
         write_latencies = []
@@ -251,7 +247,7 @@ class PythonModbusBenchmark:
 
         start_time = time.time()
 
-        for i in range(iterations):
+        for _i in range(iterations):
             test_value = 1000 + i  # Different value each time
 
             # Write operation
@@ -357,7 +353,7 @@ class PythonModbusBenchmark:
         python_results = self.run_all_benchmarks()
 
         if python_results:
-            print(f"\nComparison Summary:")
+            print("\nComparison Summary:")
             print(
                 f"{'Metric':<30} {'Python':<15} {'Go':<15} {'Improvement':<15}"
             )

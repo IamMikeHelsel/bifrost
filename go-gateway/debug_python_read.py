@@ -1,5 +1,3 @@
-import traceback
-
 #!/usr/bin/env python3
 """Debug Python Modbus reads."""
 

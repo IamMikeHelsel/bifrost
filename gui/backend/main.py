@@ -5,11 +5,13 @@ app = FastAPI()
 
 @app.get("/")
 async def read_root():
+    """Root endpoint for the Bifrost GUI Backend."""
     return {"message": "Hello from Bifrost GUI Backend"}
 
 
 @app.get("/api/status")
 async def get_status():
+    """Returns the current status of the Bifrost GUI Backend."""
     return {"status": "running", "version": "0.1.0"}
 
 

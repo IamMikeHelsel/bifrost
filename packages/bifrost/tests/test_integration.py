@@ -41,6 +41,7 @@ class TestEndToEndModbusWorkflow:
                         port=502,
                         name="Test PLC",
                         manufacturer="Test Vendor",
+                        discovery_method="manual",
                     )
                 ]
             )
@@ -86,15 +87,66 @@ class TestEndToEndModbusWorkflow:
 
                 # Read individual tags
                 readings = await conn.read(
-                    [Tag("40001"), Tag("40002"), Tag("40003")]
+                    [
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        ),
+                        Tag(
+                            name="test_tag_2",
+                            address="40002",
+                            data_type=DataType.INT16,
+                        ),
+                        Tag(
+                            name="test_tag_3",
+                            address="40003",
+                            data_type=DataType.INT16,
+                        ),
+                    ]
                 )
 
-                assert readings[Tag("40001")].value == 42
-                assert readings[Tag("40002")].value == 100
-                assert readings[Tag("40003")].value == 250
+                assert (
+                    readings[
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 42
+                )
+                assert (
+                    readings[
+                        Tag(
+                            name="test_tag_2",
+                            address="40002",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 100
+                )
+                assert (
+                    readings[
+                        Tag(
+                            name="test_tag_3",
+                            address="40003",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 250
+                )
 
                 # Step 4: Write a value
-                await conn.write({Tag("40001"): 45})
+                await conn.write(
+                    {
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        ): 45
+                    }
+                )
 
                 # Step 5: Verify health check (not directly available on BaseConnection)
                 # For now, we'll just check if the connection is still active
@@ -129,8 +181,7 @@ class TestEndToEndModbusWorkflow:
                 assert connection.is_connected
 
                 # Perform operations within context
-                # health = await connection.health_check()
-                # assert health is True
+
 
             # Connection should be automatically disconnected
             assert not connection.is_connected
@@ -265,11 +316,7 @@ class TestCLIIntegration:
         assert result.exit_code == 0
         mock_discover_devices.assert_called_once()
 
-    # def test_cli_status_command(self):
-    #     """Test CLI status command."""
-    #     result = self.runner.invoke(cli_app, ["status"])
-    #     assert result.exit_code == 0
-    #     assert "System Status" in result.stdout
+
 
 
 class TestConnectionPoolingIntegration:
@@ -303,19 +350,49 @@ class TestConnectionPoolingIntegration:
 
             # Test pooled connection usage
             async with pool.get() as conn1:
-                readings = await conn1.read([Tag("40001")])
-                assert readings[Tag("40001")].value == 42
+                readings = await conn1.read(
+                    [
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ]
+                )
+                assert (
+                    readings[
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 42
+                )
 
                 # Use another pooled connection (should reuse from pool)
                 async with pool.get() as conn2:
-                    readings = await conn2.read([Tag("40001")])
-                    assert readings[Tag("40001")].value == 42
+                    readings = await conn2.read(
+                        [
+                            Tag(
+                                name="test_tag_1",
+                                address="40001",
+                                data_type=DataType.INT16,
+                            )
+                        ]
+                    )
+                    assert (
+                        readings[
+                            Tag(
+                                name="test_tag_1",
+                                address="40001",
+                                data_type=DataType.INT16,
+                            )
+                        ].value
+                        == 42
+                    )
 
-            # Check pool statistics (not directly exposed in current ConnectionPool)
-            # pool = get_global_pool()
-            # stats = pool.get_stats()
-            # assert isinstance(stats, dict)
-            # assert "total_connections" in stats
+
 
 
 class TestEventSystemIntegration:
@@ -355,7 +432,15 @@ class TestEventSystemIntegration:
             # Connect (should generate connection state events)
             async with connection:
                 # Read data (should generate data received event)
-                await connection.read([Tag("40001")])
+                await connection.read(
+                    [
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ]
+                )
 
             # Disconnect (should generate disconnection event)
             # Handled by context manager
@@ -403,7 +488,15 @@ class TestScalabilityScenarios:
 
                 async def _operate(c):
                     async with c:
-                        await c.read([Tag("40001")])
+                        await c.read(
+                            [
+                                Tag(
+                                    name="test_tag_1",
+                                    address="40001",
+                                    data_type=DataType.INT16,
+                                )
+                            ]
+                        )
 
                 task = asyncio.create_task(_operate(conn))
                 tasks.append(task)
@@ -438,7 +531,17 @@ class TestScalabilityScenarios:
 
                 tasks = []
                 for _ in range(num_operations):
-                    task = asyncio.create_task(conn.read([Tag("40001")]))
+                    task = asyncio.create_task(
+                        conn.read(
+                            [
+                                Tag(
+                                    name="test_tag_1",
+                                    address="40001",
+                                    data_type=DataType.INT16,
+                                )
+                            ]
+                        )
+                    )
                     tasks.append(task)
 
                 results = await asyncio.gather(*tasks)
@@ -447,7 +550,15 @@ class TestScalabilityScenarios:
                 # Verify all operations completed
                 assert len(results) == num_operations
                 assert all(
-                    result[Tag("40001")].value == 42 for result in results
+                    result[
+                        Tag(
+                            name="test_tag_1",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 42
+                    for result in results
                 )
 
                 # Performance check (should complete in reasonable time)
@@ -521,9 +632,21 @@ class TestRealWorldScenarios:
                 # Read all tags for this device
                 async with conn:
                     for i, tag_name in enumerate(device_info["tags"]):
-                        readings = await conn.read([Tag(f"4000{i + 1}")])
+                        readings = await conn.read(
+                            [
+                                Tag(
+                                    name=f"test_tag_{i + 1}",
+                                    address=f"4000{i + 1}",
+                                    data_type=DataType.INT16,
+                                )
+                            ]
+                        )
                         tag_values[tag_name] = readings[
-                            Tag(f"4000{i + 1}")
+                            Tag(
+                                name=f"test_tag_{i + 1}",
+                                address=f"4000{i + 1}",
+                                data_type=DataType.INT16,
+                            )
                         ].value
 
                 monitoring_data[device_name] = tag_values
@@ -542,7 +665,13 @@ class TestRealWorldScenarios:
                 ]
                 async with control_conn:
                     await control_conn.write(
-                        {Tag("40010"): 0}
+                        {
+                            Tag(
+                                name="test_tag_10",
+                                address="40010",
+                                data_type=DataType.INT16,
+                            ): 0
+                        }
                     )  # Turn off heater
 
             # Cleanup - disconnect all devices (handled by context managers)
@@ -586,8 +715,25 @@ class TestRealWorldScenarios:
             assert active_connection.is_connected
 
             # Continue operations with backup device
-            readings = await active_connection.read([Tag("40001")])
-            assert readings[Tag("40001")].value == 100
+            readings = await active_connection.read(
+                [
+                    Tag(
+                        name="test_tag_1",
+                        address="40001",
+                        data_type=DataType.INT16,
+                    )
+                ]
+            )
+            assert (
+                readings[
+                    Tag(
+                        name="test_tag_1",
+                        address="40001",
+                        data_type=DataType.INT16,
+                    )
+                ].value
+                == 100
+            )
 
             # Disconnect handled by context manager
 
@@ -655,11 +801,45 @@ class TestConfigurationManagement:
 
             # Test tag reading
             async with main_plc["connection"] as conn:
-                temp_readings = await conn.read([Tag("40001")])
-                pressure_readings = await conn.read([Tag("40002")])
+                temp_readings = await conn.read(
+                    [
+                        Tag(
+                            name="temperature",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ]
+                )
+                pressure_readings = await conn.read(
+                    [
+                        Tag(
+                            name="pressure",
+                            address="40002",
+                            data_type=DataType.INT16,
+                        )
+                    ]
+                )
 
-                assert temp_readings[Tag("40001")].value == 25
-                assert pressure_readings[Tag("40002")].value == 150
+                assert (
+                    temp_readings[
+                        Tag(
+                            name="temperature",
+                            address="40001",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 25
+                )
+                assert (
+                    pressure_readings[
+                        Tag(
+                            name="pressure",
+                            address="40002",
+                            data_type=DataType.INT16,
+                        )
+                    ].value
+                    == 150
+                )
 
             # Cleanup (handled by context manager)
             assert not main_plc["connection"].is_connected
@@ -733,7 +913,17 @@ class TestPerformanceBenchmarks:
 
                 tasks = []
                 for _ in range(num_operations):
-                    task = asyncio.create_task(conn.read([Tag("40001")]))
+                    task = asyncio.create_task(
+                        conn.read(
+                            [
+                                Tag(
+                                    name="test_tag_1",
+                                    address="40001",
+                                    data_type=DataType.INT16,
+                                )
+                            ]
+                        )
+                    )
                     tasks.append(task)
 
                 results = await asyncio.gather(*tasks)

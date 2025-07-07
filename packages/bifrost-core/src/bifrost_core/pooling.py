@@ -19,6 +19,7 @@ class ConnectionPool(Generic[C]):
         connection_factory: Callable[[], Coroutine[None, None, C]],
         max_size: int = 10,
     ):
+        """Initializes the ConnectionPool."""
         self._factory = connection_factory
         self._max_size = max_size
         self._pool: deque[C] = deque(maxlen=max_size)

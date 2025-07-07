@@ -131,7 +131,6 @@ class TestDeviceInfo:
     """Test DeviceInfo model."""
 
     def test_default_name(self):
-        from bifrost_core.base import DeviceInfo
 
         device = DeviceInfo(
             device_id="test_id",
@@ -143,7 +142,6 @@ class TestDeviceInfo:
         assert device.name == "test_id"
 
     def test_explicit_name(self):
-        from bifrost_core.base import DeviceInfo
 
         device = DeviceInfo(
             device_id="test_id",

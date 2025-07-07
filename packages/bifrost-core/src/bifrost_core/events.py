@@ -20,6 +20,7 @@ class EventBus:
     """A simple event bus for dispatching events to listeners."""
 
     def __init__(self) -> None:
+        """Initializes the EventBus."""
         self._listeners: dict[
             type[BaseEvent], list[EventHandler[BaseEvent]]
         ] = defaultdict(list)

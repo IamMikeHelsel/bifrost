@@ -1,6 +1,6 @@
 # 🌉 Bifrost - High-Performance Automation Software Engineering Support Tool
 
-**Bifrost** is a high-performance industrial gateway built in Go that bridges OT equipment with modern IT infrastructure. This project is in its infancy and would benefit significantly from folks with expertise using it, finding does and does not work and helping us get a useful set of tools assembled. 
+**Bifrost** is a high-performance industrial gateway built in Go that bridges OT equipment with modern IT infrastructure. This project is in its infancy and would benefit significantly from folks with expertise using it, finding does and does not work and helping us get a useful set of tools assembled.
 
 ## 🏆 Core Features
 
@@ -71,10 +71,13 @@ gantt
    go run ./cmd/gateway
    ```
 
-2. **Install the VS Code Extension**:
+1. **Install the VS Code Extension**:
+
    - Open the Extensions view in VS Code.
    - Search for "Bifrost" and click "Install."
-3. **Connect to a Device**:
+
+1. **Connect to a Device**:
+
    - Open the Bifrost extension.
    - Add a new device and enter its IP address.
 
@@ -82,5 +85,6 @@ gantt
 
 We welcome contributions from the community. Please read our [contributing guidelines](CONTRIBUTING.md) to get started.
 
----
+______________________________________________________________________
+
 *Expect more from your machines* 🌉

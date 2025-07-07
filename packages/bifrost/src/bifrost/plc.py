@@ -13,12 +13,14 @@ class PLCConnection(BaseConnection):
     """Represents a connection to a PLC."""
 
     def __init__(self, host: str, port: int, protocol: str):
+        """Initializes the PLCConnection."""
         self.host = host
         self.port = port
         self.protocol = protocol
         self._is_connected = False
 
     async def __aenter__(self) -> "PLCConnection":
+        """Enters the async context manager for the PLC connection."""
         # In a real implementation, this would establish a network connection.
         self._is_connected = True
         return self
@@ -55,14 +57,9 @@ class PLC(BaseDevice[Value], ABC):
 
     def _convert_to_python(self, value: Any, data_type: DataType) -> Any:
         """Convert a value from the PLC to a Python type."""
-        if (
-            data_type == DataType.INT16
-            or data_type == DataType.UINT16
-            or data_type == DataType.INT32
-            or data_type == DataType.UINT32
-        ):
+        if data_type in {DataType.INT16, DataType.UINT16, DataType.INT32, DataType.UINT32}:
             return int(value)
-        if data_type == DataType.FLOAT32 or data_type == DataType.FLOAT64:
+        if data_type in {DataType.FLOAT32, DataType.FLOAT64}:
             return float(value)
         if data_type == DataType.BOOLEAN:
             return bool(value)

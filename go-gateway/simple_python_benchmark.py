@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""
-Simple Python Modbus Performance Benchmark
+"""Simple Python Modbus Performance Benchmark
 
 A simplified benchmark to compare with Go gateway performance
 using the modern pymodbus 3.x API.
 """
 
-import time
 import statistics
+import time
 from concurrent.futures import ThreadPoolExecutor
+
 from pymodbus.client import ModbusTcpClient
 
 
@@ -40,7 +40,7 @@ def test_sequential_reads(host="127.0.0.1", port=502, iterations=1000):
                     (read_end - read_start) * 1000000
                 )  # microseconds
 
-        except Exception as e:
+        except Exception:
             pass
 
     end_time = time.time()
@@ -64,7 +64,7 @@ def test_sequential_reads(host="127.0.0.1", port=502, iterations=1000):
             "total_time": total_time,
         }
 
-    print(f"   ❌ All reads failed")
+    print("   ❌ All reads failed")
     return None
 
 
@@ -90,7 +90,7 @@ def worker_thread(thread_id, host, port, reads_per_thread):
                     (read_end - read_start) * 1000000
                 )  # microseconds
 
-    except Exception as e:
+    except Exception:
         pass
     finally:
         client.close()
@@ -124,7 +124,7 @@ def test_concurrent_reads(
                 success_count, latencies = future.result()
                 total_success += success_count
                 all_latencies.extend(latencies)
-            except Exception as e:
+            except Exception:
                 pass
 
     end_time = time.time()
@@ -146,7 +146,7 @@ def test_concurrent_reads(
             "total_time": total_time,
         }
 
-    print(f"   ❌ All operations failed")
+    print("   ❌ All operations failed")
     return None
 
 
@@ -180,7 +180,7 @@ def test_write_operations(host="127.0.0.1", port=502, iterations=100):
                     (write_end - write_start) * 1000000
                 )  # microseconds
 
-        except Exception as e:
+        except Exception:
             pass
 
     end_time = time.time()
@@ -204,7 +204,7 @@ def test_write_operations(host="127.0.0.1", port=502, iterations=100):
             "total_time": total_time,
         }
 
-    print(f"   ❌ All writes failed")
+    print("   ❌ All writes failed")
     return None
 
 

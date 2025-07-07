@@ -6,11 +6,23 @@ including connection management and read/write operations for holding registers.
 
 import asyncio
 from collections.abc import Sequence
+from enum import IntEnum
 from types import TracebackType
 from typing import Any
 
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
+
+
+class ModbusFunctionCode(IntEnum):
+    READ_COILS = 1
+    READ_DISCRETE_INPUTS = 2
+    READ_HOLDING_REGISTERS = 3
+    READ_INPUT_REGISTERS = 4
+    WRITE_SINGLE_COIL = 5
+    WRITE_SINGLE_REGISTER = 6
+    WRITE_MULTIPLE_COILS = 15
+    WRITE_MULTIPLE_REGISTERS = 16
 
 from bifrost_core.base import Reading
 from bifrost_core.typing import JsonDict, Tag, Timestamp, Value
@@ -39,6 +51,7 @@ class ModbusConnection(PLCConnection):
         self.client = AsyncModbusTcpClient(host=host, port=port)
 
     async def __aenter__(self) -> "ModbusConnection":
+        """Connects to the Modbus device upon entering the async context."""
         connected = await self.client.connect()
         self._is_connected = connected
         return self
@@ -49,6 +62,7 @@ class ModbusConnection(PLCConnection):
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        """Closes the Modbus connection upon exiting the async context."""
         if hasattr(self.client, "close"):
             if asyncio.iscoroutinefunction(self.client.close):
                 await self.client.close()
@@ -61,6 +75,7 @@ class ModbusDevice(PLC[Any]):
     """Represents a Modbus device."""
 
     def __init__(self, connection: ModbusConnection):
+        """Initializes the ModbusDevice with a ModbusConnection."""
         super().__init__(connection)
         self.connection: ModbusConnection  # For type hinting
 
@@ -76,19 +91,19 @@ class ModbusDevice(PLC[Any]):
                         address=address, count=count, slave=1
                     )
                     value = result.bits
-                elif function_code == 2:  # Read Discrete Inputs
+                elif function_code == ModbusFunctionCode.READ_DISCRETE_INPUTS:  # Read Discrete Inputs
                     result = await self.connection.client.read_discrete_inputs(
                         address=address, count=count, slave=1
                     )
                     value = result.bits
-                elif function_code == 3:  # Read Holding Registers
+                elif function_code == ModbusFunctionCode.READ_HOLDING_REGISTERS:  # Read Holding Registers
                     result = (
                         await self.connection.client.read_holding_registers(
                             address=address, count=count, slave=1
                         )
                     )
                     value = result.registers
-                elif function_code == 4:  # Read Input Registers
+                elif function_code == ModbusFunctionCode.READ_INPUT_REGISTERS:  # Read Input Registers
                     result = await self.connection.client.read_input_registers(
                         address=address, count=count, slave=1
                     )
@@ -129,7 +144,7 @@ class ModbusDevice(PLC[Any]):
             try:
                 function_code, address, _ = self._parse_address(tag.address)
 
-                if function_code == 1:  # Write Coils
+                if function_code == ModbusFunctionCode.WRITE_SINGLE_COIL:  # Write Coils
                     if isinstance(value, bool):
                         await self.connection.client.write_coil(
                             address=address, value=value, slave=1
@@ -144,7 +159,7 @@ class ModbusDevice(PLC[Any]):
                         raise ValueError(
                             "Coil write value must be a boolean or a list of booleans"
                         )
-                elif function_code == 3:  # Write Holding Registers
+                elif function_code == ModbusFunctionCode.WRITE_SINGLE_REGISTER:  # Write Holding Registers
                     if isinstance(value, int):
                         await self.connection.client.write_register(
                             address=address, value=value, slave=1
