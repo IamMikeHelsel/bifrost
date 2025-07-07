@@ -150,7 +150,7 @@ def install_completion(
       [yellow]bifrost completion[/yellow]                         # Detect shell automatically
     """
     import os
-import subprocess
+    import subprocess
 
     # Auto-detect shell if not specified
     if shell is None:

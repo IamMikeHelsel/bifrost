@@ -71,7 +71,7 @@ class ModbusConnection(PLCConnection):
         self._is_connected = False
 
 
-class ModbusDevice(PLC[Any]):
+class ModbusDevice(PLC):
     """Represents a Modbus device."""
 
     def __init__(self, connection: ModbusConnection):
@@ -85,6 +85,7 @@ class ModbusDevice(PLC[Any]):
         for tag in tags:
             try:
                 function_code, address, count = self._parse_address(tag.address)
+                value: Any  # Allow mixed types for different Modbus operations
 
                 if function_code == 1:  # Read Coils
                     result = await self.connection.client.read_coils(

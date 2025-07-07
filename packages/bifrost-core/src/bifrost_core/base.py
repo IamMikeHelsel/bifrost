@@ -83,7 +83,7 @@ class DeviceInfo(BaseModel):
     )
 
     @model_validator(mode="after")
-    def set_default_name(self):
+    def set_default_name(self) -> "DeviceInfo":
         """Sets the default name of the device if not already set."""
         if self.name is None:
             self.name = self.device_id
