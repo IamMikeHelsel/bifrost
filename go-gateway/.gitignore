@@ -55,3 +55,37 @@ config-*.yaml
 # Performance test outputs
 perf-*.out
 benchmark-*.out
+profile-*.out
+cpu-*.pprof
+mem-*.pprof
+
+# Test coverage
+coverage.txt
+coverage.html
+
+# Docker build cache
+.dockerignore
+
+# Kubernetes manifests with secrets
+k8s/*-secret.yaml
+k8s/*-secrets.yaml
+
+# Certificate files (keep examples but not real certs)
+*.pem
+*.key
+*.crt
+*.csr
+!security/example-*
+
+# Database files
+*.db
+*.sqlite3
+
+# Industrial protocol logs
+modbus-*.log
+opcua-*.log
+ethernetip-*.log
+
+# Monitoring and metrics
+prometheus-*.yml
+grafana-*.json

@@ -1,7 +1,6 @@
 package protocols
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
 	"fmt"
@@ -52,7 +51,7 @@ func (e *EtherNetIPHandler) registerSession(conn *EtherNetIPConnection) (uint32,
 	
 	sessionID := respHeader.SessionHandle
 	
-	e.handler.logger.Debug("CIP session registered",
+	e.logger.Debug("CIP session registered",
 		zap.String("device_id", conn.deviceID),
 		zap.Uint32("session_id", sessionID),
 	)

@@ -2,11 +2,8 @@ package protocols
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"net"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 

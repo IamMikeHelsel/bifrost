@@ -74,9 +74,7 @@ class DataPoint(BaseModel):
     unit: str | None = Field(
         None, description="Engineering unit (e.g., '°C', 'bar', 'rpm')"
     )
-    description: str | None = Field(
-        None, description="Additional description"
-    )
+    description: str | None = Field(None, description="Additional description")
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Protocol-specific metadata"
     )

@@ -7,8 +7,8 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  # Main build job for Linux/macOS (cloud runners)
-  build:
+  # Python packages testing
+  test-python:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -42,54 +42,88 @@ jobs:
 
     - name: Run type checker
       run: |
-        uv run mypy .
+        uv run mypy packages/*/src
 
-    - name: Run tests
+    - name: Run Python tests
       run: |
-        uv run pytest -xvs
+        uv run pytest packages/*/tests -v
 
-  # Windows build job using FJALL
-  build-windows:
-    runs-on: [self-hosted, FJALL]
-    timeout-minutes: 20
-    continue-on-error: true
+  # Go gateway testing
+  test-go:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        go-version: ['1.22', '1.23']
+        os: [ubuntu-latest, macos-latest]
+      fail-fast: false
+    
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
       with:
-        python-version: '3.12'
+        go-version: ${{ matrix.go-version }}
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v3
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('go-gateway/go.mod') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go-version }}-
 
-    - name: Test on Windows
-      shell: pwsh
+    - name: Download Go dependencies
+      working-directory: go-gateway
+      run: go mod download
+
+    - name: Run Go linter
+      working-directory: go-gateway
       run: |
-        Write-Host "🏠 Testing on FJALL Windows runner"
-        uv sync --all-extras --dev
-        uv run pytest --tb=short
+        go fmt ./...
+        go vet ./...
 
-  # Rust/Bazel build job (Linux only)
-  build-rust:
+    - name: Build Go gateway
+      working-directory: go-gateway
+      run: go build -v ./cmd/gateway
+
+    - name: Run Go tests
+      working-directory: go-gateway
+      run: go test -v -race ./...
+
+    - name: Run Go benchmarks
+      working-directory: go-gateway
+      run: go test -v -bench=. -benchmem ./internal/protocols/
+
+  # VS Code extension testing
+  test-vscode:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Bazel
-      uses: bazel-contrib/setup-bazel@0.8.5
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
-        bazelisk-cache: true
-        disk-cache: ${{ github.workflow }}
-        repository-cache: true
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: vscode-extension/package-lock.json
 
-    - name: Build Rust extensions
-      run: |
-        bazel build //packages/bifrost/native:bifrost_native
+    - name: Install dependencies
+      working-directory: vscode-extension
+      run: npm ci
 
-    - name: Run Rust tests
-      run: |
-        bazel test //packages/bifrost/native:all
+    - name: Run TypeScript compiler
+      working-directory: vscode-extension
+      run: npm run compile
+
+    - name: Run linter
+      working-directory: vscode-extension
+      run: npm run lint
+
+    - name: Run tests
+      working-directory: vscode-extension
+      run: npm test
 

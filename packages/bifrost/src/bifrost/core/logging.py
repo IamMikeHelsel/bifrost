@@ -159,25 +159,20 @@ class ConnectionError(BifrostError):
     """Raised when connection to device fails."""
 
 
-
 class ProtocolError(BifrostError):
     """Raised when protocol-specific error occurs."""
-
 
 
 class ConfigurationError(BifrostError):
     """Raised when configuration is invalid."""
 
 
-
 class DataValidationError(BifrostError):
     """Raised when data validation fails."""
 
 
-
 class TimeoutError(BifrostError):
     """Raised when operation times out."""
-
 
 
 def setup_exception_handling() -> None:

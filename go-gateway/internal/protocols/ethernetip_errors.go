@@ -3,7 +3,10 @@ package protocols
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // EtherNet/IP Error Handling and Diagnostics

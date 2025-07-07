@@ -31,6 +31,7 @@
 
 **Technology**: Go with Fyne GUI framework
 **Advantages**:
+
 - **Performance**: Native Go performance, single binary deployment
 - **Consistency**: Same language as gateway, unified codebase
 - **Cross-Platform**: Excellent Windows/Linux/macOS support
@@ -39,6 +40,7 @@
 - **Team Efficiency**: Leverage existing Go expertise
 
 **Implementation**:
+
 ```go
 // Industrial dashboard with real-time updates
 type IndustrialDashboard struct {
@@ -54,6 +56,7 @@ app.SetIcon(theme.ComputerIcon())
 ```
 
 **Considerations**:
+
 - Learning curve for Fyne framework
 - GUI framework maturity (Fyne is actively developed)
 - Advanced charting may require additional libraries
@@ -62,12 +65,14 @@ app.SetIcon(theme.ComputerIcon())
 
 **Technology**: Rust-based Tauri with TypeScript-Go frontend
 **Advantages**:
+
 - **Web Technologies**: Leverage TypeScript-Go (10x compilation speed)
 - **Modern UI**: Full web capabilities (CSS, animations, charting)
 - **Small Runtime**: Tauri produces smaller binaries than Electron
 - **Performance**: Rust backend with TypeScript frontend
 
 **Implementation**:
+
 ```typescript
 // Industrial dashboard component
 export class IndustrialDashboard {
@@ -83,6 +88,7 @@ export class IndustrialDashboard {
 ```
 
 **Considerations**:
+
 - Additional Rust learning curve for team
 - More complex build pipeline
 - Web security model may not fit all industrial requirements
@@ -91,12 +97,14 @@ export class IndustrialDashboard {
 
 **Technology**: Go with Gio immediate mode GUI
 **Advantages**:
+
 - **Performance**: Immediate mode rendering, GPU accelerated
 - **Consistency**: Pure Go, same language as gateway
 - **Efficient**: Minimal memory usage, suitable for embedded systems
 - **Modern**: Declarative UI paradigm
 
 **Implementation**:
+
 ```go
 // High-performance industrial display
 func (d *Dashboard) Layout(gtx layout.Context) layout.Dimensions {
@@ -109,6 +117,7 @@ func (d *Dashboard) Layout(gtx layout.Context) layout.Dimensions {
 ```
 
 **Considerations**:
+
 - Relatively new framework (learning curve)
 - Limited pre-built widgets
 - Advanced charting requires custom implementation
@@ -117,12 +126,14 @@ func (d *Dashboard) Layout(gtx layout.Context) layout.Dimensions {
 
 **Technology**: Enhanced web interface served by Go gateway
 **Advantages**:
+
 - **Zero Installation**: Access via web browser
 - **Familiar Technologies**: HTML, CSS, JavaScript/TypeScript
 - **Responsive**: Works on tablets, phones, desktops
 - **Easy Updates**: Server-side deployment
 
 **Implementation**:
+
 ```typescript
 // Real-time industrial dashboard
 class IndustrialWebDashboard {
@@ -138,6 +149,7 @@ class IndustrialWebDashboard {
 ```
 
 **Considerations**:
+
 - Browser limitations for some industrial requirements
 - Security considerations for industrial networks
 - Offline capabilities limited
@@ -146,12 +158,14 @@ class IndustrialWebDashboard {
 
 **Technology**: Qt framework with Go backend via CGO
 **Advantages**:
+
 - **Industrial Heritage**: Qt widely used in industrial applications
 - **Professional Appearance**: Native look and feel
 - **Mature Ecosystem**: Extensive widget library, charting, etc.
 - **Performance**: Native compilation
 
 **Considerations**:
+
 - **Complexity**: CGO introduces complexity and deployment challenges
 - **Binary Size**: Qt applications can be large (50-100MB+)
 - **Licensing**: Qt licensing considerations for commercial use
@@ -172,27 +186,31 @@ class IndustrialWebDashboard {
 ### Primary Recommendation: Go + Fyne
 
 **Rationale**:
+
 1. **Team Consistency**: Leverages existing Go expertise
-2. **Performance**: Native Go performance with small binary size
-3. **Deployment**: Single binary deployment model (consistent with gateway)
-4. **Industrial Fit**: Professional appearance suitable for control rooms
-5. **Integration**: Direct use of existing Go gateway client libraries
+1. **Performance**: Native Go performance with small binary size
+1. **Deployment**: Single binary deployment model (consistent with gateway)
+1. **Industrial Fit**: Professional appearance suitable for control rooms
+1. **Integration**: Direct use of existing Go gateway client libraries
 
 ### Implementation Timeline
 
 **Phase 1: Foundation** (2-3 months)
+
 - Basic application structure with Fyne
 - Connection to Go gateway REST API
 - Device discovery and connection management
 - Real-time tag value display
 
 **Phase 2: Industrial Features** (2-3 months)
+
 - Advanced charting and data visualization
 - Alarm and notification system
 - Historical data trending
 - Configuration management UI
 
 **Phase 3: Production Hardening** (1-2 months)
+
 - Industrial theme and styling
 - Performance optimization
 - Error handling and recovery
@@ -201,6 +219,7 @@ class IndustrialWebDashboard {
 ### Alternative: Enhanced Web Dashboard
 
 **Secondary Recommendation**: If Fyne proves insufficient, enhance the web-based approach with:
+
 - Progressive Web App (PWA) capabilities
 - Advanced industrial charting libraries (D3.js, Chart.js, or custom)
 - Offline functionality for critical monitoring
@@ -209,6 +228,7 @@ class IndustrialWebDashboard {
 ## Technical Specifications
 
 ### Architecture
+
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Standalone    │    │   Go Gateway     │    │   Industrial    │
@@ -218,6 +238,7 @@ class IndustrialWebDashboard {
 ```
 
 ### Key Features
+
 - Real-time device monitoring with live tag updates
 - Industrial-grade alarm management
 - Historical data trending and analysis
@@ -227,6 +248,7 @@ class IndustrialWebDashboard {
 - User authentication and role-based access
 
 ### Performance Targets
+
 - **Startup Time**: < 3 seconds
 - **Tag Updates**: 1000+ tags at 1Hz update rate
 - **Response Time**: < 100ms for user interactions
@@ -236,16 +258,19 @@ class IndustrialWebDashboard {
 ## Migration Strategy
 
 ### Phase 1: VS Code Extension Focus (Current)
+
 - Complete TypeScript-Go integration
 - Full-featured industrial development environment
 - Comprehensive device management and debugging
 
 ### Phase 2: Evaluate Standalone Need (6-12 months)
+
 - Gather user feedback on VS Code extension
 - Assess demand for standalone application
 - Technical evaluation of preferred GUI framework
 
 ### Phase 3: Implementation (12-18 months)
+
 - Begin standalone GUI development if justified
 - Maintain API compatibility with existing VS Code extension
 - Ensure seamless migration path for users

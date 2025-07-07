@@ -207,10 +207,45 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# ==============================================
+# Multi-Language Bifrost Industrial Gateway
+# ==============================================
+
+# Go binaries and artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+vendor/
+go.work
+
+# Node.js / TypeScript (VS Code Extension)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+out/
+*.tsbuildinfo
+*.vsix
+
 # Bazel build system
 MODULE.bazel.lock
 bazel-*
 .bazel-cache/
+.bazelrc.local
+
+# Rust/PyO3 build artifacts (for native extensions)
+Cargo.lock
+target/
+*.pyd
+*.dll
+*.dylib
 
 # Bifrost-specific
 # Temporary files from industrial device testing
@@ -218,28 +253,27 @@ bazel-*
 *.pcapng
 device_dumps/
 modbus_logs/
+opcua_logs/
+ethernetip_logs/
 
 # Development databases
 *.db
 *.sqlite
 
-# Rust/PyO3 build artifacts (for future Rust extensions)
-Cargo.lock
-target/
-*.pyd
-*.dll
-*.dylib
-
-# Test outputs
-test_reports/
-benchmark_results/
-
-# Local configuration
+# Configuration overrides (keep defaults)
+gateway-*.yaml
+config-*.yaml
 .bifrost.yaml
 .bifrost.json
 local_config/
 
-# Temporary development files (analysis, examples, comparisons)
+# Performance test outputs
+perf-*.out
+benchmark-*.out
+benchmark_results/
+test_reports/
+
+# Development and temporary files
 *_analysis.md
 *_strategy.md
 *_comparison.md

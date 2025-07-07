@@ -1,8 +1,6 @@
 package protocols
 
 import (
-	"context"
-	"encoding/binary"
 	"fmt"
 	"sort"
 	"strings"
