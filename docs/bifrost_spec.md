@@ -133,6 +133,7 @@ wscat -c ws://localhost:8080/ws
 #### Supported Protocols
 
 **Production Ready**:
+
 - **Modbus TCP/RTU**: Full implementation with connection pooling (53µs latency)
   - Multiple register reads/writes
   - Automatic reconnection and error handling
@@ -140,11 +141,13 @@ wscat -c ws://localhost:8080/ws
   - Comprehensive device discovery and diagnostics
 
 **In Development**:
+
 - **OPC UA**: Native Go implementation or CGO wrapper planned
 - **Ethernet/IP (CIP)**: Native Go implementation in progress
 - **S7 (Siemens)**: Future protocol support planned
 
 **Extensible Architecture**:
+
 - Unified ProtocolHandler interface for all protocols
 - Plugin architecture for custom protocol implementations
 - Protocol-specific optimizations and features
@@ -178,6 +181,7 @@ type ProtocolHandler interface {
 #### Core Capabilities
 
 **Current Features (Production Ready)**:
+
 - **TypeScript-Go Integration**: 10x faster compilation than standard TypeScript
 - **Device Management**: Tree view with live status indicators for connected devices
 - **Real-time Monitoring**: WebSocket-based live data visualization with sub-second updates
@@ -185,6 +189,7 @@ type ProtocolHandler interface {
 - **Industrial UI**: Professional interface optimized for control room environments
 
 **Development Features**:
+
 - **Protocol Debugging**: Industrial protocol-specific debugging tools
 - **Performance Monitoring**: Real-time display of gateway performance metrics
 - **Device Discovery**: Automatic discovery and configuration of industrial devices
@@ -230,18 +235,21 @@ ws.onmessage = (event) => {
 #### Testing Components
 
 **Device Simulators (Production Ready)**:
+
 - **Modbus TCP/RTU Simulators**: Full protocol implementation with realistic behavior
 - **OPC UA Simulators**: Complete server implementation for testing
 - **Network Simulation**: Configurable latency, packet loss, and bandwidth limiting
 - **Industrial Scenarios**: Factory floor, process control, and SCADA testing environments
 
 **Performance Testing**:
+
 - **Benchmarking Suite**: Comprehensive performance validation tools
 - **Load Testing**: Support for 1000+ concurrent device connections
 - **Stress Testing**: Network condition simulation and fault injection
 - **Regression Testing**: Automated performance regression detection
 
 **Testing Infrastructure**:
+
 - **Docker Compose**: Orchestrated multi-device testing environments
 - **Kubernetes**: Scalable testing in cloud environments
 - **CI/CD Integration**: Automated testing in GitHub Actions
@@ -289,6 +297,7 @@ ______________________________________________________________________
 Based on comprehensive testing with production hardware (documented in `go-gateway/TEST_RESULTS.md`):
 
 **Modbus TCP Performance**:
+
 - **Throughput**: 18,879 operations/second (sequential operations)
 - **Latency**: 53µs average response time (EXCEEDED TARGET: <1ms)
 - **Concurrent Performance**: 12,119 ops/sec with 10 concurrent goroutines
@@ -296,18 +305,21 @@ Based on comprehensive testing with production hardware (documented in `go-gatew
 - **Memory Usage**: < 50MB base footprint (EXCEEDED TARGET: <100MB)
 
 **System Performance**:
+
 - **Binary Size**: ~15MB single binary deployment
 - **Startup Time**: Sub-second initialization
 - **Connection Pooling**: 1000+ simultaneous device connections
 - **Network Throughput**: Optimized for industrial edge deployment
 
 **Benchmarking Results**:
+
 - **Address Validation**: 33.6M operations/second
 - **Data Conversion**: 2.9B operations/second
 - **Device Operations**: 100 devices processed in 51µs
 - **WebSocket Streaming**: Real-time data updates with <10ms latency
 
 **Test Environment**:
+
 - **Hardware**: Development machine (macOS Darwin 24.5.0)
 - **Go Version**: 1.22+ with native compilation
 - **Network**: Local loopback testing with realistic conditions
@@ -323,6 +335,7 @@ Based on comprehensive testing with production hardware (documented in `go-gatew
 ### 4.3 Dependencies
 
 **Go Gateway (Minimal Dependencies)**:
+
 - **Core Go**: Standard library (net, context, sync, encoding/json, log/slog)
 - **External Dependencies**:
   - `gorilla/websocket`: WebSocket support (BSD-3-Clause)
@@ -330,16 +343,19 @@ Based on comprehensive testing with production hardware (documented in `go-gatew
   - `go.uber.org/zap`: High-performance logging (MIT)
 
 **VS Code Extension**:
+
 - **TypeScript-Go**: Microsoft's experimental compiler for 10x faster builds
 - **VS Code APIs**: Native extension integration
 - **WebSocket Client**: Real-time communication with gateway
 
 **Virtual Device Testing**:
+
 - **Python**: Simulator implementations with realistic device behavior
 - **Docker**: Containerized testing environments
 - **Network Tools**: Latency and packet loss simulation
 
 **Build System**:
+
 - **Go Modules**: Native dependency management
 - **Bazel**: Multi-language build system (optional)
 - **GitHub Actions**: Automated CI/CD with cross-platform builds
