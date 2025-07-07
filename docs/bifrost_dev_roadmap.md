@@ -96,6 +96,7 @@ ______________________________________________________________________
 - ✅ **Native Go**: High-performance Modbus implementation (COMPLETE)
 - 🔄 **Ethernet/IP**: Native Go implementation (IN PROGRESS)
 - 📅 **OPC UA**: Future native implementation or CGO wrapper
+- 📅 **EtherCAT**: Rust-based implementation with Go FFI bindings
 - 📅 **S7**: Future protocol support
 
 ### ✅ Deliverables Complete
@@ -354,7 +355,42 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 📅 Phase 5: Edge Analytics Engine (Future)
+## 📅 Phase 5: EtherCAT Protocol Support (Planned)
+
+**Goal**: Real-time EtherCAT master implementation for motion control and high-performance automation
+
+### Planned Deliverables
+
+- [ ] **EtherCAT Master Implementation**
+  - [ ] Rust-based implementation using ethercrab library
+  - [ ] Go FFI bindings for integration with gateway
+  - [ ] Real-time I/O operations (1-10ms cycle times)
+  - [ ] Distributed clock synchronization
+- [ ] **Protocol Integration**
+  - [ ] Unified ProtocolHandler interface integration
+  - [ ] REST API endpoints for EtherCAT operations
+  - [ ] WebSocket streaming for real-time data
+- [ ] **Motion Control Features**
+  - [ ] Servo drive and stepper motor support
+  - [ ] CANopen over EtherCAT (CoE) implementation
+  - [ ] Process data and mailbox communication
+  - [ ] Device commissioning and configuration
+- [ ] **Virtual Device Testing**
+  - [ ] EtherCAT slave simulators
+  - [ ] Motion control device profiles
+  - [ ] Network topology simulation
+  - [ ] Real-time performance validation
+
+### Performance Targets
+
+- Cycle time: 1-10ms configurable with < 1% jitter
+- Device support: 100+ EtherCAT slaves per master
+- Process data: 10,000+ I/O points per cycle
+- Real-time latency: < 100µs for urgent commands
+
+______________________________________________________________________
+
+## 📅 Phase 6: Edge Analytics Engine (Future)
 
 **Goal**: Real-time data processing and analytics capabilities
 
@@ -392,7 +428,7 @@ type AnalyticsEngine struct {
 
 ______________________________________________________________________
 
-## 📅 Phase 6: Cloud Connectors (Future)
+## 📅 Phase 7: Cloud Connectors (Future)
 
 **Goal**: Reliable, efficient edge-to-cloud connectivity
 
@@ -488,7 +524,14 @@ ______________________________________________________________________
 - 📅 **High Performance**: Sub-100µs tag read operations
 - 📅 **Virtual Testing**: Ethernet/IP simulators
 
-### 📅 v3.0.0 - Analytics Platform (Q2 2026)
+### 📅 v2.4.0 - EtherCAT Support (Q2 2026)
+
+- 📅 **EtherCAT Master**: Real-time master implementation using ethercrab
+- 📅 **Motion Control**: Servo drive and stepper motor support
+- 📅 **Real-time I/O**: 1-10ms cycle times with distributed clocks
+- 📅 **Virtual Testing**: EtherCAT slave simulators
+
+### 📅 v3.0.0 - Analytics Platform (Q3 2026)
 
 - 📅 **Edge Analytics**: Real-time data processing
 - 📅 **Cloud Connectors**: AWS IoT, Azure IoT Hub, Google Cloud

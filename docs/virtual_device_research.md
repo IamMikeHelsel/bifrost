@@ -184,6 +184,76 @@ from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
    - Performance metrics
    - Error categorization
 
+## EtherCAT Simulators
+
+### 1. ethercrab Test Slave
+
+**Repository**: https://github.com/ethercrab-rs/ethercrab
+**License**: Apache 2.0 / MIT
+**Language**: Rust
+
+**Pros**:
+- Same library ecosystem as planned master implementation
+- Memory safe Rust implementation
+- No-std support for embedded simulation
+- Modern async/await patterns
+
+**Cons**:
+- Limited device profiles compared to commercial solutions
+- Relatively new project (2023+)
+- May lack advanced EtherCAT features
+
+### 2. TwinCAT Virtual Devices (Beckhoff)
+
+**Platform**: TwinCAT 3 Engineering
+**License**: Commercial (free development license)
+**Language**: Proprietary
+
+**Pros**:
+- Professional EtherCAT simulation
+- Complete device database
+- Industry-standard implementation
+- Real-time simulation capabilities
+
+**Cons**:
+- Windows-only
+- Commercial licensing for production
+- Requires TwinCAT installation
+- Not suitable for CI/CD pipelines
+
+### 3. SOEM Test Slaves
+
+**Repository**: https://github.com/OpenEtherCATsociety/SOEM
+**License**: GPL v2 (restrictive)
+**Language**: C
+
+**Pros**:
+- Proven implementation
+- Basic slave simulation examples
+- Cross-platform support
+
+**Cons**:
+- GPL licensing restrictions
+- Limited to basic testing
+- Requires compilation and setup
+
+### 4. Custom EtherCAT Slave Simulator
+
+**Approach**: Implement using ethercrab slave capabilities
+**License**: MIT (matching project)
+**Language**: Rust with Go FFI
+
+**Pros**:
+- Complete control over simulation features
+- Permissive licensing
+- Integration with existing test framework
+- Custom device profiles for specific testing
+
+**Cons**:
+- Significant development effort
+- Need to implement device profiles from scratch
+- Testing coverage compared to commercial solutions
+
 ## Recommended Initial Selection
 
 ### For Immediate Implementation:
@@ -191,6 +261,7 @@ from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 1. **pyModbusTCP** - Primary Modbus TCP simulator
 1. **pymodbus** - Advanced Modbus testing with failure simulation
 1. **opcua-asyncio** - OPC UA testing (despite LGPL, acceptable for testing)
+1. **ethercrab test slave** - EtherCAT slave simulation for basic testing
 
 ### Error Handling Implementation Plan:
 
@@ -206,3 +277,4 @@ from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 1. Implement error handling patterns in Rust Modbus codec
 1. Set up comprehensive test scenarios
 1. Document failure modes and recovery strategies
+1. **NEW**: Develop EtherCAT slave simulation framework using ethercrab
