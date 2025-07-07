@@ -228,8 +228,8 @@ func (e *EtherNetIPHandler) readEncapsulationHeader(conn *EtherNetIPConnection) 
 
 // Address parsing and path building
 
-// parseAddress parses EtherNet/IP tag addresses
-func (e *EtherNetIPHandler) parseAddress(address string) (*EtherNetIPAddress, error) {
+// parseAddressCIP parses EtherNet/IP tag addresses for CIP
+func (e *EtherNetIPHandler) parseAddressCIP(address string) (*EtherNetIPAddress, error) {
 	address = strings.TrimSpace(address)
 
 	if address == "" {
@@ -712,7 +712,7 @@ func (e *EtherNetIPHandler) readTagBatch(conn *EtherNetIPConnection, tags []*Tag
 
 // readSingleTag reads a single tag (helper method)
 func (e *EtherNetIPHandler) readSingleTag(conn *EtherNetIPConnection, tag *Tag) (interface{}, error) {
-	addr, err := e.parseAddress(tag.Address)
+	addr, err := e.parseAddressCIP(tag.Address)
 	if err != nil {
 		return nil, err
 	}
