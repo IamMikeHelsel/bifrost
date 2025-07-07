@@ -13,20 +13,20 @@ import (
 
 // ConnectionPool manages a pool of connections with circuit breaker support
 type ConnectionPool struct {
-	logger    *zap.Logger
-	config    *PoolConfig
-	
+	logger *zap.Logger
+	config *PoolConfig
+
 	// Pool management
-	pools     sync.Map // map[string]*DevicePool
-	metrics   *PoolMetrics
-	
+	pools   sync.Map // map[string]*DevicePool
+	metrics *PoolMetrics
+
 	// Circuit breaker
-	breakers  sync.Map // map[string]*gobreaker.CircuitBreaker
-	
+	breakers sync.Map // map[string]*gobreaker.CircuitBreaker
+
 	// Cleanup and monitoring
-	cleanup   chan struct{}
-	ctx       context.Context
-	cancel    context.CancelFunc
+	cleanup chan struct{}
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
 // PoolConfig defines connection pool configuration
@@ -34,22 +34,22 @@ type PoolConfig struct {
 	MaxConnectionsPerDevice int           `yaml:"max_connections_per_device"`
 	MaxTotalConnections     int           `yaml:"max_total_connections"`
 	ConnectionTimeout       time.Duration `yaml:"connection_timeout"`
-	IdleTimeout            time.Duration `yaml:"idle_timeout"`
-	HealthCheckInterval    time.Duration `yaml:"health_check_interval"`
-	RetryAttempts          int           `yaml:"retry_attempts"`
-	RetryDelay             time.Duration `yaml:"retry_delay"`
-	
+	IdleTimeout             time.Duration `yaml:"idle_timeout"`
+	HealthCheckInterval     time.Duration `yaml:"health_check_interval"`
+	RetryAttempts           int           `yaml:"retry_attempts"`
+	RetryDelay              time.Duration `yaml:"retry_delay"`
+
 	// Circuit breaker configuration
 	CircuitBreakerConfig CircuitBreakerConfig `yaml:"circuit_breaker"`
 }
 
 // CircuitBreakerConfig defines circuit breaker settings
 type CircuitBreakerConfig struct {
-	MaxRequests    uint32        `yaml:"max_requests"`
-	Interval       time.Duration `yaml:"interval"`
-	Timeout        time.Duration `yaml:"timeout"`
-	FailureRate    float64       `yaml:"failure_rate"`
-	MinRequests    uint32        `yaml:"min_requests"`
+	MaxRequests uint32        `yaml:"max_requests"`
+	Interval    time.Duration `yaml:"interval"`
+	Timeout     time.Duration `yaml:"timeout"`
+	FailureRate float64       `yaml:"failure_rate"`
+	MinRequests uint32        `yaml:"min_requests"`
 }
 
 // DevicePool manages connections for a specific device
@@ -61,25 +61,25 @@ type DevicePool struct {
 	config      *PoolConfig
 	logger      *zap.Logger
 	mutex       sync.RWMutex
-	
+
 	// Health monitoring
 	lastHealthCheck time.Time
 	healthy         bool
-	
+
 	// Statistics
 	stats *DevicePoolStats
 }
 
 // PooledConnection wraps a connection with pool metadata
 type PooledConnection struct {
-	conn        Connection
-	pool        *DevicePool
-	createdAt   time.Time
-	lastUsed    time.Time
-	inUse       bool
-	healthy     bool
-	useCount    int64
-	
+	conn      Connection
+	pool      *DevicePool
+	createdAt time.Time
+	lastUsed  time.Time
+	inUse     bool
+	healthy   bool
+	useCount  int64
+
 	// Performance tracking
 	totalLatency time.Duration
 	requestCount int64
@@ -96,45 +96,45 @@ type Connection interface {
 
 // ConnectionStats holds performance statistics for a connection
 type ConnectionStats struct {
-	RequestsTotal     int64
+	RequestsTotal      int64
 	RequestsSuccessful int64
-	RequestsFailed    int64
-	AverageLatency    time.Duration
-	LastActivity      time.Time
+	RequestsFailed     int64
+	AverageLatency     time.Duration
+	LastActivity       time.Time
 }
 
 // PoolMetrics tracks pool-wide performance metrics
 type PoolMetrics struct {
-	TotalConnections    int64
-	ActiveConnections   int64
-	FailedConnections   int64
-	ConnectionsCreated  int64
+	TotalConnections     int64
+	ActiveConnections    int64
+	FailedConnections    int64
+	ConnectionsCreated   int64
 	ConnectionsDestroyed int64
-	
+
 	// Performance metrics
 	AverageLatency      time.Duration
-	P95Latency         time.Duration
-	P99Latency         time.Duration
+	P95Latency          time.Duration
+	P99Latency          time.Duration
 	ThroughputPerSecond float64
-	
+
 	// Circuit breaker metrics
-	CircuitBreakerTrips int64
+	CircuitBreakerTrips  int64
 	CircuitBreakerResets int64
 }
 
 // DevicePoolStats holds statistics for a device pool
 type DevicePoolStats struct {
-	TotalConnections   int32
-	ActiveConnections  int32
-	IdleConnections    int32
-	FailedConnections  int32
-	
+	TotalConnections  int32
+	ActiveConnections int32
+	IdleConnections   int32
+	FailedConnections int32
+
 	// Performance metrics
 	TotalRequests      int64
 	SuccessfulRequests int64
 	FailedRequests     int64
 	AverageLatency     time.Duration
-	
+
 	// Health metrics
 	LastHealthCheck    time.Time
 	HealthChecksPassed int64
@@ -144,7 +144,7 @@ type DevicePoolStats struct {
 // NewConnectionPool creates a new connection pool
 func NewConnectionPool(config *PoolConfig, logger *zap.Logger) *ConnectionPool {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	pool := &ConnectionPool{
 		logger:  logger,
 		config:  config,
@@ -153,10 +153,10 @@ func NewConnectionPool(config *PoolConfig, logger *zap.Logger) *ConnectionPool {
 		ctx:     ctx,
 		cancel:  cancel,
 	}
-	
+
 	// Start background maintenance
 	go pool.maintenanceLoop()
-	
+
 	return pool
 }
 
@@ -164,22 +164,22 @@ func NewConnectionPool(config *PoolConfig, logger *zap.Logger) *ConnectionPool {
 func (p *ConnectionPool) GetConnection(deviceID string, factory func() (Connection, error)) (*PooledConnection, error) {
 	// Check circuit breaker
 	breaker := p.getCircuitBreaker(deviceID)
-	
+
 	conn, err := breaker.Execute(func() (interface{}, error) {
 		return p.getConnectionFromPool(deviceID, factory)
 	})
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("circuit breaker: %w", err)
 	}
-	
+
 	return conn.(*PooledConnection), nil
 }
 
 // getConnectionFromPool internal method to get connection from pool
 func (p *ConnectionPool) getConnectionFromPool(deviceID string, factory func() (Connection, error)) (*PooledConnection, error) {
 	pool := p.getDevicePool(deviceID)
-	
+
 	// Try to get existing connection
 	select {
 	case conn := <-pool.connections:
@@ -192,20 +192,20 @@ func (p *ConnectionPool) getConnectionFromPool(deviceID string, factory func() (
 		// Connection is stale, close it
 		conn.Close()
 		atomic.AddInt32(&pool.total, -1)
-		
+
 	default:
 		// No available connections
 	}
-	
+
 	// Create new connection if under limit
 	if atomic.LoadInt32(&pool.total) < int32(p.config.MaxConnectionsPerDevice) {
 		return p.createNewConnection(pool, factory)
 	}
-	
+
 	// Wait for connection to become available
 	ctx, cancel := context.WithTimeout(context.Background(), p.config.ConnectionTimeout)
 	defer cancel()
-	
+
 	select {
 	case conn := <-pool.connections:
 		if conn.healthy {
@@ -218,7 +218,7 @@ func (p *ConnectionPool) getConnectionFromPool(deviceID string, factory func() (
 		conn.Close()
 		atomic.AddInt32(&pool.total, -1)
 		return p.createNewConnection(pool, factory)
-		
+
 	case <-ctx.Done():
 		return nil, fmt.Errorf("timeout waiting for connection to %s", deviceID)
 	}
@@ -230,11 +230,11 @@ func (p *ConnectionPool) createNewConnection(pool *DevicePool, factory func() (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection: %w", err)
 	}
-	
+
 	if err := conn.Connect(); err != nil {
 		return nil, fmt.Errorf("failed to connect: %w", err)
 	}
-	
+
 	pooledConn := &PooledConnection{
 		conn:      conn,
 		pool:      pool,
@@ -243,11 +243,11 @@ func (p *ConnectionPool) createNewConnection(pool *DevicePool, factory func() (C
 		inUse:     true,
 		healthy:   true,
 	}
-	
+
 	atomic.AddInt32(&pool.total, 1)
 	atomic.AddInt32(&pool.active, 1)
 	atomic.AddInt64(&p.metrics.ConnectionsCreated, 1)
-	
+
 	return pooledConn, nil
 }
 
@@ -256,11 +256,11 @@ func (p *ConnectionPool) ReturnConnection(conn *PooledConnection) {
 	if conn == nil {
 		return
 	}
-	
+
 	conn.inUse = false
 	conn.lastUsed = time.Now()
 	atomic.AddInt32(&conn.pool.active, -1)
-	
+
 	// Return to pool if healthy
 	if conn.healthy {
 		select {
@@ -283,7 +283,7 @@ func (p *ConnectionPool) getDevicePool(deviceID string) *DevicePool {
 	if pool, exists := p.pools.Load(deviceID); exists {
 		return pool.(*DevicePool)
 	}
-	
+
 	// Create new device pool
 	pool := &DevicePool{
 		deviceID:    deviceID,
@@ -293,7 +293,7 @@ func (p *ConnectionPool) getDevicePool(deviceID string) *DevicePool {
 		healthy:     true,
 		stats:       &DevicePoolStats{},
 	}
-	
+
 	p.pools.Store(deviceID, pool)
 	return pool
 }
@@ -303,7 +303,7 @@ func (p *ConnectionPool) getCircuitBreaker(deviceID string) *gobreaker.CircuitBr
 	if breaker, exists := p.breakers.Load(deviceID); exists {
 		return breaker.(*gobreaker.CircuitBreaker)
 	}
-	
+
 	settings := gobreaker.Settings{
 		Name:        fmt.Sprintf("device-%s", deviceID),
 		MaxRequests: p.config.CircuitBreakerConfig.MaxRequests,
@@ -312,7 +312,7 @@ func (p *ConnectionPool) getCircuitBreaker(deviceID string) *gobreaker.CircuitBr
 		ReadyToTrip: func(counts gobreaker.Counts) bool {
 			failureRate := float64(counts.TotalFailures) / float64(counts.Requests)
 			return counts.Requests >= p.config.CircuitBreakerConfig.MinRequests &&
-				   failureRate >= p.config.CircuitBreakerConfig.FailureRate
+				failureRate >= p.config.CircuitBreakerConfig.FailureRate
 		},
 		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
 			p.logger.Warn("Circuit breaker state changed",
@@ -320,7 +320,7 @@ func (p *ConnectionPool) getCircuitBreaker(deviceID string) *gobreaker.CircuitBr
 				zap.String("from", from.String()),
 				zap.String("to", to.String()),
 			)
-			
+
 			if to == gobreaker.StateOpen {
 				atomic.AddInt64(&p.metrics.CircuitBreakerTrips, 1)
 			} else if to == gobreaker.StateClosed {
@@ -328,7 +328,7 @@ func (p *ConnectionPool) getCircuitBreaker(deviceID string) *gobreaker.CircuitBr
 			}
 		},
 	}
-	
+
 	breaker := gobreaker.NewCircuitBreaker(settings)
 	p.breakers.Store(deviceID, breaker)
 	return breaker
@@ -338,7 +338,7 @@ func (p *ConnectionPool) getCircuitBreaker(deviceID string) *gobreaker.CircuitBr
 func (p *ConnectionPool) maintenanceLoop() {
 	ticker := time.NewTicker(p.config.HealthCheckInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-p.ctx.Done():
@@ -352,19 +352,19 @@ func (p *ConnectionPool) maintenanceLoop() {
 // performMaintenance performs pool maintenance tasks
 func (p *ConnectionPool) performMaintenance() {
 	now := time.Now()
-	
+
 	p.pools.Range(func(key, value interface{}) bool {
 		pool := value.(*DevicePool)
-		
+
 		// Health check
 		if now.Sub(pool.lastHealthCheck) > p.config.HealthCheckInterval {
 			p.performHealthCheck(pool)
 			pool.lastHealthCheck = now
 		}
-		
+
 		// Remove idle connections
 		p.removeIdleConnections(pool)
-		
+
 		return true
 	})
 }
@@ -373,10 +373,10 @@ func (p *ConnectionPool) performMaintenance() {
 func (p *ConnectionPool) performHealthCheck(pool *DevicePool) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
-	
+
 	// Check connections in pool
 	var healthyConnections []*PooledConnection
-	
+
 	for len(pool.connections) > 0 {
 		select {
 		case conn := <-pool.connections:
@@ -392,7 +392,7 @@ func (p *ConnectionPool) performHealthCheck(pool *DevicePool) {
 			break
 		}
 	}
-	
+
 	// Return healthy connections to pool
 	for _, conn := range healthyConnections {
 		select {
@@ -409,7 +409,7 @@ func (p *ConnectionPool) performHealthCheck(pool *DevicePool) {
 func (p *ConnectionPool) removeIdleConnections(pool *DevicePool) {
 	var activeConnections []*PooledConnection
 	idleThreshold := time.Now().Add(-p.config.IdleTimeout)
-	
+
 	for len(pool.connections) > 0 {
 		select {
 		case conn := <-pool.connections:
@@ -423,7 +423,7 @@ func (p *ConnectionPool) removeIdleConnections(pool *DevicePool) {
 			break
 		}
 	}
-	
+
 	// Return active connections to pool
 	for _, conn := range activeConnections {
 		select {
@@ -453,11 +453,11 @@ func (p *ConnectionPool) GetDeviceStats(deviceID string) *DevicePoolStats {
 func (p *ConnectionPool) Close() error {
 	p.cancel()
 	close(p.cleanup)
-	
+
 	// Close all connections
 	p.pools.Range(func(key, value interface{}) bool {
 		pool := value.(*DevicePool)
-		
+
 		// Close all connections in pool
 		for len(pool.connections) > 0 {
 			select {
@@ -467,25 +467,25 @@ func (p *ConnectionPool) Close() error {
 				break
 			}
 		}
-		
+
 		close(pool.connections)
 		return true
 	})
-	
+
 	return nil
 }
 
 // Execute executes a request using a pooled connection
 func (conn *PooledConnection) Execute(ctx context.Context, request interface{}) (interface{}, error) {
 	start := time.Now()
-	
+
 	result, err := conn.conn.Execute(ctx, request)
-	
+
 	// Update statistics
 	duration := time.Since(start)
 	atomic.AddInt64(&conn.requestCount, 1)
 	atomic.AddInt64(&conn.pool.stats.TotalRequests, 1)
-	
+
 	if err != nil {
 		atomic.AddInt64(&conn.pool.stats.FailedRequests, 1)
 		conn.healthy = false
@@ -493,7 +493,7 @@ func (conn *PooledConnection) Execute(ctx context.Context, request interface{}) 
 		atomic.AddInt64(&conn.pool.stats.SuccessfulRequests, 1)
 		conn.totalLatency += duration
 	}
-	
+
 	conn.lastUsed = time.Now()
 	return result, err
 }
@@ -514,11 +514,11 @@ func (conn *PooledConnection) IsHealthy() bool {
 // GetStats returns connection statistics
 func (conn *PooledConnection) GetStats() ConnectionStats {
 	stats := conn.conn.GetStats()
-	
+
 	// Add pool-specific stats
 	if conn.requestCount > 0 {
 		stats.AverageLatency = time.Duration(int64(conn.totalLatency) / conn.requestCount)
 	}
-	
+
 	return stats
 }

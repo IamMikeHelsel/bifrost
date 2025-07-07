@@ -41,63 +41,63 @@ const (
 
 // CIP Status Codes (Common)
 const (
-	CIPStatusSuccess                    uint8 = 0x00
-	CIPStatusConnectionFailure          uint8 = 0x01
-	CIPStatusResourceUnavailable        uint8 = 0x02
-	CIPStatusInvalidParameter           uint8 = 0x03
-	CIPStatusPathSegmentError           uint8 = 0x04
-	CIPStatusPathDestinationUnknown     uint8 = 0x05
-	CIPStatusPartialTransfer            uint8 = 0x06
-	CIPStatusConnectionLost             uint8 = 0x07
-	CIPStatusServiceNotSupported        uint8 = 0x08
-	CIPStatusInvalidAttributeValue      uint8 = 0x09
-	CIPStatusAttributeListError         uint8 = 0x0A
-	CIPStatusAlreadyInRequestedMode     uint8 = 0x0B
-	CIPStatusObjectStateConflict        uint8 = 0x0C
-	CIPStatusObjectAlreadyExists        uint8 = 0x0D
-	CIPStatusAttributeNotSettable       uint8 = 0x0E
-	CIPStatusPrivilegeViolation         uint8 = 0x0F
-	CIPStatusDeviceStateConflict        uint8 = 0x10
-	CIPStatusReplyDataTooLarge          uint8 = 0x11
-	CIPStatusFragmentationOfPrimitive   uint8 = 0x12
-	CIPStatusNotEnoughData              uint8 = 0x13
-	CIPStatusAttributeNotSupported      uint8 = 0x14
-	CIPStatusTooMuchData                uint8 = 0x15
-	CIPStatusObjectDoesNotExist         uint8 = 0x16
-	CIPStatusServiceFragmentationError  uint8 = 0x17
-	CIPStatusNoStoredAttributeData      uint8 = 0x18
-	CIPStatusStoreOperationFailure      uint8 = 0x19
-	CIPStatusRoutingFailure             uint8 = 0x1A
-	CIPStatusRoutingFailureRequestTooLarge uint8 = 0x1B
-	CIPStatusRoutingFailureResponseTooLarge uint8 = 0x1C
-	CIPStatusMissingAttributeListEntry  uint8 = 0x1D
-	CIPStatusInvalidAttributeValueList  uint8 = 0x1E
-	CIPStatusEmbeddedServiceError       uint8 = 0x1F
-	CIPStatusVendorSpecificError        uint8 = 0x20
-	CIPStatusInvalidParameter2          uint8 = 0x21
+	CIPStatusSuccess                              uint8 = 0x00
+	CIPStatusConnectionFailure                    uint8 = 0x01
+	CIPStatusResourceUnavailable                  uint8 = 0x02
+	CIPStatusInvalidParameter                     uint8 = 0x03
+	CIPStatusPathSegmentError                     uint8 = 0x04
+	CIPStatusPathDestinationUnknown               uint8 = 0x05
+	CIPStatusPartialTransfer                      uint8 = 0x06
+	CIPStatusConnectionLost                       uint8 = 0x07
+	CIPStatusServiceNotSupported                  uint8 = 0x08
+	CIPStatusInvalidAttributeValue                uint8 = 0x09
+	CIPStatusAttributeListError                   uint8 = 0x0A
+	CIPStatusAlreadyInRequestedMode               uint8 = 0x0B
+	CIPStatusObjectStateConflict                  uint8 = 0x0C
+	CIPStatusObjectAlreadyExists                  uint8 = 0x0D
+	CIPStatusAttributeNotSettable                 uint8 = 0x0E
+	CIPStatusPrivilegeViolation                   uint8 = 0x0F
+	CIPStatusDeviceStateConflict                  uint8 = 0x10
+	CIPStatusReplyDataTooLarge                    uint8 = 0x11
+	CIPStatusFragmentationOfPrimitive             uint8 = 0x12
+	CIPStatusNotEnoughData                        uint8 = 0x13
+	CIPStatusAttributeNotSupported                uint8 = 0x14
+	CIPStatusTooMuchData                          uint8 = 0x15
+	CIPStatusObjectDoesNotExist                   uint8 = 0x16
+	CIPStatusServiceFragmentationError            uint8 = 0x17
+	CIPStatusNoStoredAttributeData                uint8 = 0x18
+	CIPStatusStoreOperationFailure                uint8 = 0x19
+	CIPStatusRoutingFailure                       uint8 = 0x1A
+	CIPStatusRoutingFailureRequestTooLarge        uint8 = 0x1B
+	CIPStatusRoutingFailureResponseTooLarge       uint8 = 0x1C
+	CIPStatusMissingAttributeListEntry            uint8 = 0x1D
+	CIPStatusInvalidAttributeValueList            uint8 = 0x1E
+	CIPStatusEmbeddedServiceError                 uint8 = 0x1F
+	CIPStatusVendorSpecificError                  uint8 = 0x20
+	CIPStatusInvalidParameter2                    uint8 = 0x21
 	CIPStatusWriteOnceValueOrMediumAlreadyWritten uint8 = 0x22
-	CIPStatusInvalidReplyReceived       uint8 = 0x23
-	CIPStatusBufferOverflow             uint8 = 0x24
-	CIPStatusMessageFormatError         uint8 = 0x25
-	CIPStatusKeyFailureInPath           uint8 = 0x26
-	CIPStatusPathSizeInvalid            uint8 = 0x27
-	CIPStatusUnexpectedAttributeInList  uint8 = 0x28
-	CIPStatusInvalidMemberID            uint8 = 0x29
-	CIPStatusMemberNotSettable          uint8 = 0x2A
-	CIPStatusGroup2OnlyServerGeneralFailure uint8 = 0x2B
-	CIPStatusUnknownModNetworkError     uint8 = 0x2C
-	CIPStatusResponseTimeout            uint8 = 0x2D
+	CIPStatusInvalidReplyReceived                 uint8 = 0x23
+	CIPStatusBufferOverflow                       uint8 = 0x24
+	CIPStatusMessageFormatError                   uint8 = 0x25
+	CIPStatusKeyFailureInPath                     uint8 = 0x26
+	CIPStatusPathSizeInvalid                      uint8 = 0x27
+	CIPStatusUnexpectedAttributeInList            uint8 = 0x28
+	CIPStatusInvalidMemberID                      uint8 = 0x29
+	CIPStatusMemberNotSettable                    uint8 = 0x2A
+	CIPStatusGroup2OnlyServerGeneralFailure       uint8 = 0x2B
+	CIPStatusUnknownModNetworkError               uint8 = 0x2C
+	CIPStatusResponseTimeout                      uint8 = 0x2D
 )
 
 // Encapsulation Status Codes
 const (
-	EncapStatusSuccess                 uint32 = 0x0000
-	EncapStatusInvalidCommand          uint32 = 0x0001
-	EncapStatusInsufficientMemory      uint32 = 0x0002
-	EncapStatusIncorrectData           uint32 = 0x0003
-	EncapStatusInvalidSessionHandle    uint32 = 0x0064
-	EncapStatusInvalidLength           uint32 = 0x0065
-	EncapStatusUnsupportedProtocol     uint32 = 0x0069
+	EncapStatusSuccess              uint32 = 0x0000
+	EncapStatusInvalidCommand       uint32 = 0x0001
+	EncapStatusInsufficientMemory   uint32 = 0x0002
+	EncapStatusIncorrectData        uint32 = 0x0003
+	EncapStatusInvalidSessionHandle uint32 = 0x0064
+	EncapStatusInvalidLength        uint32 = 0x0065
+	EncapStatusUnsupportedProtocol  uint32 = 0x0069
 )
 
 // NewEtherNetIPError creates a new EtherNet/IP specific error
@@ -111,11 +111,11 @@ func NewEtherNetIPError(category EtherNetIPErrorCategory, message string, operat
 // NewCIPError creates a new CIP-specific error
 func NewCIPError(cipStatus uint8, extendedStatus []byte, message string, operation string) *EtherNetIPError {
 	cipMessage := fmt.Sprintf("%s (CIP Status: 0x%02X - %s)", message, cipStatus, GetCIPStatusDescription(cipStatus))
-	
+
 	if len(extendedStatus) > 0 {
 		cipMessage += fmt.Sprintf(" [Extended Status: %v]", extendedStatus)
 	}
-	
+
 	return &EtherNetIPError{
 		ProtocolError:  NewProtocolError("CIP_ERROR", cipMessage, operation),
 		CIPStatus:      cipStatus,
@@ -126,9 +126,9 @@ func NewCIPError(cipStatus uint8, extendedStatus []byte, message string, operati
 
 // NewEncapsulationError creates a new encapsulation-specific error
 func NewEncapsulationError(encapStatus uint32, message string, operation string) *EtherNetIPError {
-	encapMessage := fmt.Sprintf("%s (Encapsulation Status: 0x%08X - %s)", 
+	encapMessage := fmt.Sprintf("%s (Encapsulation Status: 0x%08X - %s)",
 		message, encapStatus, GetEncapsulationStatusDescription(encapStatus))
-	
+
 	return &EtherNetIPError{
 		ProtocolError: NewProtocolError("ENCAP_ERROR", encapMessage, operation),
 		ErrorCategory: ErrorCategoryEncapsulation,
@@ -138,23 +138,23 @@ func NewEncapsulationError(encapStatus uint32, message string, operation string)
 // Error returns the error message
 func (e *EtherNetIPError) Error() string {
 	var parts []string
-	
+
 	parts = append(parts, fmt.Sprintf("[%s]", e.ErrorCategory))
-	
+
 	if e.DeviceAddress != "" {
 		parts = append(parts, fmt.Sprintf("Device: %s", e.DeviceAddress))
 	}
-	
+
 	if e.TagAddress != "" {
 		parts = append(parts, fmt.Sprintf("Tag: %s", e.TagAddress))
 	}
-	
+
 	if e.SessionID != 0 {
 		parts = append(parts, fmt.Sprintf("Session: 0x%08X", e.SessionID))
 	}
-	
+
 	parts = append(parts, e.ProtocolError.Error())
-	
+
 	return strings.Join(parts, " ")
 }
 
@@ -322,14 +322,14 @@ func GetEncapsulationStatusDescription(status uint32) string {
 // EtherNetIPDiagnostics provides detailed diagnostic information for EtherNet/IP devices
 type EtherNetIPDiagnostics struct {
 	*Diagnostics
-	
+
 	// Connection-specific diagnostics
 	SessionInfo       *SessionDiagnostics       `json:"session_info"`
 	EncapsulationInfo *EncapsulationDiagnostics `json:"encapsulation_info"`
 	CIPInfo           *CIPDiagnostics           `json:"cip_info"`
 	NetworkInfo       *NetworkDiagnostics       `json:"network_info"`
 	PerformanceInfo   *PerformanceDiagnostics   `json:"performance_info"`
-	
+
 	// Error tracking
 	ErrorHistory  []*EtherNetIPError `json:"error_history"`
 	ErrorCounters map[string]uint64  `json:"error_counters"`
@@ -337,78 +337,78 @@ type EtherNetIPDiagnostics struct {
 
 // SessionDiagnostics contains CIP session diagnostic information
 type SessionDiagnostics struct {
-	SessionID           uint32        `json:"session_id"`
-	ConnectionID        uint32        `json:"connection_id"`
-	SessionEstablished  time.Time     `json:"session_established"`
-	SessionUptime       time.Duration `json:"session_uptime"`
-	LastActivity        time.Time     `json:"last_activity"`
-	RequestCount        uint64        `json:"request_count"`
-	ResponseCount       uint64        `json:"response_count"`
-	SessionErrors       uint64        `json:"session_errors"`
-	KeepAliveCount      uint64        `json:"keep_alive_count"`
-	SequenceNumber      uint16        `json:"sequence_number"`
+	SessionID          uint32        `json:"session_id"`
+	ConnectionID       uint32        `json:"connection_id"`
+	SessionEstablished time.Time     `json:"session_established"`
+	SessionUptime      time.Duration `json:"session_uptime"`
+	LastActivity       time.Time     `json:"last_activity"`
+	RequestCount       uint64        `json:"request_count"`
+	ResponseCount      uint64        `json:"response_count"`
+	SessionErrors      uint64        `json:"session_errors"`
+	KeepAliveCount     uint64        `json:"keep_alive_count"`
+	SequenceNumber     uint16        `json:"sequence_number"`
 }
 
 // EncapsulationDiagnostics contains encapsulation layer diagnostic information
 type EncapsulationDiagnostics struct {
-	ProtocolVersion     uint16    `json:"protocol_version"`
-	SupportedCommands   []uint16  `json:"supported_commands"`
-	LastCommand         uint16    `json:"last_command"`
-	LastCommandTime     time.Time `json:"last_command_time"`
+	ProtocolVersion     uint16            `json:"protocol_version"`
+	SupportedCommands   []uint16          `json:"supported_commands"`
+	LastCommand         uint16            `json:"last_command"`
+	LastCommandTime     time.Time         `json:"last_command_time"`
 	CommandCounts       map[uint16]uint64 `json:"command_counts"`
-	EncapsulationErrors uint64    `json:"encapsulation_errors"`
-	MaxPacketSize       uint16    `json:"max_packet_size"`
+	EncapsulationErrors uint64            `json:"encapsulation_errors"`
+	MaxPacketSize       uint16            `json:"max_packet_size"`
 }
 
 // CIPDiagnostics contains CIP layer diagnostic information
 type CIPDiagnostics struct {
-	VendorID            uint16            `json:"vendor_id"`
-	VendorName          string            `json:"vendor_name"`
-	DeviceType          uint16            `json:"device_type"`
-	ProductCode         uint16            `json:"product_code"`
-	ProductName         string            `json:"product_name"`
-	Revision            uint16            `json:"revision"`
-	SerialNumber        uint32            `json:"serial_number"`
-	DeviceState         uint8             `json:"device_state"`
-	SupportedServices   []uint8           `json:"supported_services"`
-	ServiceCounts       map[uint8]uint64  `json:"service_counts"`
-	CIPErrors           uint64            `json:"cip_errors"`
-	LastCIPError        *EtherNetIPError  `json:"last_cip_error"`
-	StatusWordCounts    map[uint8]uint64  `json:"status_word_counts"`
+	VendorID          uint16           `json:"vendor_id"`
+	VendorName        string           `json:"vendor_name"`
+	DeviceType        uint16           `json:"device_type"`
+	ProductCode       uint16           `json:"product_code"`
+	ProductName       string           `json:"product_name"`
+	Revision          uint16           `json:"revision"`
+	SerialNumber      uint32           `json:"serial_number"`
+	DeviceState       uint8            `json:"device_state"`
+	SupportedServices []uint8          `json:"supported_services"`
+	ServiceCounts     map[uint8]uint64 `json:"service_counts"`
+	CIPErrors         uint64           `json:"cip_errors"`
+	LastCIPError      *EtherNetIPError `json:"last_cip_error"`
+	StatusWordCounts  map[uint8]uint64 `json:"status_word_counts"`
 }
 
 // NetworkDiagnostics contains network-level diagnostic information
 type NetworkDiagnostics struct {
-	LocalAddress       string        `json:"local_address"`
-	RemoteAddress      string        `json:"remote_address"`
-	RemotePort         int           `json:"remote_port"`
-	ConnectionType     string        `json:"connection_type"` // TCP/UDP
-	TCPState           string        `json:"tcp_state"`
-	BytesSent          uint64        `json:"bytes_sent"`
-	BytesReceived      uint64        `json:"bytes_received"`
-	PacketsSent        uint64        `json:"packets_sent"`
-	PacketsReceived    uint64        `json:"packets_received"`
-	PacketsLost        uint64        `json:"packets_lost"`
-	Retransmissions    uint64        `json:"retransmissions"`
-	NetworkLatency     time.Duration `json:"network_latency"`
-	LastNetworkError   error         `json:"last_network_error"`
-	NetworkErrorCount  uint64        `json:"network_error_count"`
+	LocalAddress      string        `json:"local_address"`
+	RemoteAddress     string        `json:"remote_address"`
+	RemotePort        int           `json:"remote_port"`
+	ConnectionType    string        `json:"connection_type"` // TCP/UDP
+	TCPState          string        `json:"tcp_state"`
+	BytesSent         uint64        `json:"bytes_sent"`
+	BytesReceived     uint64        `json:"bytes_received"`
+	PacketsSent       uint64        `json:"packets_sent"`
+	PacketsReceived   uint64        `json:"packets_received"`
+	PacketsLost       uint64        `json:"packets_lost"`
+	Retransmissions   uint64        `json:"retransmissions"`
+	NetworkLatency    time.Duration `json:"network_latency"`
+	LastNetworkError  error         `json:"last_network_error"`
+	NetworkErrorCount uint64        `json:"network_error_count"`
 }
 
 // PerformanceDiagnostics contains performance-related diagnostic information
 type PerformanceDiagnostics struct {
-	AverageRequestTime    time.Duration `json:"average_request_time"`
-	MinRequestTime        time.Duration `json:"min_request_time"`
-	MaxRequestTime        time.Duration `json:"max_request_time"`
-	RequestsPerSecond     float64       `json:"requests_per_second"`
-	TagsReadPerSecond     float64       `json:"tags_read_per_second"`
-	TagsWrittenPerSecond  float64       `json:"tags_written_per_second"`
-	CacheHitRate          float64       `json:"cache_hit_rate"`
-	BatchEfficiency       float64       `json:"batch_efficiency"`
-	ConnectionPoolSize    int           `json:"connection_pool_size"`
-	ActiveConnections     int           `json:"active_connections"`
-	QueuedRequests        int           `json:"queued_requests"`
-	MemoryUsage           uint64        `json:"memory_usage"`
+	AverageRequestTime   time.Duration `json:"average_request_time"`
+	MinRequestTime       time.Duration `json:"min_request_time"`
+	MaxRequestTime       time.Duration `json:"max_request_time"`
+	RequestsPerSecond    float64       `json:"requests_per_second"`
+	TagsReadPerSecond    float64       `json:"tags_read_per_second"`
+	TagsWrittenPerSecond float64       `json:"tags_written_per_second"`
+	CacheHitRate         float64       `json:"cache_hit_rate"`
+	BatchEfficiency      float64       `json:"batch_efficiency"`
+	ConnectionPoolSize   int           `json:"connection_pool_size"`
+	ActiveConnections    int           `json:"active_connections"`
+	QueuedRequests       int           `json:"queued_requests"`
+	MemoryUsage          uint64        `json:"memory_usage"`
 }
 
 // Enhanced diagnostic methods for the EtherNet/IP handler
@@ -419,16 +419,16 @@ func (e *EtherNetIPHandler) GetEnhancedDiagnostics(device *Device) (*EtherNetIPD
 	if err != nil {
 		return nil, err
 	}
-	
+
 	conn.mutex.RLock()
 	defer conn.mutex.RUnlock()
-	
+
 	// Get basic diagnostics
 	basicDiag, err := e.GetDiagnostics(device)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Build enhanced diagnostics
 	enhanced := &EtherNetIPDiagnostics{
 		Diagnostics: basicDiag,
@@ -479,17 +479,17 @@ func (e *EtherNetIPHandler) GetEnhancedDiagnostics(device *Device) (*EtherNetIPD
 		},
 		ErrorCounters: make(map[string]uint64),
 	}
-	
+
 	return enhanced, nil
 }
 
 // DiagnosticCollector collects and aggregates diagnostic information
 type DiagnosticCollector struct {
-	diagnostics    map[string]*EtherNetIPDiagnostics
-	mutex          sync.RWMutex
+	diagnostics     map[string]*EtherNetIPDiagnostics
+	mutex           sync.RWMutex
 	collectInterval time.Duration
-	stopChan       chan struct{}
-	logger         *zap.Logger
+	stopChan        chan struct{}
+	logger          *zap.Logger
 }
 
 // NewDiagnosticCollector creates a new diagnostic collector
@@ -506,7 +506,7 @@ func NewDiagnosticCollector(logger *zap.Logger) *DiagnosticCollector {
 func (dc *DiagnosticCollector) StartCollection(handler *EtherNetIPHandler, devices []*Device) {
 	ticker := time.NewTicker(dc.collectInterval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ticker.C:
@@ -521,12 +521,12 @@ func (dc *DiagnosticCollector) StartCollection(handler *EtherNetIPHandler, devic
 func (dc *DiagnosticCollector) collectDiagnostics(handler *EtherNetIPHandler, devices []*Device) {
 	dc.mutex.Lock()
 	defer dc.mutex.Unlock()
-	
+
 	for _, device := range devices {
 		if diag, err := handler.GetEnhancedDiagnostics(device); err == nil {
 			dc.diagnostics[device.ID] = diag
 		} else {
-			dc.logger.Warn("Failed to collect diagnostics", 
+			dc.logger.Warn("Failed to collect diagnostics",
 				zap.String("device_id", device.ID),
 				zap.Error(err),
 			)
@@ -538,7 +538,7 @@ func (dc *DiagnosticCollector) collectDiagnostics(handler *EtherNetIPHandler, de
 func (dc *DiagnosticCollector) GetDiagnostics(deviceID string) (*EtherNetIPDiagnostics, bool) {
 	dc.mutex.RLock()
 	defer dc.mutex.RUnlock()
-	
+
 	diag, exists := dc.diagnostics[deviceID]
 	return diag, exists
 }
@@ -547,13 +547,13 @@ func (dc *DiagnosticCollector) GetDiagnostics(deviceID string) (*EtherNetIPDiagn
 func (dc *DiagnosticCollector) GetAllDiagnostics() map[string]*EtherNetIPDiagnostics {
 	dc.mutex.RLock()
 	defer dc.mutex.RUnlock()
-	
+
 	// Return a copy to avoid race conditions
 	result := make(map[string]*EtherNetIPDiagnostics)
 	for k, v := range dc.diagnostics {
 		result[k] = v
 	}
-	
+
 	return result
 }
 
@@ -568,21 +568,21 @@ func (dc *DiagnosticCollector) StopCollection() {
 type HealthStatus string
 
 const (
-	HealthStatusHealthy   HealthStatus = "HEALTHY"
-	HealthStatusWarning   HealthStatus = "WARNING"
-	HealthStatusCritical  HealthStatus = "CRITICAL"
-	HealthStatusUnknown   HealthStatus = "UNKNOWN"
+	HealthStatusHealthy  HealthStatus = "HEALTHY"
+	HealthStatusWarning  HealthStatus = "WARNING"
+	HealthStatusCritical HealthStatus = "CRITICAL"
+	HealthStatusUnknown  HealthStatus = "UNKNOWN"
 )
 
 // HealthCheck performs a comprehensive health check on a device
 func (e *EtherNetIPHandler) HealthCheck(device *Device) (*HealthCheckResult, error) {
 	result := &HealthCheckResult{
-		DeviceID:    device.ID,
-		Timestamp:   time.Now(),
-		Status:      HealthStatusHealthy,
-		Checks:      make(map[string]*CheckResult),
+		DeviceID:  device.ID,
+		Timestamp: time.Now(),
+		Status:    HealthStatusHealthy,
+		Checks:    make(map[string]*CheckResult),
 	}
-	
+
 	// Connectivity check
 	if err := e.Ping(device); err != nil {
 		result.Checks["connectivity"] = &CheckResult{
@@ -598,7 +598,7 @@ func (e *EtherNetIPHandler) HealthCheck(device *Device) (*HealthCheckResult, err
 			Message: "Device is reachable",
 		}
 	}
-	
+
 	// Session check
 	if conn, err := e.getConnection(device); err == nil {
 		if time.Since(conn.lastUsed) > 5*time.Minute {
@@ -618,7 +618,7 @@ func (e *EtherNetIPHandler) HealthCheck(device *Device) (*HealthCheckResult, err
 			}
 		}
 	}
-	
+
 	// Performance check
 	if diag, err := e.GetEnhancedDiagnostics(device); err == nil {
 		if diag.PerformanceInfo.AverageRequestTime > 1*time.Second {
@@ -638,22 +638,22 @@ func (e *EtherNetIPHandler) HealthCheck(device *Device) (*HealthCheckResult, err
 			}
 		}
 	}
-	
+
 	return result, nil
 }
 
 // HealthCheckResult represents the result of a health check
 type HealthCheckResult struct {
-	DeviceID  string                    `json:"device_id"`
-	Timestamp time.Time                 `json:"timestamp"`
-	Status    HealthStatus              `json:"status"`
-	Checks    map[string]*CheckResult   `json:"checks"`
+	DeviceID  string                  `json:"device_id"`
+	Timestamp time.Time               `json:"timestamp"`
+	Status    HealthStatus            `json:"status"`
+	Checks    map[string]*CheckResult `json:"checks"`
 }
 
 // CheckResult represents the result of an individual check
 type CheckResult struct {
-	Name     string       `json:"name"`
-	Status   HealthStatus `json:"status"`
-	Message  string       `json:"message"`
+	Name     string        `json:"name"`
+	Status   HealthStatus  `json:"status"`
+	Message  string        `json:"message"`
 	Duration time.Duration `json:"duration,omitempty"`
 }

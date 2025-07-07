@@ -19,24 +19,24 @@ import (
 // Config represents the gateway configuration
 type Config struct {
 	Gateway struct {
-		Port             int           `yaml:"port"`
-		GRPCPort        int           `yaml:"grpc_port"`
-		MaxConnections  int           `yaml:"max_connections"`
-		DataBufferSize  int           `yaml:"data_buffer_size"`
-		UpdateInterval  time.Duration `yaml:"update_interval"`
-		EnableMetrics   bool          `yaml:"enable_metrics"`
-		LogLevel        string        `yaml:"log_level"`
+		Port           int           `yaml:"port"`
+		GRPCPort       int           `yaml:"grpc_port"`
+		MaxConnections int           `yaml:"max_connections"`
+		DataBufferSize int           `yaml:"data_buffer_size"`
+		UpdateInterval time.Duration `yaml:"update_interval"`
+		EnableMetrics  bool          `yaml:"enable_metrics"`
+		LogLevel       string        `yaml:"log_level"`
 	} `yaml:"gateway"`
-	
+
 	Protocols struct {
 		Modbus struct {
 			DefaultTimeout    time.Duration `yaml:"default_timeout"`
-			DefaultUnitID     int          `yaml:"default_unit_id"`
-			MaxConnections    int          `yaml:"max_connections"`
+			DefaultUnitID     int           `yaml:"default_unit_id"`
+			MaxConnections    int           `yaml:"max_connections"`
 			ConnectionTimeout time.Duration `yaml:"connection_timeout"`
 			ReadTimeout       time.Duration `yaml:"read_timeout"`
 			WriteTimeout      time.Duration `yaml:"write_timeout"`
-			EnableKeepAlive   bool         `yaml:"enable_keep_alive"`
+			EnableKeepAlive   bool          `yaml:"enable_keep_alive"`
 		} `yaml:"modbus"`
 	} `yaml:"protocols"`
 }
@@ -87,13 +87,13 @@ func main() {
 
 	// Create gateway configuration
 	gatewayConfig := &gateway.Config{
-		Port:            config.Gateway.Port,
-		GRPCPort:        config.Gateway.GRPCPort,
-		MaxConnections:  config.Gateway.MaxConnections,
-		DataBufferSize:  config.Gateway.DataBufferSize,
-		UpdateInterval:  config.Gateway.UpdateInterval,
-		EnableMetrics:   config.Gateway.EnableMetrics,
-		LogLevel:        config.Gateway.LogLevel,
+		Port:           config.Gateway.Port,
+		GRPCPort:       config.Gateway.GRPCPort,
+		MaxConnections: config.Gateway.MaxConnections,
+		DataBufferSize: config.Gateway.DataBufferSize,
+		UpdateInterval: config.Gateway.UpdateInterval,
+		EnableMetrics:  config.Gateway.EnableMetrics,
+		LogLevel:       config.Gateway.LogLevel,
 	}
 
 	// Create and start the gateway
@@ -125,7 +125,7 @@ func main() {
 func loadConfig(filename string) (*Config, error) {
 	// Set default configuration
 	config := &Config{}
-	
+
 	// Set defaults
 	config.Gateway.Port = 8080
 	config.Gateway.GRPCPort = 9090
@@ -134,7 +134,7 @@ func loadConfig(filename string) (*Config, error) {
 	config.Gateway.UpdateInterval = 1 * time.Second
 	config.Gateway.EnableMetrics = true
 	config.Gateway.LogLevel = "info"
-	
+
 	config.Protocols.Modbus.DefaultTimeout = 5 * time.Second
 	config.Protocols.Modbus.DefaultUnitID = 1
 	config.Protocols.Modbus.MaxConnections = 100
@@ -202,16 +202,16 @@ func performHealthCheck() int {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
-	
+
 	resp, err := client.Get("http://localhost:8080/health")
 	if err != nil {
 		return 1
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode == http.StatusOK {
 		return 0
 	}
-	
+
 	return 1
 }

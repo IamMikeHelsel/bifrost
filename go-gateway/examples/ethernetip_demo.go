@@ -12,7 +12,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	
+
 	"github.com/bifrost/go-gateway/internal/protocols"
 )
 
@@ -31,32 +31,32 @@ var (
 
 func main() {
 	flag.Parse()
-	
+
 	// Initialize logger
 	logger := initLogger(*logLevel)
 	defer logger.Sync()
-	
+
 	logger.Info("Starting EtherNet/IP Demo Application",
 		zap.String("device_address", *deviceAddress),
 		zap.Int("device_port", *devicePort),
 		zap.String("demo_type", *demo),
 	)
-	
+
 	// Create EtherNet/IP handler
 	handler := protocols.NewEtherNetIPHandler(logger)
 	ethernetIPHandler := handler.(*protocols.EtherNetIPHandler)
-	
+
 	// Set up signal handling for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	
+
 	go func() {
 		<-sigChan
 		logger.Info("Received shutdown signal")
 		cancel()
 	}()
-	
+
 	// Run the selected demo
 	switch *demo {
 	case "basic":
@@ -71,7 +71,7 @@ func main() {
 		logger.Error("Unknown demo type", zap.String("demo", *demo))
 		os.Exit(1)
 	}
-	
+
 	logger.Info("Demo completed")
 }
 
@@ -90,7 +90,7 @@ func initLogger(level string) *zap.Logger {
 	default:
 		zapLevel = zapcore.InfoLevel
 	}
-	
+
 	config := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zapLevel),
 		Development:       false,
@@ -114,19 +114,19 @@ func initLogger(level string) *zap.Logger {
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
-	
+
 	logger, err := config.Build()
 	if err != nil {
 		log.Fatal("Failed to initialize logger:", err)
 	}
-	
+
 	return logger
 }
 
 // runBasicDemo demonstrates basic EtherNet/IP operations
 func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, logger *zap.Logger) {
 	logger.Info("Running Basic EtherNet/IP Demo")
-	
+
 	// Create device configuration
 	device := &protocols.Device{
 		ID:       "demo-plc",
@@ -136,7 +136,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 		Port:     *devicePort,
 		Config:   make(map[string]interface{}),
 	}
-	
+
 	// Test connection
 	logger.Info("Connecting to device...")
 	if err := handler.Connect(device); err != nil {
@@ -144,9 +144,9 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 		return
 	}
 	defer handler.Disconnect(device)
-	
+
 	logger.Info("Successfully connected to device")
-	
+
 	// Get device information
 	if deviceInfo, err := handler.GetDeviceInfo(device); err == nil {
 		logger.Info("Device Information",
@@ -157,7 +157,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 			zap.Strings("capabilities", deviceInfo.Capabilities),
 		)
 	}
-	
+
 	// Create test tags
 	tags := []*protocols.Tag{
 		{
@@ -196,7 +196,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 			Writable: false,
 		},
 	}
-	
+
 	// Test individual tag reads
 	logger.Info("Testing individual tag reads...")
 	for _, tag := range tags {
@@ -213,7 +213,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 			)
 		}
 	}
-	
+
 	// Test batch read
 	logger.Info("Testing batch tag read...")
 	if results, err := handler.ReadMultipleTags(device, tags); err == nil {
@@ -227,7 +227,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 	} else {
 		logger.Error("Batch read failed", zap.Error(err))
 	}
-	
+
 	// Test tag writes
 	logger.Info("Testing tag writes...")
 	writeTests := []struct {
@@ -239,7 +239,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 		{tags[2], float32(3.14159)},
 		{tags[3], "Hello EtherNet/IP"},
 	}
-	
+
 	for _, test := range writeTests {
 		if test.tag.Writable {
 			if err := handler.WriteTag(device, test.tag, test.value); err == nil {
@@ -247,7 +247,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 					zap.String("tag_id", test.tag.ID),
 					zap.Any("value", test.value),
 				)
-				
+
 				// Verify write by reading back
 				if readValue, err := handler.ReadTag(device, test.tag); err == nil {
 					logger.Info("Write verification successful",
@@ -264,7 +264,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 			}
 		}
 	}
-	
+
 	// Test ping
 	logger.Info("Testing device ping...")
 	if err := handler.Ping(device); err == nil {
@@ -272,7 +272,7 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 	} else {
 		logger.Error("Ping failed", zap.Error(err))
 	}
-	
+
 	// Get diagnostics
 	logger.Info("Getting device diagnostics...")
 	if diag, err := handler.GetDiagnostics(device); err == nil {
@@ -290,32 +290,32 @@ func runBasicDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, log
 // runDiscoveryDemo demonstrates device discovery capabilities
 func runDiscoveryDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, logger *zap.Logger) {
 	logger.Info("Running EtherNet/IP Discovery Demo")
-	
+
 	scanRange := *networkRange
 	if scanRange == "" {
 		scanRange = "192.168.1.0/24"
 		logger.Info("No network range specified, using default", zap.String("range", scanRange))
 	}
-	
+
 	logger.Info("Scanning for EtherNet/IP devices...", zap.String("range", scanRange))
-	
+
 	// Set a timeout for discovery
 	discoveryCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	
+
 	devices, err := handler.DiscoverDevices(discoveryCtx, scanRange)
 	if err != nil {
 		logger.Error("Device discovery failed", zap.Error(err))
 		return
 	}
-	
+
 	logger.Info("Device discovery completed", zap.Int("devices_found", len(devices)))
-	
+
 	if len(devices) == 0 {
 		logger.Info("No EtherNet/IP devices found in the specified range")
 		return
 	}
-	
+
 	// Display discovered devices
 	for i, device := range devices {
 		logger.Info("Discovered device",
@@ -325,7 +325,7 @@ func runDiscoveryDemo(ctx context.Context, handler *protocols.EtherNetIPHandler,
 			zap.String("address", device.Address),
 			zap.Int("port", device.Port),
 		)
-		
+
 		// Try to get detailed information for each device
 		if err := handler.Connect(device); err == nil {
 			if deviceInfo, err := handler.GetDeviceInfo(device); err == nil {
@@ -344,7 +344,7 @@ func runDiscoveryDemo(ctx context.Context, handler *protocols.EtherNetIPHandler,
 // runPerformanceDemo demonstrates performance optimization features
 func runPerformanceDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, logger *zap.Logger) {
 	logger.Info("Running EtherNet/IP Performance Demo")
-	
+
 	// Create device configuration
 	device := &protocols.Device{
 		ID:       "perf-test-plc",
@@ -354,14 +354,14 @@ func runPerformanceDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 		Port:     *devicePort,
 		Config:   make(map[string]interface{}),
 	}
-	
+
 	// Connect to device
 	if err := handler.Connect(device); err != nil {
 		logger.Error("Failed to connect to device", zap.Error(err))
 		return
 	}
 	defer handler.Disconnect(device)
-	
+
 	// Create a large number of test tags
 	var tags []*protocols.Tag
 	for i := 0; i < 100; i++ {
@@ -373,35 +373,35 @@ func runPerformanceDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 			Writable: false,
 		})
 	}
-	
+
 	// Benchmark individual reads
 	logger.Info("Benchmarking individual tag reads...")
 	startTime := time.Now()
 	successCount := 0
-	
+
 	for _, tag := range tags {
 		if _, err := handler.ReadTag(device, tag); err == nil {
 			successCount++
 		}
 	}
-	
+
 	individualDuration := time.Since(startTime)
 	individualRate := float64(successCount) / individualDuration.Seconds()
-	
+
 	logger.Info("Individual read benchmark completed",
 		zap.Int("total_tags", len(tags)),
 		zap.Int("successful_reads", successCount),
 		zap.Duration("total_time", individualDuration),
 		zap.Float64("reads_per_second", individualRate),
 	)
-	
+
 	// Benchmark batch reads
 	logger.Info("Benchmarking batch tag reads...")
 	startTime = time.Now()
-	
+
 	results, err := handler.ReadMultipleTags(device, tags)
 	batchDuration := time.Since(startTime)
-	
+
 	if err == nil {
 		batchRate := float64(len(results)) / batchDuration.Seconds()
 		logger.Info("Batch read benchmark completed",
@@ -414,14 +414,14 @@ func runPerformanceDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 	} else {
 		logger.Error("Batch read benchmark failed", zap.Error(err))
 	}
-	
+
 	// Test concurrent access
 	logger.Info("Testing concurrent access...")
 	concurrentCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	
+
 	concurrentResults := make(chan int, 10)
-	
+
 	for i := 0; i < 10; i++ {
 		go func(workerID int) {
 			count := 0
@@ -439,15 +439,15 @@ func runPerformanceDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 			}
 		}(i)
 	}
-	
+
 	time.Sleep(30 * time.Second)
 	cancel()
-	
+
 	totalConcurrentReads := 0
 	for i := 0; i < 10; i++ {
 		totalConcurrentReads += <-concurrentResults
 	}
-	
+
 	logger.Info("Concurrent access test completed",
 		zap.Int("total_concurrent_reads", totalConcurrentReads),
 		zap.Float64("concurrent_reads_per_second", float64(totalConcurrentReads)/30.0),
@@ -457,7 +457,7 @@ func runPerformanceDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 // runDiagnosticsDemo demonstrates diagnostic and monitoring capabilities
 func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandler, logger *zap.Logger) {
 	logger.Info("Running EtherNet/IP Diagnostics Demo")
-	
+
 	// Create device configuration
 	device := &protocols.Device{
 		ID:       "diag-test-plc",
@@ -467,14 +467,14 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 		Port:     *devicePort,
 		Config:   make(map[string]interface{}),
 	}
-	
+
 	// Connect to device
 	if err := handler.Connect(device); err != nil {
 		logger.Error("Failed to connect to device", zap.Error(err))
 		return
 	}
 	defer handler.Disconnect(device)
-	
+
 	// Perform some operations to generate diagnostic data
 	testTag := &protocols.Tag{
 		ID:       "diag_tag",
@@ -483,7 +483,7 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 		DataType: string(protocols.DataTypeInt32),
 		Writable: true,
 	}
-	
+
 	logger.Info("Performing operations to generate diagnostic data...")
 	for i := 0; i < 20; i++ {
 		// Read operations
@@ -492,22 +492,22 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 		} else {
 			logger.Debug("Diagnostic read failed", zap.Error(err))
 		}
-		
+
 		// Write operations
 		if err := handler.WriteTag(device, testTag, int32(i)); err == nil {
 			logger.Debug("Diagnostic write successful", zap.Int("value", i))
 		} else {
 			logger.Debug("Diagnostic write failed", zap.Error(err))
 		}
-		
+
 		// Ping operations
 		if err := handler.Ping(device); err != nil {
 			logger.Debug("Diagnostic ping failed", zap.Error(err))
 		}
-		
+
 		time.Sleep(100 * time.Millisecond)
 	}
-	
+
 	// Get comprehensive diagnostics
 	logger.Info("Retrieving comprehensive diagnostics...")
 	if diag, err := handler.GetDiagnostics(device); err == nil {
@@ -519,7 +519,7 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 			zap.Float64("success_rate", diag.SuccessRate),
 			zap.Duration("connection_uptime", diag.ConnectionUptime),
 		)
-		
+
 		if protocolDiag, ok := diag.ProtocolDiagnostics.(map[string]interface{}); ok {
 			logger.Info("Protocol-specific Diagnostics",
 				zap.Any("session_id", protocolDiag["session_id"]),
@@ -530,7 +530,7 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 				zap.Any("product_name", protocolDiag["product_name"]),
 			)
 		}
-		
+
 		if len(diag.Errors) > 0 {
 			logger.Info("Recent Errors")
 			for i, err := range diag.Errors {
@@ -546,10 +546,10 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 	} else {
 		logger.Error("Failed to get diagnostics", zap.Error(err))
 	}
-	
+
 	// Test error handling
 	logger.Info("Testing error handling with invalid operations...")
-	
+
 	// Try to read a non-existent tag
 	invalidTag := &protocols.Tag{
 		ID:       "invalid_tag",
@@ -558,11 +558,11 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 		DataType: string(protocols.DataTypeInt32),
 		Writable: false,
 	}
-	
+
 	if _, err := handler.ReadTag(device, invalidTag); err != nil {
 		logger.Info("Expected error for invalid tag", zap.Error(err))
 	}
-	
+
 	// Try to write to a non-writable tag
 	readOnlyTag := &protocols.Tag{
 		ID:       "readonly_tag",
@@ -571,11 +571,11 @@ func runDiagnosticsDemo(ctx context.Context, handler *protocols.EtherNetIPHandle
 		DataType: string(protocols.DataTypeInt32),
 		Writable: false,
 	}
-	
+
 	if err := handler.WriteTag(device, readOnlyTag, int32(123)); err != nil {
 		logger.Info("Expected error for read-only tag", zap.Error(err))
 	}
-	
+
 	// Get diagnostics again to see error tracking
 	if diag, err := handler.GetDiagnostics(device); err == nil {
 		logger.Info("Updated Diagnostics After Errors",

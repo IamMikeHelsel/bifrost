@@ -1,0 +1,20 @@
+# Gateway main package BUILD file
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/bifrost/go-gateway/cmd/gateway",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//internal/gateway",
+        "//internal/protocols",
+        "//pkg/api",
+    ],
+)
+
+go_binary(
+    name = "gateway",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

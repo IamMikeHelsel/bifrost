@@ -49,9 +49,9 @@ func TestModbusAddressParsing(t *testing.T) {
 	handler := NewModbusHandler(logger).(*ModbusHandler)
 
 	tests := []struct {
-		address    string
-		expected   *ModbusAddress
-		expectErr  bool
+		address   string
+		expected  *ModbusAddress
+		expectErr bool
 	}{
 		{
 			address: "40001",
@@ -111,7 +111,7 @@ func TestModbusAddressParsing(t *testing.T) {
 
 	for _, test := range tests {
 		result, err := handler.parseAddress(test.address)
-		
+
 		if test.expectErr {
 			if err == nil {
 				t.Errorf("Expected error for address %s, but got none", test.address)
@@ -125,11 +125,11 @@ func TestModbusAddressParsing(t *testing.T) {
 		}
 
 		if result.FunctionCode != test.expected.FunctionCode {
-			t.Errorf("Wrong function code for %s: expected %d, got %d", 
+			t.Errorf("Wrong function code for %s: expected %d, got %d",
 				test.address, test.expected.FunctionCode, result.FunctionCode)
 		}
 		if result.Address != test.expected.Address {
-			t.Errorf("Wrong address for %s: expected %d, got %d", 
+			t.Errorf("Wrong address for %s: expected %d, got %d",
 				test.address, test.expected.Address, result.Address)
 		}
 	}
@@ -175,7 +175,7 @@ func BenchmarkModbusAddressParsing(b *testing.B) {
 	handler := NewModbusHandler(logger).(*ModbusHandler)
 
 	addresses := []string{"40001", "40100", "30001", "00001", "10001"}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, addr := range addresses {
@@ -189,7 +189,7 @@ func BenchmarkModbusDataConversion(b *testing.B) {
 	handler := NewModbusHandler(logger).(*ModbusHandler)
 
 	testData := []byte{0x01, 0x00}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		handler.convertFromModbus(testData, "uint16", ReadHoldingRegisters)
@@ -213,12 +213,12 @@ func TestModbusDeviceDiscovery(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	devices, err := handler.DiscoverDevices(ctx, "192.168.99.0/30")
-	
+
 	// We expect either no error or a context timeout error
 	if err != nil && err != context.DeadlineExceeded {
 		t.Errorf("Unexpected error for valid network range: %v", err)
 	}
-	
+
 	// Should return non-nil devices slice
 	if devices == nil {
 		t.Error("Expected non-nil devices slice")

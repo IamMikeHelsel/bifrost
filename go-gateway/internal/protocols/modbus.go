@@ -29,21 +29,21 @@ type ModbusConnection struct {
 	deviceID    string
 	isConnected bool
 	mutex       sync.RWMutex
-	
+
 	// Connection pooling
-	inUse       bool
-	createdAt   time.Time
+	inUse     bool
+	createdAt time.Time
 }
 
 // ModbusConfig holds Modbus-specific configuration
 type ModbusConfig struct {
 	DefaultTimeout    time.Duration `yaml:"default_timeout"`
-	DefaultUnitID     byte         `yaml:"default_unit_id"`
-	MaxConnections    int          `yaml:"max_connections"`
+	DefaultUnitID     byte          `yaml:"default_unit_id"`
+	MaxConnections    int           `yaml:"max_connections"`
 	ConnectionTimeout time.Duration `yaml:"connection_timeout"`
 	ReadTimeout       time.Duration `yaml:"read_timeout"`
 	WriteTimeout      time.Duration `yaml:"write_timeout"`
-	EnableKeepAlive   bool         `yaml:"enable_keep_alive"`
+	EnableKeepAlive   bool          `yaml:"enable_keep_alive"`
 }
 
 // ModbusAddress represents parsed Modbus address information
@@ -63,11 +63,11 @@ const (
 	ReadDiscreteInputs   ModbusFunctionCode = 2
 	ReadHoldingRegisters ModbusFunctionCode = 3
 	ReadInputRegisters   ModbusFunctionCode = 4
-	
+
 	// Write functions
-	WriteSingleCoil     ModbusFunctionCode = 5
-	WriteSingleRegister ModbusFunctionCode = 6
-	WriteMultipleCoils  ModbusFunctionCode = 15
+	WriteSingleCoil        ModbusFunctionCode = 5
+	WriteSingleRegister    ModbusFunctionCode = 6
+	WriteMultipleCoils     ModbusFunctionCode = 15
 	WriteMultipleRegisters ModbusFunctionCode = 16
 )
 
@@ -90,31 +90,31 @@ func NewModbusHandler(logger *zap.Logger) ProtocolHandler {
 // Connect establishes a connection to a Modbus device
 func (m *ModbusHandler) Connect(device *Device) error {
 	connectionKey := fmt.Sprintf("%s:%d", device.Address, device.Port)
-	
+
 	// Check if connection already exists
 	if connInterface, exists := m.connections.Load(connectionKey); exists {
 		conn := connInterface.(*ModbusConnection)
 		conn.mutex.RLock()
 		isConnected := conn.isConnected
 		conn.mutex.RUnlock()
-		
+
 		if isConnected {
 			device.ConnectionID = connectionKey
 			return nil
 		}
 	}
-	
+
 	// Create new connection
 	handler := modbus.NewTCPClientHandler(fmt.Sprintf("%s:%d", device.Address, device.Port))
 	handler.Timeout = m.config.DefaultTimeout
 	handler.SlaveId = m.getUnitID(device)
-	
+
 	if err := handler.Connect(); err != nil {
 		return fmt.Errorf("failed to connect to Modbus device: %w", err)
 	}
-	
+
 	client := modbus.NewClient(handler)
-	
+
 	conn := &ModbusConnection{
 		client:      client,
 		handler:     handler,
@@ -123,16 +123,16 @@ func (m *ModbusHandler) Connect(device *Device) error {
 		isConnected: true,
 		createdAt:   time.Now(),
 	}
-	
+
 	m.connections.Store(connectionKey, conn)
 	device.ConnectionID = connectionKey
-	
+
 	m.logger.Info("Modbus connection established",
 		zap.String("device_id", device.ID),
 		zap.String("address", device.Address),
 		zap.Int("port", device.Port),
 	)
-	
+
 	return nil
 }
 
@@ -141,23 +141,23 @@ func (m *ModbusHandler) Disconnect(device *Device) error {
 	if device.ConnectionID == "" {
 		return nil
 	}
-	
+
 	connInterface, exists := m.connections.Load(device.ConnectionID)
 	if !exists {
 		return nil
 	}
-	
+
 	conn := connInterface.(*ModbusConnection)
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
-	
+
 	if conn.handler != nil {
 		conn.handler.Close()
 	}
-	
+
 	conn.isConnected = false
 	m.connections.Delete(device.ConnectionID)
-	
+
 	m.logger.Info("Modbus connection closed", zap.String("device_id", device.ID))
 	return nil
 }
@@ -167,16 +167,16 @@ func (m *ModbusHandler) IsConnected(device *Device) bool {
 	if device.ConnectionID == "" {
 		return false
 	}
-	
+
 	connInterface, exists := m.connections.Load(device.ConnectionID)
 	if !exists {
 		return false
 	}
-	
+
 	conn := connInterface.(*ModbusConnection)
 	conn.mutex.RLock()
 	defer conn.mutex.RUnlock()
-	
+
 	return conn.isConnected
 }
 
@@ -186,20 +186,20 @@ func (m *ModbusHandler) ReadTag(device *Device, tag *Tag) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
-	
+
 	addr, err := m.parseAddress(tag.Address)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Modbus address %s: %w", tag.Address, err)
 	}
-	
+
 	// Update last used time
 	conn.lastUsed = time.Now()
-	
+
 	var result []byte
-	
+
 	switch addr.FunctionCode {
 	case ReadCoils:
 		coils, err := conn.client.ReadCoils(addr.Address, addr.Count)
@@ -207,32 +207,32 @@ func (m *ModbusHandler) ReadTag(device *Device, tag *Tag) (interface{}, error) {
 			return nil, err
 		}
 		result = coils
-		
+
 	case ReadDiscreteInputs:
 		inputs, err := conn.client.ReadDiscreteInputs(addr.Address, addr.Count)
 		if err != nil {
 			return nil, err
 		}
 		result = inputs
-		
+
 	case ReadHoldingRegisters:
 		registers, err := conn.client.ReadHoldingRegisters(addr.Address, addr.Count)
 		if err != nil {
 			return nil, err
 		}
 		result = registers
-		
+
 	case ReadInputRegisters:
 		registers, err := conn.client.ReadInputRegisters(addr.Address, addr.Count)
 		if err != nil {
 			return nil, err
 		}
 		result = registers
-		
+
 	default:
 		return nil, fmt.Errorf("unsupported read function code: %d", addr.FunctionCode)
 	}
-	
+
 	// Convert binary result to appropriate data type
 	return m.convertFromModbus(result, tag.DataType, addr.FunctionCode)
 }
@@ -242,22 +242,22 @@ func (m *ModbusHandler) WriteTag(device *Device, tag *Tag, value interface{}) er
 	if !tag.Writable {
 		return fmt.Errorf("tag %s is not writable", tag.ID)
 	}
-	
+
 	conn, err := m.getConnection(device)
 	if err != nil {
 		return err
 	}
-	
+
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
-	
+
 	addr, err := m.parseAddressForWrite(tag.Address)
 	if err != nil {
 		return fmt.Errorf("invalid Modbus address %s: %w", tag.Address, err)
 	}
-	
+
 	conn.lastUsed = time.Now()
-	
+
 	switch addr.FunctionCode {
 	case WriteSingleCoil:
 		boolVal, ok := value.(bool)
@@ -269,25 +269,25 @@ func (m *ModbusHandler) WriteTag(device *Device, tag *Tag, value interface{}) er
 			coilValue = 0xFF00
 		}
 		_, err = conn.client.WriteSingleCoil(addr.Address, coilValue)
-		
+
 	case WriteSingleRegister:
 		regValue, err := m.convertToModbusRegister(value, tag.DataType)
 		if err != nil {
 			return err
 		}
 		_, err = conn.client.WriteSingleRegister(addr.Address, regValue)
-		
+
 	case WriteMultipleRegisters:
 		regValues, err := m.convertToModbusRegisters(value, tag.DataType, addr.Count)
 		if err != nil {
 			return err
 		}
 		_, err = conn.client.WriteMultipleRegisters(addr.Address, addr.Count, regValues)
-		
+
 	default:
 		return fmt.Errorf("unsupported write function code: %d", addr.FunctionCode)
 	}
-	
+
 	return err
 }
 
@@ -296,20 +296,20 @@ func (m *ModbusHandler) ReadMultipleTags(device *Device, tags []*Tag) (map[strin
 	if len(tags) == 0 {
 		return make(map[string]interface{}), nil
 	}
-	
+
 	conn, err := m.getConnection(device)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	results := make(map[string]interface{})
-	
+
 	// Group tags by function code and consecutive addresses for batch reading
 	batches := m.groupTagsForBatchRead(tags)
-	
+
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
-	
+
 	for _, batch := range batches {
 		batchResults, err := m.readTagBatch(conn, batch)
 		if err != nil {
@@ -325,23 +325,23 @@ func (m *ModbusHandler) ReadMultipleTags(device *Device, tags []*Tag) (map[strin
 			}
 		}
 	}
-	
+
 	return results, nil
 }
 
 // DiscoverDevices scans a network range for Modbus devices
 func (m *ModbusHandler) DiscoverDevices(ctx context.Context, networkRange string) ([]*Device, error) {
 	devices := make([]*Device, 0)
-	
+
 	// Parse network range (e.g., "192.168.1.0/24")
 	_, network, err := net.ParseCIDR(networkRange)
 	if err != nil {
 		return devices, fmt.Errorf("invalid network range: %w", err)
 	}
-	
+
 	// Common Modbus ports to scan
 	ports := []int{502, 503, 10502}
-	
+
 	// Scan network
 	for ip := network.IP.Mask(network.Mask); network.Contains(ip); m.incrementIP(ip) {
 		for _, port := range ports {
@@ -355,7 +355,7 @@ func (m *ModbusHandler) DiscoverDevices(ctx context.Context, networkRange string
 			}
 		}
 	}
-	
+
 	return devices, nil
 }
 
@@ -396,16 +396,16 @@ func (m *ModbusHandler) Ping(device *Device) error {
 	if err != nil {
 		return err
 	}
-	
+
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
-	
+
 	// Try to read a single holding register (address 0)
 	_, err = conn.client.ReadHoldingRegisters(0, 1)
 	if err != nil {
 		return fmt.Errorf("ping failed: %w", err)
 	}
-	
+
 	conn.lastUsed = time.Now()
 	return nil
 }
@@ -416,10 +416,10 @@ func (m *ModbusHandler) GetDiagnostics(device *Device) (*Diagnostics, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	conn.mutex.RLock()
 	defer conn.mutex.RUnlock()
-	
+
 	return &Diagnostics{
 		IsHealthy:         conn.isConnected,
 		LastCommunication: conn.lastUsed,
@@ -434,17 +434,17 @@ func (m *ModbusHandler) getConnection(device *Device) (*ModbusConnection, error)
 	if device.ConnectionID == "" {
 		return nil, fmt.Errorf("device not connected")
 	}
-	
+
 	connInterface, exists := m.connections.Load(device.ConnectionID)
 	if !exists {
 		return nil, fmt.Errorf("connection not found")
 	}
-	
+
 	conn := connInterface.(*ModbusConnection)
 	if !conn.isConnected {
 		return nil, fmt.Errorf("connection is closed")
 	}
-	
+
 	return conn, nil
 }
 
@@ -461,20 +461,20 @@ func (m *ModbusHandler) getUnitID(device *Device) byte {
 func (m *ModbusHandler) parseAddress(address string) (*ModbusAddress, error) {
 	// Remove any spaces
 	address = strings.TrimSpace(address)
-	
+
 	if len(address) < 5 {
 		return nil, fmt.Errorf("address too short")
 	}
-	
+
 	// Parse the address number
 	addr, err := strconv.ParseUint(address, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid address format: %w", err)
 	}
-	
+
 	var funcCode ModbusFunctionCode
 	var baseAddr uint16
-	
+
 	// Determine function code based on address range
 	switch {
 	case addr >= 1 && addr <= 9999: // Coils (0x)
@@ -492,7 +492,7 @@ func (m *ModbusHandler) parseAddress(address string) (*ModbusAddress, error) {
 	default:
 		return nil, fmt.Errorf("address out of range: %d", addr)
 	}
-	
+
 	return &ModbusAddress{
 		FunctionCode: funcCode,
 		Address:      baseAddr,
@@ -505,20 +505,20 @@ func (m *ModbusHandler) parseAddress(address string) (*ModbusAddress, error) {
 func (m *ModbusHandler) parseAddressForWrite(address string) (*ModbusAddress, error) {
 	// Remove any spaces
 	address = strings.TrimSpace(address)
-	
+
 	if len(address) < 5 {
 		return nil, fmt.Errorf("address too short")
 	}
-	
+
 	// Parse the address number
 	addr, err := strconv.ParseUint(address, 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("invalid address format: %w", err)
 	}
-	
+
 	var funcCode ModbusFunctionCode
 	var baseAddr uint16
-	
+
 	// Determine function code based on address range for write operations
 	switch {
 	case addr >= 1 && addr <= 9999: // Coils (0x)
@@ -530,7 +530,7 @@ func (m *ModbusHandler) parseAddressForWrite(address string) (*ModbusAddress, er
 	default:
 		return nil, fmt.Errorf("address not writable: %d", addr)
 	}
-	
+
 	return &ModbusAddress{
 		FunctionCode: funcCode,
 		Address:      baseAddr,
@@ -546,31 +546,31 @@ func (m *ModbusHandler) convertFromModbus(data []byte, dataType string, funcCode
 			return len(data) > 0 && data[0]&0x01 != 0, nil
 		}
 		return binary.BigEndian.Uint16(data) != 0, nil
-		
+
 	case DataTypeInt16:
 		if len(data) < 2 {
 			return nil, fmt.Errorf("insufficient data for int16")
 		}
 		return int16(binary.BigEndian.Uint16(data)), nil
-		
+
 	case DataTypeUInt16:
 		if len(data) < 2 {
 			return nil, fmt.Errorf("insufficient data for uint16")
 		}
 		return binary.BigEndian.Uint16(data), nil
-		
+
 	case DataTypeInt32:
 		if len(data) < 4 {
 			return nil, fmt.Errorf("insufficient data for int32")
 		}
 		return int32(binary.BigEndian.Uint32(data)), nil
-		
+
 	case DataTypeUInt32:
 		if len(data) < 4 {
 			return nil, fmt.Errorf("insufficient data for uint32")
 		}
 		return binary.BigEndian.Uint32(data), nil
-		
+
 	case DataTypeFloat32:
 		if len(data) < 4 {
 			return nil, fmt.Errorf("insufficient data for float32")
@@ -578,7 +578,7 @@ func (m *ModbusHandler) convertFromModbus(data []byte, dataType string, funcCode
 		// Convert to IEEE 754 float32
 		bits := binary.BigEndian.Uint32(data)
 		return float32(bits), nil
-		
+
 	default:
 		return nil, fmt.Errorf("unsupported data type: %s", dataType)
 	}
@@ -594,7 +594,7 @@ func (m *ModbusHandler) convertToModbusRegister(value interface{}, dataType stri
 			return 0, nil
 		}
 		return 0, fmt.Errorf("expected boolean value")
-		
+
 	case DataTypeUInt16:
 		if intVal, ok := value.(int); ok {
 			return uint16(intVal), nil
@@ -603,7 +603,7 @@ func (m *ModbusHandler) convertToModbusRegister(value interface{}, dataType stri
 			return uintVal, nil
 		}
 		return 0, fmt.Errorf("expected uint16 value")
-		
+
 	case DataTypeInt16:
 		if intVal, ok := value.(int); ok {
 			return uint16(int16(intVal)), nil
@@ -612,7 +612,7 @@ func (m *ModbusHandler) convertToModbusRegister(value interface{}, dataType stri
 			return uint16(int16Val), nil
 		}
 		return 0, fmt.Errorf("expected int16 value")
-		
+
 	default:
 		return 0, fmt.Errorf("unsupported data type for single register: %s", dataType)
 	}
@@ -628,26 +628,26 @@ func (m *ModbusHandler) groupTagsForBatchRead(tags []*Tag) [][]*Tag {
 	// Group consecutive tags by function code for efficient batch reading
 	// This is a simplified implementation - real optimization would be more complex
 	var batches [][]*Tag
-	
+
 	for _, tag := range tags {
 		// For now, just put each tag in its own batch
 		// Real implementation would group consecutive addresses
 		batches = append(batches, []*Tag{tag})
 	}
-	
+
 	return batches
 }
 
 func (m *ModbusHandler) readTagBatch(conn *ModbusConnection, tags []*Tag) (map[string]interface{}, error) {
 	// Batch read implementation - simplified for now
 	results := make(map[string]interface{})
-	
+
 	for _, tag := range tags {
 		if value, err := m.readSingleTag(conn, tag); err == nil {
 			results[tag.ID] = value
 		}
 	}
-	
+
 	return results, nil
 }
 
@@ -657,9 +657,9 @@ func (m *ModbusHandler) readSingleTag(conn *ModbusConnection, tag *Tag) (interfa
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var result []byte
-	
+
 	switch addr.FunctionCode {
 	case ReadHoldingRegisters:
 		registers, err := conn.client.ReadHoldingRegisters(addr.Address, 1)
@@ -667,22 +667,22 @@ func (m *ModbusHandler) readSingleTag(conn *ModbusConnection, tag *Tag) (interfa
 			return nil, err
 		}
 		result = registers
-	// Add other function codes as needed
+		// Add other function codes as needed
 	}
-	
+
 	return m.convertFromModbus(result, tag.DataType, addr.FunctionCode)
 }
 
 func (m *ModbusHandler) probeModbusDevice(ctx context.Context, ip string, port int) *Device {
 	// Quick probe to see if a Modbus device responds at this address
 	timeout := 2 * time.Second
-	
+
 	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, port), timeout)
 	if err != nil {
 		return nil
 	}
 	conn.Close()
-	
+
 	// Create a minimal device entry for discovered device
 	return &Device{
 		ID:       fmt.Sprintf("modbus-%s-%d", ip, port),

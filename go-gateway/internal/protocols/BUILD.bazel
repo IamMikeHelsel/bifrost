@@ -1,0 +1,25 @@
+# Protocols package BUILD file
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "ethernetip.go",
+        "ethernetip_cip.go",
+        "ethernetip_errors.go",
+        "ethernetip_performance.go",
+        "modbus.go",
+        "protocol.go",
+    ],
+    importpath = "github.com/bifrost/go-gateway/internal/protocols",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "ethernetip_test.go",
+        "modbus_test.go",
+    ],
+    embed = [":go_default_library"],
+)

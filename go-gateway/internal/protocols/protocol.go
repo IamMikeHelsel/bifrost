@@ -11,20 +11,20 @@ type ProtocolHandler interface {
 	Connect(device *Device) error
 	Disconnect(device *Device) error
 	IsConnected(device *Device) bool
-	
+
 	// Data operations
 	ReadTag(device *Device, tag *Tag) (interface{}, error)
 	WriteTag(device *Device, tag *Tag, value interface{}) error
 	ReadMultipleTags(device *Device, tags []*Tag) (map[string]interface{}, error)
-	
+
 	// Device discovery and information
 	DiscoverDevices(ctx context.Context, networkRange string) ([]*Device, error)
 	GetDeviceInfo(device *Device) (*DeviceInfo, error)
-	
+
 	// Protocol-specific operations
 	GetSupportedDataTypes() []string
 	ValidateTagAddress(address string) error
-	
+
 	// Health and diagnostics
 	Ping(device *Device) error
 	GetDiagnostics(device *Device) (*Diagnostics, error)
@@ -38,12 +38,12 @@ type Device struct {
 	Address  string                 `json:"address"`
 	Port     int                    `json:"port"`
 	Config   map[string]interface{} `json:"config"`
-	
+
 	// Runtime state
 	Connected    bool      `json:"connected"`
 	LastSeen     time.Time `json:"last_seen"`
 	ConnectionID string    `json:"-"` // Internal connection identifier
-	
+
 	// Protocol-specific data
 	ProtocolData interface{} `json:"-"`
 }
@@ -60,11 +60,11 @@ type Tag struct {
 	Writable    bool        `json:"writable"`
 	Unit        string      `json:"unit"`
 	Description string      `json:"description"`
-	
+
 	// Scaling and conversion
 	ScaleFactor float64 `json:"scale_factor,omitempty"`
 	Offset      float64 `json:"offset,omitempty"`
-	
+
 	// Protocol-specific addressing
 	ProtocolConfig map[string]interface{} `json:"protocol_config,omitempty"`
 }
@@ -73,10 +73,10 @@ type Tag struct {
 type Quality string
 
 const (
-	QualityGood    Quality = "GOOD"
-	QualityBad     Quality = "BAD"
+	QualityGood      Quality = "GOOD"
+	QualityBad       Quality = "BAD"
 	QualityUncertain Quality = "UNCERTAIN"
-	QualityStale   Quality = "STALE"
+	QualityStale     Quality = "STALE"
 )
 
 // DeviceInfo contains detailed device information
@@ -93,14 +93,14 @@ type DeviceInfo struct {
 
 // Diagnostics contains device health and performance information
 type Diagnostics struct {
-	IsHealthy        bool              `json:"is_healthy"`
-	LastCommunication time.Time        `json:"last_communication"`
-	ResponseTime     time.Duration     `json:"response_time"`
-	ErrorCount       uint64            `json:"error_count"`
-	SuccessRate      float64           `json:"success_rate"`
-	ConnectionUptime time.Duration     `json:"connection_uptime"`
-	Errors           []DiagnosticError `json:"recent_errors"`
-	
+	IsHealthy         bool              `json:"is_healthy"`
+	LastCommunication time.Time         `json:"last_communication"`
+	ResponseTime      time.Duration     `json:"response_time"`
+	ErrorCount        uint64            `json:"error_count"`
+	SuccessRate       float64           `json:"success_rate"`
+	ConnectionUptime  time.Duration     `json:"connection_uptime"`
+	Errors            []DiagnosticError `json:"recent_errors"`
+
 	// Protocol-specific diagnostics
 	ProtocolDiagnostics interface{} `json:"protocol_diagnostics,omitempty"`
 }
@@ -116,12 +116,12 @@ type DiagnosticError struct {
 
 // ConnectionConfig holds common connection parameters
 type ConnectionConfig struct {
-	Timeout         time.Duration `json:"timeout"`
-	RetryCount      int           `json:"retry_count"`
-	RetryDelay      time.Duration `json:"retry_delay"`
-	KeepAlive       bool          `json:"keep_alive"`
-	KeepAliveDelay  time.Duration `json:"keep_alive_delay"`
-	MaxConcurrent   int           `json:"max_concurrent"`
+	Timeout        time.Duration `json:"timeout"`
+	RetryCount     int           `json:"retry_count"`
+	RetryDelay     time.Duration `json:"retry_delay"`
+	KeepAlive      bool          `json:"keep_alive"`
+	KeepAliveDelay time.Duration `json:"keep_alive_delay"`
+	MaxConcurrent  int           `json:"max_concurrent"`
 }
 
 // DataType represents supported data types across protocols
@@ -168,7 +168,7 @@ func NewProtocolError(code, message, operation string) *ProtocolError {
 // BatchOperation represents a batch read/write operation
 type BatchOperation struct {
 	Tags      []*Tag                 `json:"tags"`
-	Operation string                 `json:"operation"` // "read" or "write"
+	Operation string                 `json:"operation"`        // "read" or "write"
 	Values    map[string]interface{} `json:"values,omitempty"` // for write operations
 }
 

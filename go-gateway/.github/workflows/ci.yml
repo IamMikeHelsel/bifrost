@@ -84,6 +84,44 @@ jobs:
         go install golang.org/x/vuln/cmd/govulncheck@latest
         govulncheck ./...
 
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.22
+    
+    - name: Install buildifier
+      run: |
+        go install github.com/bazelbuild/buildtools/buildifier@latest
+        echo "$HOME/go/bin" >> $GITHUB_PATH
+    
+    - name: Install just
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+    
+    - name: Check Go formatting
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Go code is not formatted properly:"
+          gofmt -s -l .
+          exit 1
+        fi
+    
+    - name: Check Starlark formatting
+      run: |
+        if [ -n "$(find . -name "*.bzl" -o -name "BUILD" -o -name "BUILD.bazel" -o -name "WORKSPACE" -o -name "WORKSPACE.bazel" | head -1)" ]; then
+          just check-starlark
+        else
+          echo "No Starlark files found to check"
+        fi
+
   security:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -117,7 +155,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [test, lint]
+    needs: [test, lint, format]
     
     steps:
     - name: Checkout code
@@ -166,7 +204,7 @@ jobs:
   docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [test, lint, security]
+    needs: [test, lint, format, security]
     
     steps:
     - name: Checkout code

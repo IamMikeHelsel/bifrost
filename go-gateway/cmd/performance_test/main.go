@@ -110,17 +110,17 @@ func main() {
 
 // TestConfig holds the complete test configuration
 type TestConfig struct {
-	Gateway   performance.OptimizedConfig      `yaml:"gateway"`
-	Benchmark performance.BenchmarkConfig     `yaml:"benchmark"`
-	Targets   performance.PerformanceTargets  `yaml:"targets"`
-	
+	Gateway   performance.OptimizedConfig    `yaml:"gateway"`
+	Benchmark performance.BenchmarkConfig    `yaml:"benchmark"`
+	Targets   performance.PerformanceTargets `yaml:"targets"`
+
 	// Test environment settings
 	Environment struct {
-		SimulatedDevices     int    `yaml:"simulated_devices"`
-		TagsPerDevice       int    `yaml:"tags_per_device"`
-		NetworkLatencyMs    int    `yaml:"network_latency_ms"`
-		NetworkJitterMs     int    `yaml:"network_jitter_ms"`
-		MockDeviceType      string `yaml:"mock_device_type"`
+		SimulatedDevices int    `yaml:"simulated_devices"`
+		TagsPerDevice    int    `yaml:"tags_per_device"`
+		NetworkLatencyMs int    `yaml:"network_latency_ms"`
+		NetworkJitterMs  int    `yaml:"network_jitter_ms"`
+		MockDeviceType   string `yaml:"mock_device_type"`
 	} `yaml:"environment"`
 }
 
@@ -171,70 +171,70 @@ func setupLogger(level string, verbose bool) *zap.Logger {
 func loadTestConfig(filename string) (*TestConfig, error) {
 	// Set default configuration
 	config := &TestConfig{}
-	
+
 	// Set comprehensive defaults for production-ready testing
-	
+
 	// Gateway configuration with all optimizations enabled
 	config.Gateway = performance.OptimizedConfig{
 		Port:                   8080,
-		GRPCPort:              9090,
-		MaxConnections:        10000,
-		DataBufferSize:        100000,
-		UpdateInterval:        100 * time.Millisecond,
-		EnableMetrics:         true,
-		LogLevel:              "info",
-		EnableZeroCopy:        true,
-		EnableBatching:        true,
-		EnableConnectionPool:  true,
+		GRPCPort:               9090,
+		MaxConnections:         10000,
+		DataBufferSize:         100000,
+		UpdateInterval:         100 * time.Millisecond,
+		EnableMetrics:          true,
+		LogLevel:               "info",
+		EnableZeroCopy:         true,
+		EnableBatching:         true,
+		EnableConnectionPool:   true,
 		EnableEdgeOptimization: true,
-		EnableProfiling:       true,
-		EnableMonitoring:      true,
-		
+		EnableProfiling:        true,
+		EnableMonitoring:       true,
+
 		ConnectionPool: performance.PoolConfig{
 			MaxConnectionsPerDevice: 10,
 			MaxTotalConnections:     1000,
 			ConnectionTimeout:       10 * time.Second,
-			IdleTimeout:            60 * time.Second,
-			HealthCheckInterval:    30 * time.Second,
-			RetryAttempts:          3,
-			RetryDelay:             time.Second,
+			IdleTimeout:             60 * time.Second,
+			HealthCheckInterval:     30 * time.Second,
+			RetryAttempts:           3,
+			RetryDelay:              time.Second,
 			CircuitBreakerConfig: performance.CircuitBreakerConfig{
-				MaxRequests:  100,
-				Interval:     time.Minute,
-				Timeout:      30 * time.Second,
-				FailureRate:  0.6,
-				MinRequests:  10,
+				MaxRequests: 100,
+				Interval:    time.Minute,
+				Timeout:     30 * time.Second,
+				FailureRate: 0.6,
+				MinRequests: 10,
 			},
 		},
-		
+
 		BatchProcessor: performance.BatchConfig{
-			MaxBatchSize:            100,
+			MaxBatchSize:           100,
 			BatchTimeout:           10 * time.Millisecond,
 			FlushInterval:          time.Second,
-			MaxConcurrentBatches:    50,
+			MaxConcurrentBatches:   50,
 			EnableAdaptiveBatching: true,
 			MinBatchSize:           10,
 			LatencyThreshold:       time.Millisecond,
 			ThroughputThreshold:    1000.0,
 		},
-		
+
 		MemoryOptimizer: performance.MemoryConfig{
-			EnableZeroCopy:      true,
-			MaxBufferSize:       32768,
-			PreAllocBuffers:     100,
-			GCTargetPercent:     50,
-			MaxPoolSize:         1000,
-			PreAllocPoolItems:   50,
-			MonitoringInterval:  10 * time.Second,
-			MemoryThreshold:     100 * 1024 * 1024, // 100MB
+			EnableZeroCopy:     true,
+			MaxBufferSize:      32768,
+			PreAllocBuffers:    100,
+			GCTargetPercent:    50,
+			MaxPoolSize:        1000,
+			PreAllocPoolItems:  50,
+			MonitoringInterval: 10 * time.Second,
+			MemoryThreshold:    100 * 1024 * 1024, // 100MB
 		},
-		
+
 		EdgeOptimizer: performance.EdgeConfig{
-			MaxMemoryMB:            100,
-			MaxCPUPercent:          80.0,
-			MaxNetworkMbps:         100,
-			MaxGoroutines:          1000,
-			MaxConnections:         500,
+			MaxMemoryMB:              100,
+			MaxCPUPercent:            80.0,
+			MaxNetworkMbps:           100,
+			MaxGoroutines:            1000,
+			MaxConnections:           500,
 			EnableAdaptiveThrottling: true,
 			EnableMemoryCompaction:   true,
 			EnableCPUThrottling:      true,
@@ -248,7 +248,7 @@ func loadTestConfig(filename string) (*TestConfig, error) {
 			LowPowerCPUTarget:        50.0,
 			LowPowerMemoryTarget:     50.0,
 		},
-		
+
 		Profiler: performance.ProfilerConfig{
 			Enabled:                  true,
 			HTTPPort:                 6060,
@@ -269,38 +269,38 @@ func loadTestConfig(filename string) (*TestConfig, error) {
 			MemoryThreshold:          80 * 1024 * 1024, // 80MB
 			GoroutineThreshold:       1000,
 		},
-		
+
 		Monitor: performance.MonitoringConfig{
-			Enabled:            true,
-			MetricsPort:        9091,
-			MetricsPath:        "/metrics",
-			CollectionInterval: time.Second,
-			EnablePrometheus:   true,
+			Enabled:             true,
+			MetricsPort:         9091,
+			MetricsPath:         "/metrics",
+			CollectionInterval:  time.Second,
+			EnablePrometheus:    true,
 			PrometheusNamespace: "bifrost",
-			EnableAlerting:     true,
-			AlertCheckInterval: 10 * time.Second,
+			EnableAlerting:      true,
+			AlertCheckInterval:  10 * time.Second,
 			Thresholds: performance.PerformanceThresholds{
-				MaxLatency:           1000,  // 1ms in microseconds
-				WarningLatency:       500,   // 0.5ms in microseconds
-				MinThroughput:        10000, // 10K ops/sec
-				WarningThroughput:    8000,  // 8K ops/sec
-				MaxCPUPercent:        80.0,
-				MaxMemoryMB:          100,
-				MaxGoroutines:        1000,
-				MaxConnections:       500,
-				MaxErrorRate:         0.001, // 0.1%
-				WarningErrorRate:     0.0005, // 0.05%
-				MaxNetworkLatency:    5000,  // 5ms in microseconds
-				MaxPacketLoss:        0.001, // 0.1%
+				MaxLatency:        1000,  // 1ms in microseconds
+				WarningLatency:    500,   // 0.5ms in microseconds
+				MinThroughput:     10000, // 10K ops/sec
+				WarningThroughput: 8000,  // 8K ops/sec
+				MaxCPUPercent:     80.0,
+				MaxMemoryMB:       100,
+				MaxGoroutines:     1000,
+				MaxConnections:    500,
+				MaxErrorRate:      0.001,  // 0.1%
+				WarningErrorRate:  0.0005, // 0.05%
+				MaxNetworkLatency: 5000,   // 5ms in microseconds
+				MaxPacketLoss:     0.001,  // 0.1%
 			},
-			MetricsRetention:   24 * time.Hour,
-			MaxDataPoints:      1000,
-			EnableRealTime:     true,
-			RealTimeInterval:   time.Second,
-			WebSocketPort:      9092,
+			MetricsRetention: 24 * time.Hour,
+			MaxDataPoints:    1000,
+			EnableRealTime:   true,
+			RealTimeInterval: time.Second,
+			WebSocketPort:    9092,
 		},
 	}
-	
+
 	// Benchmark configuration for comprehensive testing
 	config.Benchmark = performance.BenchmarkConfig{
 		EnableLatencyTests:     true,
@@ -325,7 +325,7 @@ func loadTestConfig(filename string) (*TestConfig, error) {
 		EdgeCPULimitPercent:    50.0,
 		EdgeNetworkLimitMbps:   10,
 	}
-	
+
 	// Performance targets (10x improvement goals)
 	config.Targets = performance.PerformanceTargets{
 		MaxLatencyMicroseconds:    1000,   // < 1ms
@@ -343,7 +343,7 @@ func loadTestConfig(filename string) (*TestConfig, error) {
 		EdgeMaxCPUPercent:         50.0,   // < 50% on edge
 		EdgeMinBatteryLife:        24,     // > 24 hours
 	}
-	
+
 	// Test environment defaults
 	config.Environment.SimulatedDevices = 100
 	config.Environment.TagsPerDevice = 50
@@ -381,7 +381,7 @@ func setupPerformanceTestSuite(config *TestConfig, logger *zap.Logger) *performa
 
 func runLatencyTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running latency-focused performance test")
-	
+
 	// Configure for latency-focused testing
 	config := &performance.BenchmarkConfig{
 		EnableLatencyTests:     true,
@@ -395,14 +395,14 @@ func runLatencyTest(ctx context.Context, suite *performance.BenchmarkSuite, logg
 		CooldownDuration:       10 * time.Second,
 		RequestsPerSecond:      1000,
 	}
-	
+
 	latencySuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
 	return latencySuite.RunComprehensiveBenchmark(ctx)
 }
 
 func runThroughputTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running throughput-focused performance test")
-	
+
 	// Configure for throughput-focused testing
 	config := &performance.BenchmarkConfig{
 		EnableLatencyTests:     false,
@@ -417,14 +417,14 @@ func runThroughputTest(ctx context.Context, suite *performance.BenchmarkSuite, l
 		RequestsPerSecond:      20000,
 		MaxConcurrentRequests:  5000,
 	}
-	
+
 	throughputSuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
 	return throughputSuite.RunComprehensiveBenchmark(ctx)
 }
 
 func runConcurrencyTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running concurrency-focused performance test")
-	
+
 	config := &performance.BenchmarkConfig{
 		EnableLatencyTests:     false,
 		EnableThroughputTests:  false,
@@ -438,14 +438,14 @@ func runConcurrencyTest(ctx context.Context, suite *performance.BenchmarkSuite, 
 		MaxConcurrentRequests:  10000,
 		RequestsPerSecond:      15000,
 	}
-	
+
 	concurrencySuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
 	return concurrencySuite.RunComprehensiveBenchmark(ctx)
 }
 
 func runStressTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running stress performance test")
-	
+
 	config := &performance.BenchmarkConfig{
 		EnableLatencyTests:     false,
 		EnableThroughputTests:  false,
@@ -460,14 +460,14 @@ func runStressTest(ctx context.Context, suite *performance.BenchmarkSuite, logge
 		MaxStressLoad:          50000,
 		StressRampUpTime:       2 * time.Minute,
 	}
-	
+
 	stressSuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
 	return stressSuite.RunComprehensiveBenchmark(ctx)
 }
 
 func runMemoryTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running memory-focused performance test")
-	
+
 	config := &performance.BenchmarkConfig{
 		EnableLatencyTests:     false,
 		EnableThroughputTests:  false,
@@ -481,14 +481,14 @@ func runMemoryTest(ctx context.Context, suite *performance.BenchmarkSuite, logge
 		MemoryTestIterations:   2000,
 		MaxMemoryAllocation:    1024 * 1024 * 1024, // 1GB
 	}
-	
+
 	memorySuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
 	return memorySuite.RunComprehensiveBenchmark(ctx)
 }
 
 func runEdgeTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running edge device performance test")
-	
+
 	config := &performance.BenchmarkConfig{
 		EnableLatencyTests:     false,
 		EnableThroughputTests:  false,
@@ -504,7 +504,7 @@ func runEdgeTest(ctx context.Context, suite *performance.BenchmarkSuite, logger 
 		EdgeNetworkLimitMbps:   10,
 		RequestsPerSecond:      500, // Lower load for edge devices
 	}
-	
+
 	edgeSuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
 	return edgeSuite.RunComprehensiveBenchmark(ctx)
 }
@@ -518,26 +518,26 @@ func runComprehensiveTest(ctx context.Context, suite *performance.BenchmarkSuite
 	logger.Info("  ✓ Stress resilience (50K+ ops/sec peak)")
 	logger.Info("  ✓ Memory efficiency (< 100MB target)")
 	logger.Info("  ✓ Edge device optimization (< 50MB, < 50% CPU)")
-	
+
 	return suite.RunComprehensiveBenchmark(ctx)
 }
 
 func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 	logger.Info("🏁 PERFORMANCE TEST RESULTS 🏁")
 	logger.Info("=" * 80)
-	
+
 	// Overall summary
 	logger.Info("📊 OVERALL PERFORMANCE SUMMARY",
 		zap.String("result", results.OverallResult),
 		zap.Float64("score", results.PerformanceScore),
 		zap.Duration("total_duration", results.TotalDuration),
 	)
-	
+
 	// Target achievement summary
 	logger.Info("🎯 TARGET ACHIEVEMENT SUMMARY")
 	achievedCount := 0
 	totalCount := len(results.TargetsAchieved)
-	
+
 	for target, achieved := range results.TargetsAchieved {
 		if achieved {
 			achievedCount++
@@ -546,13 +546,13 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			logger.Info(fmt.Sprintf("  ❌ %s: FAILED", target))
 		}
 	}
-	
+
 	logger.Info("Target Achievement Rate",
 		zap.Int("achieved", achievedCount),
 		zap.Int("total", totalCount),
 		zap.Float64("percentage", float64(achievedCount)/float64(totalCount)*100),
 	)
-	
+
 	// Detailed results by category
 	if results.LatencyResults != nil {
 		logger.Info("⚡ LATENCY RESULTS",
@@ -563,7 +563,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			zap.Bool("target_achieved", results.LatencyResults.TargetAchieved),
 		)
 	}
-	
+
 	if results.ThroughputResults != nil {
 		logger.Info("🚀 THROUGHPUT RESULTS",
 			zap.Float64("max_rps", results.ThroughputResults.MaxThroughput),
@@ -573,7 +573,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			zap.Bool("target_achieved", results.ThroughputResults.TargetAchieved),
 		)
 	}
-	
+
 	if results.ConcurrencyResults != nil {
 		logger.Info("🔗 CONCURRENCY RESULTS",
 			zap.Int("max_connections", results.ConcurrencyResults.MaxConcurrentConnections),
@@ -583,7 +583,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			zap.Bool("target_achieved", results.ConcurrencyResults.TargetAchieved),
 		)
 	}
-	
+
 	if results.StressResults != nil {
 		logger.Info("💪 STRESS TEST RESULTS",
 			zap.Int("max_sustained_load", results.StressResults.MaxLoadSustained),
@@ -592,7 +592,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			zap.Bool("target_achieved", results.StressResults.TargetAchieved),
 		)
 	}
-	
+
 	if results.MemoryResults != nil {
 		logger.Info("🧠 MEMORY RESULTS",
 			zap.Float64("baseline_mb", results.MemoryResults.BaselineMemoryMB),
@@ -603,7 +603,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			zap.Bool("target_achieved", results.MemoryResults.TargetAchieved),
 		)
 	}
-	
+
 	if results.EdgeResults != nil {
 		logger.Info("📱 EDGE DEVICE RESULTS",
 			zap.Float64("memory_mb", results.EdgeResults.MemoryUsageMB),
@@ -613,7 +613,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			zap.Bool("target_achieved", results.EdgeResults.TargetAchieved),
 		)
 	}
-	
+
 	// Performance grade
 	var grade string
 	switch {
@@ -632,12 +632,12 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 	default:
 		grade = "F (FAILED)"
 	}
-	
+
 	logger.Info("🏆 FINAL PERFORMANCE GRADE",
 		zap.String("grade", grade),
 		zap.Float64("score", results.PerformanceScore),
 	)
-	
+
 	// Recommendations
 	if results.PerformanceScore < 90 {
 		logger.Info("📝 RECOMMENDATIONS FOR IMPROVEMENT:")
@@ -647,7 +647,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 			}
 		}
 	}
-	
+
 	logger.Info("=" * 80)
 }
 

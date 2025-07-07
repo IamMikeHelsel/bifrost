@@ -20,31 +20,31 @@ type IndustrialGateway struct {
 	logger    *zap.Logger
 	devices   sync.Map // map[string]*Device
 	protocols map[string]protocols.ProtocolHandler
-	
+
 	// Performance metrics
 	metrics struct {
 		connectionsTotal    prometheus.Counter
 		dataPointsProcessed prometheus.Counter
-		errorRate          prometheus.Counter
-		responseTime       prometheus.Histogram
+		errorRate           prometheus.Counter
+		responseTime        prometheus.Histogram
 	}
-	
+
 	// WebSocket connections for real-time data
 	wsUpgrader websocket.Upgrader
 	wsClients  sync.Map // map[*websocket.Conn]bool
-	
+
 	// Configuration
 	config *Config
 }
 
 type Config struct {
-	Port              int           `yaml:"port"`
-	GRPCPort         int           `yaml:"grpc_port"`
-	MaxConnections   int           `yaml:"max_connections"`
-	DataBufferSize   int           `yaml:"data_buffer_size"`
-	UpdateInterval   time.Duration `yaml:"update_interval"`
-	EnableMetrics    bool          `yaml:"enable_metrics"`
-	LogLevel         string        `yaml:"log_level"`
+	Port           int           `yaml:"port"`
+	GRPCPort       int           `yaml:"grpc_port"`
+	MaxConnections int           `yaml:"max_connections"`
+	DataBufferSize int           `yaml:"data_buffer_size"`
+	UpdateInterval time.Duration `yaml:"update_interval"`
+	EnableMetrics  bool          `yaml:"enable_metrics"`
+	LogLevel       string        `yaml:"log_level"`
 }
 
 type Device struct {
@@ -54,20 +54,20 @@ type Device struct {
 	Address  string                 `json:"address"`
 	Port     int                    `json:"port"`
 	Config   map[string]interface{} `json:"config"`
-	
+
 	// Runtime state
-	Connected    bool                      `json:"connected"`
-	LastSeen     time.Time                `json:"last_seen"`
-	Tags         map[string]*Tag          `json:"tags"`
-	Handler      protocols.ProtocolHandler `json:"-"`
-	
+	Connected bool                      `json:"connected"`
+	LastSeen  time.Time                 `json:"last_seen"`
+	Tags      map[string]*Tag           `json:"tags"`
+	Handler   protocols.ProtocolHandler `json:"-"`
+
 	// Performance tracking
 	Stats struct {
-		RequestsTotal      uint64    `json:"requests_total"`
-		RequestsSuccessful uint64    `json:"requests_successful"`
-		RequestsFailed     uint64    `json:"requests_failed"`
-		AverageResponseTime float64  `json:"avg_response_time"`
-		LastUpdate         time.Time `json:"last_update"`
+		RequestsTotal       uint64    `json:"requests_total"`
+		RequestsSuccessful  uint64    `json:"requests_successful"`
+		RequestsFailed      uint64    `json:"requests_failed"`
+		AverageResponseTime float64   `json:"avg_response_time"`
+		LastUpdate          time.Time `json:"last_update"`
 	} `json:"stats"`
 }
 
@@ -96,13 +96,13 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 			},
 		},
 	}
-	
+
 	// Initialize metrics
 	gateway.initMetrics()
-	
+
 	// Register protocol handlers
 	gateway.registerProtocols()
-	
+
 	return gateway
 }
 
@@ -111,23 +111,23 @@ func (g *IndustrialGateway) initMetrics() {
 		Name: "bifrost_connections_total",
 		Help: "Total number of device connections",
 	})
-	
+
 	g.metrics.dataPointsProcessed = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "bifrost_data_points_processed_total",
 		Help: "Total number of data points processed",
 	})
-	
+
 	g.metrics.errorRate = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "bifrost_errors_total",
 		Help: "Total number of errors",
 	})
-	
+
 	g.metrics.responseTime = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name:    "bifrost_response_time_seconds",
 		Help:    "Response time for device operations",
 		Buckets: prometheus.DefBuckets,
 	})
-	
+
 	// Register metrics
 	prometheus.MustRegister(
 		g.metrics.connectionsTotal,
@@ -142,11 +142,11 @@ func (g *IndustrialGateway) registerProtocols() {
 	modbusHandler := protocols.NewModbusHandler(g.logger)
 	g.protocols["modbus-tcp"] = modbusHandler
 	g.protocols["modbus-rtu"] = modbusHandler
-	
+
 	// TODO: Register OPC UA handler
 	// opcuaHandler := protocols.NewOPCUAHandler(g.logger)
 	// g.protocols["opcua"] = opcuaHandler
-	
+
 	// TODO: Add Ethernet/IP, S7, etc.
 }
 
@@ -156,63 +156,63 @@ func (g *IndustrialGateway) Start(ctx context.Context) error {
 		zap.Int("port", g.config.Port),
 		zap.Int("grpc_port", g.config.GRPCPort),
 	)
-	
+
 	var wg sync.WaitGroup
-	
+
 	// Start HTTP server for WebSocket and metrics
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		g.startHTTPServer(ctx)
 	}()
-	
+
 	// Start gRPC server for backend communication
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		g.startGRPCServer(ctx)
 	}()
-	
+
 	// Start data collection loop
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		g.startDataCollection(ctx)
 	}()
-	
+
 	wg.Wait()
 	return nil
 }
 
 func (g *IndustrialGateway) startHTTPServer(ctx context.Context) {
 	mux := http.NewServeMux()
-	
+
 	// WebSocket endpoint for real-time data
 	mux.HandleFunc("/ws", g.handleWebSocket)
-	
+
 	// REST API endpoints
 	mux.HandleFunc("/api/devices", g.handleDevices)
 	mux.HandleFunc("/api/devices/discover", g.handleDiscovery)
 	mux.HandleFunc("/api/tags/read", g.handleTagRead)
 	mux.HandleFunc("/api/tags/write", g.handleTagWrite)
-	
+
 	// Metrics endpoint
 	if g.config.EnableMetrics {
 		mux.Handle("/metrics", promhttp.Handler())
 	}
-	
+
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", g.config.Port),
 		Handler: mux,
 	}
-	
+
 	g.logger.Info("HTTP server started", zap.Int("port", g.config.Port))
-	
+
 	go func() {
 		<-ctx.Done()
 		server.Shutdown(context.Background())
 	}()
-	
+
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		g.logger.Error("HTTP server error", zap.Error(err))
 	}
@@ -227,9 +227,9 @@ func (g *IndustrialGateway) startGRPCServer(ctx context.Context) {
 func (g *IndustrialGateway) startDataCollection(ctx context.Context) {
 	ticker := time.NewTicker(g.config.UpdateInterval)
 	defer ticker.Stop()
-	
+
 	g.logger.Info("Data collection started", zap.Duration("interval", g.config.UpdateInterval))
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -243,7 +243,7 @@ func (g *IndustrialGateway) startDataCollection(ctx context.Context) {
 
 func (g *IndustrialGateway) collectAllData(ctx context.Context) {
 	var wg sync.WaitGroup
-	
+
 	// Collect data from all connected devices concurrently
 	g.devices.Range(func(key, value interface{}) bool {
 		device := value.(*Device)
@@ -256,7 +256,7 @@ func (g *IndustrialGateway) collectAllData(ctx context.Context) {
 		}
 		return true
 	})
-	
+
 	wg.Wait()
 }
 
@@ -266,13 +266,13 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 		duration := time.Since(start)
 		g.metrics.responseTime.Observe(duration.Seconds())
 	}()
-	
+
 	handler, exists := g.protocols[device.Protocol]
 	if !exists {
 		g.logger.Error("Unknown protocol", zap.String("protocol", device.Protocol))
 		return
 	}
-	
+
 	// Create protocols.Device from gateway.Device
 	protocolDevice := &protocols.Device{
 		ID:       device.ID,
@@ -282,7 +282,7 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 		Port:     device.Port,
 		Config:   device.Config,
 	}
-	
+
 	// Read all tags for this device
 	for _, tag := range device.Tags {
 		select {
@@ -291,15 +291,15 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 		default:
 			// Create protocols.Tag from gateway.Tag
 			protocolTag := &protocols.Tag{
-				ID:       tag.ID,
-				Name:     tag.Name,
-				Address:  tag.Address,
-				DataType: tag.DataType,
-				Writable: tag.Writable,
-				Unit:     tag.Unit,
+				ID:          tag.ID,
+				Name:        tag.Name,
+				Address:     tag.Address,
+				DataType:    tag.DataType,
+				Writable:    tag.Writable,
+				Unit:        tag.Unit,
 				Description: tag.Description,
 			}
-			
+
 			value, err := handler.ReadTag(protocolDevice, protocolTag)
 			if err != nil {
 				g.metrics.errorRate.Inc()
@@ -311,20 +311,20 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 				)
 				continue
 			}
-			
+
 			// Update tag value
 			tag.Value = value
 			tag.Timestamp = time.Now()
 			tag.Quality = "GOOD"
-			
+
 			device.Stats.RequestsSuccessful++
 			g.metrics.dataPointsProcessed.Inc()
-			
+
 			// Broadcast to WebSocket clients
 			g.broadcastTagUpdate(device, tag)
 		}
 	}
-	
+
 	device.LastSeen = time.Now()
 	device.Stats.LastUpdate = time.Now()
 }
@@ -335,7 +335,7 @@ func (g *IndustrialGateway) ConnectDevice(ctx context.Context, device *Device) e
 	if !exists {
 		return fmt.Errorf("unsupported protocol: %s", device.Protocol)
 	}
-	
+
 	// Create protocols.Device from gateway.Device
 	protocolDevice := &protocols.Device{
 		ID:       device.ID,
@@ -345,26 +345,26 @@ func (g *IndustrialGateway) ConnectDevice(ctx context.Context, device *Device) e
 		Port:     device.Port,
 		Config:   device.Config,
 	}
-	
+
 	// Attempt connection
 	if err := handler.Connect(protocolDevice); err != nil {
 		g.metrics.errorRate.Inc()
 		return fmt.Errorf("failed to connect to device %s: %w", device.ID, err)
 	}
-	
+
 	device.Connected = true
 	device.LastSeen = time.Now()
 	g.metrics.connectionsTotal.Inc()
-	
+
 	// Store device
 	g.devices.Store(device.ID, device)
-	
+
 	g.logger.Info("Device connected",
 		zap.String("id", device.ID),
 		zap.String("protocol", device.Protocol),
 		zap.String("address", device.Address),
 	)
-	
+
 	return nil
 }
 
@@ -374,9 +374,9 @@ func (g *IndustrialGateway) DisconnectDevice(deviceID string) error {
 	if !exists {
 		return fmt.Errorf("device not found: %s", deviceID)
 	}
-	
+
 	device := deviceInterface.(*Device)
-	
+
 	if device.Handler != nil {
 		// Create protocols.Device from gateway.Device
 		protocolDevice := &protocols.Device{
@@ -387,15 +387,15 @@ func (g *IndustrialGateway) DisconnectDevice(deviceID string) error {
 			Port:     device.Port,
 			Config:   device.Config,
 		}
-		
+
 		if err := device.Handler.Disconnect(protocolDevice); err != nil {
 			g.logger.Error("Error disconnecting device", zap.Error(err))
 		}
 	}
-	
+
 	device.Connected = false
 	g.devices.Store(deviceID, device)
-	
+
 	g.logger.Info("Device disconnected", zap.String("id", deviceID))
 	return nil
 }
@@ -406,7 +406,7 @@ func (g *IndustrialGateway) broadcastTagUpdate(device *Device, tag *Tag) {
 		"device_id": device.ID,
 		"tag":       tag,
 	}
-	
+
 	// Broadcast to all WebSocket clients
 	g.wsClients.Range(func(key, value interface{}) bool {
 		conn := key.(*websocket.Conn)
@@ -423,7 +423,7 @@ func (g *IndustrialGateway) broadcastTagUpdate(device *Device, tag *Tag) {
 func (g *IndustrialGateway) GetStats() map[string]interface{} {
 	deviceCount := 0
 	connectedCount := 0
-	
+
 	g.devices.Range(func(key, value interface{}) bool {
 		deviceCount++
 		if value.(*Device).Connected {
@@ -431,11 +431,11 @@ func (g *IndustrialGateway) GetStats() map[string]interface{} {
 		}
 		return true
 	})
-	
+
 	return map[string]interface{}{
 		"devices_total":     deviceCount,
 		"devices_connected": connectedCount,
-		"uptime":           time.Since(time.Now()), // TODO: Track actual uptime
+		"uptime":            time.Since(time.Now()), // TODO: Track actual uptime
 	}
 }
 
@@ -447,19 +447,19 @@ func (g *IndustrialGateway) handleWebSocket(w http.ResponseWriter, r *http.Reque
 		g.logger.Error("WebSocket upgrade failed", zap.Error(err))
 		return
 	}
-	
+
 	// Register client
 	g.wsClients.Store(conn, true)
-	
+
 	g.logger.Info("WebSocket client connected")
-	
+
 	// Handle client disconnect
 	defer func() {
 		g.wsClients.Delete(conn)
 		conn.Close()
 		g.logger.Info("WebSocket client disconnected")
 	}()
-	
+
 	// Keep connection alive
 	for {
 		_, _, err := conn.ReadMessage()
@@ -471,34 +471,34 @@ func (g *IndustrialGateway) handleWebSocket(w http.ResponseWriter, r *http.Reque
 
 func (g *IndustrialGateway) handleDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	devices := make([]*Device, 0)
 	g.devices.Range(func(key, value interface{}) bool {
 		devices = append(devices, value.(*Device))
 		return true
 	})
-	
+
 	// Simple JSON response (in production, use proper JSON library)
 	w.Write([]byte(fmt.Sprintf(`{"devices": %v}`, devices)))
 }
 
 func (g *IndustrialGateway) handleDiscovery(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	// TODO: Implement device discovery
 	w.Write([]byte(`{"message": "Device discovery not implemented yet"}`))
 }
 
 func (g *IndustrialGateway) handleTagRead(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	// TODO: Implement tag reading
 	w.Write([]byte(`{"message": "Tag reading not implemented yet"}`))
 }
 
 func (g *IndustrialGateway) handleTagWrite(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	// TODO: Implement tag writing
 	w.Write([]byte(`{"message": "Tag writing not implemented yet"}`))
 }
