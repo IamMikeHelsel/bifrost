@@ -5,6 +5,7 @@ from bifrost_core import DataType, Tag
 
 
 async def main():
+    """Main function to run the Modbus TCP client demo."""
     # Replace with your Modbus device's IP address and port
     modbus_host = "192.168.1.100"  # Example IP, change this!
     modbus_port = 502

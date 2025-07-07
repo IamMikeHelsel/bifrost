@@ -655,3 +655,56 @@ func (e *EtherNetIPHandler) incrementIP(ip net.IP) {
 		}
 	}
 }
+
+// parseAddress parses an EtherNet/IP tag address string
+func (e *EtherNetIPHandler) parseAddress(address string) (*EtherNetIPAddress, error) {
+	addr := &EtherNetIPAddress{
+		IsSymbolic:  true,
+		AttributeID: 1, // Default attribute ID for symbolic tags
+		DataType:    CIPDataTypeDint, // Default data type
+	}
+
+	// Check for array index (e.g., "MyArray[5]")
+	openBracket := strings.Index(address, "[")
+	closeBracket := strings.LastIndex(address, "]")
+
+	if openBracket != -1 && closeBracket != -1 && openBracket < closeBracket {
+		addr.TagName = address[:openBracket]
+		addr.IsArray = true
+		indexStr := address[openBracket+1 : closeBracket]
+		index, err := strconv.ParseUint(indexStr, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid array index in address %s", address)
+		}
+		addr.ElementIndex = uint32(index)
+	} else if strings.Contains(address, "@") {
+		// Instance-based addressing (e.g., "Symbol@100.1")
+		parts := strings.Split(address, "@")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid instance address format: %s", address)
+		}
+		addr.IsSymbolic = false
+		instanceParts := strings.Split(parts[1], ".")
+		if len(instanceParts) != 2 {
+			return nil, fmt.Errorf("invalid instance.attribute format: %s", instanceParts[1])
+		}
+		instanceID, err := strconv.ParseUint(instanceParts[0], 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid instance ID in address %s", address)
+		}
+		addr.InstanceID = uint32(instanceID)
+
+		attributeID, err := strconv.ParseUint(instanceParts[1], 10, 8)
+		if err != nil {
+			return nil, fmt.Errorf("invalid attribute ID in address %s", address)
+		}
+		addr.AttributeID = uint8(attributeID)
+	} else {
+		// Simple symbolic tag name
+		addr.TagName = address
+	}
+
+	return addr, nil
+}
+
+

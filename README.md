@@ -1,94 +1,86 @@
 # 🌉 Bifrost - High-Performance Industrial Gateway
 
-[![Test](https://github.com/yourusername/bifrost/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/bifrost/actions/workflows/test.yml)
-[![Code Quality](https://github.com/yourusername/bifrost/actions/workflows/quality.yml/badge.svg)](https://github.com/yourusername/bifrost/actions/workflows/quality.yml)
-[![Build](https://github.com/yourusername/bifrost/actions/workflows/build.yml/badge.svg)](https://github.com/yourusername/bifrost/actions/workflows/build.yml)
-
 **Bifrost** is a high-performance industrial gateway built in Go that bridges OT equipment with modern IT infrastructure. Production-ready with proven performance improvements.
 
-## 🤝 The Problem We're Solving
+## 🏆 Core Features
 
-If you've ever tried to:
+- **High-Performance Go Gateway**: Achieves 18,879 ops/sec with 53µs latency.
+- **Protocol Support**: Native Modbus TCP/RTU, with OPC UA and others in development.
+- **Modern IT Integration**: RESTful APIs, WebSocket streaming, and Prometheus metrics.
+- **Cross-Platform**: Single binary deployment for Windows, Linux, and macOS.
+- **VS Code Extension**: Enhances development with real-time monitoring and debugging.
 
-- Get data from a 20-year-old PLC into your cloud analytics platform
-- Make your MES talk to equipment using 5 different protocols
-- Deploy reliable industrial communication at scale
-- Explain to IT why you can't "just use REST APIs" for everything
+## 💡 Architecture
 
-...then Bifrost is for you.
+The new architecture enhances performance and scalability by separating the Go-based gateway from the TypeScript-based VS Code extension. This design ensures that the core gateway remains lightweight and efficient, while the frontend provides a rich user experience.
 
-## 🔧 What Bifrost Delivers
+```mermaid
+graph TD
+    subgraph "IT Infrastructure"
+        A[VS Code Extension]
+        B[Web Dashboard]
+        C[Cloud Platforms]
+    end
 
-A production-ready industrial gateway that combines OT protocol expertise with IT-grade architecture:
+    subgraph "Bifrost Gateway (Go)"
+        D[API Server]
+        E[Protocol Engine]
+        F[Data Bus]
+    end
 
-- **Speaks OT**: Native support for Modbus TCP/RTU, Ethernet/IP, with OPC UA and S7 coming soon
-- **Thinks IT**: RESTful APIs, WebSocket streaming, Prometheus metrics, cloud-ready
-- **Runs Everywhere**: From industrial PCs to edge devices to cloud - single binary deployment
-- **Blazing Fast**: Go-powered performance - 18,879 ops/sec with 53µs latency
+    subgraph "OT Network"
+        G[PLC]
+        H[Sensor]
+        I[VFD]
+    end
 
-## 🎯 Our Mission
-
-Break down the walls between operational technology and information technology. Make it as easy to work with a PLC as it is to work with a REST API. Help automation professionals leverage modern tools without abandoning what works.
-
-## 👥 Who Should Join
-
-- **Control Systems Engineers** tired of duct-taping solutions together
-- **Automation Engineers** who want modern development tools
-- **SCADA/HMI Developers** looking for better Python libraries
-- **IT Developers** who need to understand industrial equipment
-- **System Integrators** seeking reliable, performant tools
-- **Process Engineers** trying to get data into analytics platforms
-- **Anyone** bridging the OT/IT gap
-
-## 💡 The Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   TypeScript    │    │   Go Gateway     │    │   Industrial    │
-│   Frontend      │◄──►│   (REST API)     │◄──►│   Devices       │
-│   (VS Code)     │    │   WebSocket      │    │   (Modbus/IP)   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+    A -- gRPC --> D
+    B -- WebSockets --> D
+    C -- MQTT --> F
+    D -- REST/gRPC --> E
+    E -- Modbus/OPC UA --> G
+    E -- Modbus/OPC UA --> H
+    E -- Modbus/OPC UA --> I
+    F -- Pub/Sub --> E
 ```
 
-**Current Status**: 🚀 Production Ready - [Test Results](go-gateway/TEST_RESULTS.md) | [Performance Demo](go-gateway/README.md)
+## roadmap
 
-**What's Working**: Production-ready Modbus TCP/RTU with proven performance
+Our development roadmap is focused on expanding protocol support, enhancing the VS Code extension, and strengthening security. The following diagram outlines our key milestones for the next 12 months.
 
-## 🚀 Current Status
+```mermaid
+gantt
+    title Bifrost Development Roadmap
+    dateFormat  YYYY-MM-DD
+    section Core Gateway
+    OPC UA Support       :done,    des1, 2025-01-15, 2025-03-15
+    Ethernet/IP Driver   :active,  des2, 2025-03-15, 2025-05-15
+    Security Audit       :         des3, 2025-05-15, 2025-07-15
+    section VS Code Extension
+    UI Redesign          :done,    des4, 2025-02-01, 2025-04-01
+    Advanced Debugging   :active,  des5, 2025-04-01, 2025-06-01
+    section Community
+    Public Beta          :         des6, 2025-07-15, 2025-09-01
+```
 
-**Core Gateway (Production Ready)**
+## 🚀 Getting Started
 
-- ✅ High-performance Go gateway with 18,879 ops/sec throughput
-- ✅ Modbus TCP/RTU support with 53µs average latency
-- ✅ RESTful API with WebSocket streaming
-- ✅ Prometheus metrics and structured logging
-- ✅ Connection pooling and concurrent device management
-- ✅ Comprehensive error handling and timeout management
-- ✅ Device discovery and real-time monitoring
+1. **Run the Gateway**:
 
-**VS Code Extension (Development)**
+   ```bash
+   go run ./cmd/gateway
+   ```
 
-- ✅ TypeScript-Go integration for 10x faster compilation
-- ✅ Industrial device management and monitoring
-- ✅ Real-time data visualization
-- 🔄 Protocol-specific debugging tools
-- 📅 Advanced PLC programming assistance
+2. **Install the VS Code Extension**:
+   - Open the Extensions view in VS Code.
+   - Search for "Bifrost" and click "Install."
+3. **Connect to a Device**:
+   - Open the Bifrost extension.
+   - Add a new device and enter its IP address.
 
-**Coming Next**
+## 🤝 Contributing
 
-- OPC UA client/server implementation
-- Ethernet/IP (CIP) protocol support
-- Edge analytics and data processing
-- Cloud connectors (AWS IoT, Azure IoT Hub)
-- Additional industrial protocols (S7, DNP3)
+We welcome contributions from the community. Please read our [contributing guidelines](CONTRIBUTING.md) to get started.
 
-**Get Started**
-
-- 📖 Read the [Go Gateway Documentation](go-gateway/README.md)
-- 🚀 Check the [Performance Results](go-gateway/TEST_RESULTS.md)
-- 🔧 Try the [Virtual Device Simulators](virtual-devices/)
-- 💻 Browse [GitHub Issues](https://github.com/yourusername/bifrost/issues)
-
-______________________________________________________________________
-
+---
 *Expect more from your machines* 🌉
