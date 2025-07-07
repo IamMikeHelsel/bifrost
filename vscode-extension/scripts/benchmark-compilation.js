@@ -28,11 +28,11 @@ class CompilationBenchmark {
         
         // Check if TypeScript-Go is available
         if (this.isTypescriptGoAvailable()) {
-            console.log('\n📊 Benchmarking TypeScript-Go compiler...');
-            await this.benchmarkCompiler('tsc-go', 'go', 5);
+            console.log('\n📊 Benchmarking TypeScript-Go native compiler...');
+            await this.benchmarkCompiler('npx tsgo', 'go', 5);
         } else {
             console.log('\n⚠️  TypeScript-Go not available. Skipping Go benchmark.');
-            console.log('   Install with: npm install @typescript/go@preview');
+            console.log('   Install with: npm install @typescript/native-preview');
         }
         
         this.displayResults();
@@ -47,7 +47,7 @@ class CompilationBenchmark {
     
     isTypescriptGoAvailable() {
         try {
-            execSync('tsc-go --version', { stdio: 'pipe' });
+            execSync('npx tsgo --version', { stdio: 'pipe' });
             return true;
         } catch {
             return false;

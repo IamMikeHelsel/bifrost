@@ -12,16 +12,17 @@ function checkTypescriptGo() {
     console.log('🔍 Checking for TypeScript-Go compiler...');
     
     try {
-        // Check if tsc-go is available
-        execSync('tsc-go --version', { stdio: 'pipe' });
+        // Check if tsgo (TypeScript-Go) is available
+        execSync('npx tsgo --version', { stdio: 'pipe' });
         console.log('✅ TypeScript-Go found! Using 10x faster compilation.');
+        console.log('🔥 Using native TypeScript compiler for maximum performance.');
         
         // Update npm scripts to use Go compiler
         updatePackageScripts(true);
         return true;
     } catch (error) {
         console.log('⚠️  TypeScript-Go not found. Using standard TypeScript compiler.');
-        console.log('💡 To enable 10x faster builds, install: npm install @typescript/go@preview');
+        console.log('💡 To enable 10x faster builds, install: npm install @typescript/native-preview');
         
         // Ensure fallback to standard TypeScript
         updatePackageScripts(false);
@@ -34,10 +35,10 @@ function updatePackageScripts(useGo) {
     const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
     
     if (useGo) {
-        // Use TypeScript-Go
-        pkg.scripts.compile = 'tsc-go -p ./';
-        pkg.scripts.watch = 'tsc-go -watch -p ./';
-        console.log('📝 Updated package.json to use TypeScript-Go');
+        // Use TypeScript-Go native compiler
+        pkg.scripts.compile = 'npx tsgo -p ./';
+        pkg.scripts.watch = 'npx tsgo -watch -p ./';
+        console.log('📝 Updated package.json to use TypeScript-Go native compiler');
     } else {
         // Fallback to standard TypeScript
         pkg.scripts.compile = 'tsc -p ./';

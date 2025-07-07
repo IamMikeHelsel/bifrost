@@ -163,7 +163,7 @@ export class DeviceManager {
         }
     }
     
-    private dataMonitoringIntervals = new Map<string, NodeJS.Timer>();
+    private dataMonitoringIntervals = new Map<string, NodeJS.Timeout>();
     
     private startDataMonitoring(device: Device): void {
         if (!device.tags || device.tags.length === 0) {

@@ -28,7 +28,7 @@ export class ConnectionPool {
     private readonly maxConnectionsPerHost: number;
     private readonly maxIdleTime: number;
     private readonly maxTotalConnections: number;
-    private cleanupTimer?: NodeJS.Timer;
+    private cleanupTimer?: NodeJS.Timeout;
     
     private stats: ConnectionStats = {
         totalConnections: 0,
@@ -247,7 +247,7 @@ export class MultiplexedConnection {
     private requests = new Map<string, {
         resolve: (value: any) => void;
         reject: (error: Error) => void;
-        timeout: NodeJS.Timer;
+        timeout: NodeJS.Timeout;
     }>();
     private nextRequestId = 1;
     

@@ -79,6 +79,27 @@ export class DataPointProvider implements vscode.TreeDataProvider<DataPointItem>
         
         return Promise.resolve([]);
     }
+    
+    // Update real-time data from WebSocket
+    updateRealTimeData(data: any): void {
+        // Process real-time data updates from Go gateway
+        if (data.device_id && data.tag_data) {
+            const device = this.deviceManager.getDevice(data.device_id);
+            if (device && device.tags) {
+                // Update tag values with real-time data
+                for (const tagUpdate of data.tag_data) {
+                    const tag = device.tags.find(t => t.address === tagUpdate.address);
+                    if (tag) {
+                        tag.value = tagUpdate.value;
+                        tag.timestamp = new Date(tagUpdate.timestamp);
+                    }
+                }
+                
+                // Refresh the tree to show updated values
+                this.refresh();
+            }
+        }
+    }
 }
 
 export class DataPointItem extends vscode.TreeItem {

@@ -167,6 +167,27 @@ export class DeviceTreeProvider implements vscode.TreeDataProvider<DeviceTreeIte
         }
         return `${seconds}s`;
     }
+    
+    // Update device status from WebSocket
+    updateDeviceStatus(data: any): void {
+        // Process device status updates from Go gateway
+        if (data.device_id && data.status) {
+            const device = this.deviceManager.getDeviceById(data.device_id);
+            if (device) {
+                const newStatus = data.status === 'connected' ? 
+                    DeviceStatus.Connected : 
+                    data.status === 'error' ? DeviceStatus.Error : DeviceStatus.Disconnected;
+                
+                if (device.status !== newStatus) {
+                    device.status = newStatus;
+                    device.lastSeen = new Date();
+                    
+                    // Refresh the tree to show updated status
+                    this.refresh();
+                }
+            }
+        }
+    }
 }
 
 export class DeviceTreeItem extends vscode.TreeItem {

@@ -3,6 +3,7 @@ import { DeviceManager } from '../services/deviceManager';
 import { DeviceTreeProvider } from '../providers/deviceTreeProvider';
 import { DataPointProvider } from '../providers/dataPointProvider';
 import { MonitorPanel } from '../panels/monitorPanel';
+import { spawn } from 'child_process';
 
 export class CommandHandler {
     constructor(
@@ -240,6 +241,107 @@ export class CommandHandler {
             });
         } catch (error) {
             vscode.window.showErrorMessage(`Export failed: ${error}`);
+        }
+    }
+    
+    async enableTypescriptGo(): Promise<void> {
+        const config = vscode.workspace.getConfiguration('bifrost');
+        const isEnabled = config.get('experimental.useTypescriptGo', false);
+        
+        if (isEnabled) {
+            vscode.window.showInformationMessage('TypeScript-Go is already enabled!');
+            return;
+        }
+        
+        const choice = await vscode.window.showInformationMessage(
+            'Enable experimental TypeScript-Go compiler for 10x faster builds?',
+            'Enable',
+            'Learn More',
+            'Cancel'
+        );
+        
+        if (choice === 'Enable') {
+            try {
+                // Check if TypeScript-Go is available
+                const { spawn } = require('child_process');
+                const child = spawn('npx', ['tsgo', '--version'], { stdio: 'pipe' });
+                
+                child.on('close', async (code: number) => {
+                    if (code === 0) {
+                        await config.update('experimental.useTypescriptGo', true, vscode.ConfigurationTarget.Global);
+                        vscode.window.showInformationMessage(
+                            'TypeScript-Go enabled! Restart VS Code to apply changes.',
+                            'Restart Now'
+                        ).then(choice => {
+                            if (choice === 'Restart Now') {
+                                vscode.commands.executeCommand('workbench.action.reloadWindow');
+                            }
+                        });
+                    } else {
+                        vscode.window.showErrorMessage(
+                            'TypeScript-Go not found. Install it first: npm install @typescript/native-preview'
+                        );
+                    }
+                });
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to enable TypeScript-Go: ${error}`);
+            }
+        } else if (choice === 'Learn More') {
+            vscode.env.openExternal(vscode.Uri.parse('https://github.com/microsoft/typescript-go'));
+        }
+    }
+    
+    async benchmarkPerformance(): Promise<void> {
+        try {
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Running TypeScript compilation benchmark...",
+                cancellable: false
+            }, async (progress) => {
+                progress.report({ increment: 0, message: "Starting benchmark..." });
+                
+                return new Promise<void>((resolve, reject) => {
+                    const child = spawn('npm', ['run', 'benchmark'], {
+                        cwd: this.context.extensionPath,
+                        stdio: 'pipe'
+                    });
+                    
+                    let output = '';
+                    
+                    child.stdout.on('data', (data) => {
+                        output += data.toString();
+                        progress.report({ increment: 20, message: "Running benchmarks..." });
+                    });
+                    
+                    child.stderr.on('data', (data) => {
+                        output += data.toString();
+                    });
+                    
+                    child.on('close', (code) => {
+                        if (code === 0) {
+                            // Show results in output channel
+                            const outputChannel = vscode.window.createOutputChannel('Bifrost Performance Benchmark');
+                            outputChannel.appendLine(output);
+                            outputChannel.show();
+                            
+                            vscode.window.showInformationMessage(
+                                'Performance benchmark completed! Check the output panel for results.',
+                                'View Results'
+                            ).then(choice => {
+                                if (choice === 'View Results') {
+                                    outputChannel.show();
+                                }
+                            });
+                            
+                            resolve();
+                        } else {
+                            reject(new Error(`Benchmark failed with code ${code}`));
+                        }
+                    });
+                });
+            });
+        } catch (error) {
+            vscode.window.showErrorMessage(`Benchmark failed: ${error}`);
         }
     }
 }

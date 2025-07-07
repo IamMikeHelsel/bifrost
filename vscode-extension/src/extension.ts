@@ -74,6 +74,14 @@ export function activate(context: vscode.ExtensionContext) {
         
         vscode.commands.registerCommand('bifrost.exportData', () => 
             commandHandler.exportData()
+        ),
+        
+        vscode.commands.registerCommand('bifrost.enableTypescriptGo', () => 
+            commandHandler.enableTypescriptGo()
+        ),
+        
+        vscode.commands.registerCommand('bifrost.benchmarkPerformance', () => 
+            commandHandler.benchmarkPerformance()
         )
     );
     
@@ -101,8 +109,25 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize with no connections
     statusBarItem.text = '$(debug-disconnect) Bifrost: Ready';
     statusBarItem.show();
+    
+    // Start real-time data streaming if enabled
+    const config = vscode.workspace.getConfiguration('bifrost');
+    if (config.get('realtime.enabled', true)) {
+        bifrostAPI.startRealTimeDataStream((data) => {
+            // Update device tree and data providers with real-time data
+            if (data.type === 'device_data') {
+                dataPointProvider.updateRealTimeData(data);
+            } else if (data.type === 'device_status') {
+                deviceTreeProvider.updateDeviceStatus(data);
+            }
+        });
+    }
 }
 
 export function deactivate() {
     console.log('Bifrost Industrial IoT extension is now deactivated');
+    
+    // Clean up API connections
+    const bifrostAPI = new BifrostAPI();
+    bifrostAPI.dispose();
 }

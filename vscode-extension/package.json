@@ -6,7 +6,7 @@
   "publisher": "bifrost-team",
   "icon": "media/bifrost-icon.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "node": ">=18.0.0"
   },
   "categories": [
     "Other",
@@ -182,7 +182,13 @@
         },
         "bifrost.defaultProtocol": {
           "type": "string",
-          "enum": ["modbus-tcp", "modbus-rtu", "opcua", "ethernet-ip", "s7"],
+          "enum": [
+            "modbus-tcp",
+            "modbus-rtu",
+            "opcua",
+            "ethernet-ip",
+            "s7"
+          ],
           "default": "modbus-tcp",
           "description": "Default protocol for device connections"
         },
@@ -198,14 +204,18 @@
         },
         "bifrost.theme": {
           "type": "string",
-          "enum": ["industrial-dark", "industrial-light", "auto"],
+          "enum": [
+            "industrial-dark",
+            "industrial-light",
+            "auto"
+          ],
           "default": "auto",
           "description": "UI theme for Bifrost panels"
         },
         "bifrost.experimental.useTypescriptGo": {
           "type": "boolean",
           "default": false,
-          "description": "Use experimental TypeScript-Go compiler for 10x faster builds (requires TypeScript 7.0 preview)"
+          "description": "Use experimental TypeScript-Go native compiler for 10x faster builds (requires @typescript/native-preview)"
         },
         "bifrost.performance.enableMetrics": {
           "type": "boolean",
@@ -216,6 +226,26 @@
           "type": "number",
           "default": 500,
           "description": "Maximum memory usage before warnings (MB)"
+        },
+        "bifrost.gateway.host": {
+          "type": "string",
+          "default": "localhost",
+          "description": "Bifrost Go gateway host address"
+        },
+        "bifrost.gateway.port": {
+          "type": "number",
+          "default": 8080,
+          "description": "Bifrost Go gateway port"
+        },
+        "bifrost.gateway.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to Go gateway on extension startup"
+        },
+        "bifrost.realtime.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time data streaming via WebSocket"
         }
       }
     },
@@ -248,11 +278,11 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "npm run compile:check && tsc -p ./",
-    "compile:go": "tsc-go -p ./ || npm run compile",
+    "compile": "npx tsgo -p ./",
+    "compile:go": "npx tsgo -p ./ || npm run compile",
     "compile:check": "node scripts/check-typescript-go.js",
-    "watch": "tsc -watch -p ./",
-    "watch:go": "tsc-go -watch -p ./ || npm run watch",
+    "watch": "npx tsgo -watch -p ./",
+    "watch:go": "npx tsgo -watch -p ./ || npm run watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
@@ -260,8 +290,8 @@
     "performance:analyze": "node scripts/analyze-performance.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "20.x",
+    "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
@@ -271,11 +301,9 @@
     "@typescript/go": "^7.0.0-preview"
   },
   "dependencies": {
+    "@typescript/native-preview": "^7.0.0-dev.20250705.1",
     "chart.js": "^4.4.1",
     "date-fns": "^3.0.6"
   },
-  "extensionDependencies": [],
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "extensionDependencies": []
 }

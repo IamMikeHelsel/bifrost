@@ -26,10 +26,10 @@ export class VirtualTreeProvider<T> implements vscode.TreeDataProvider<T> {
         this._onDidChangeTreeData.event;
     
     private cache = new Map<string, T[]>();
-    private readonly pageSize = 100;
+    protected readonly pageSize = 100;
     private expandedNodes = new Set<string>();
     
-    constructor(private dataProvider: DataProvider<T>) {}
+    constructor(protected dataProvider: DataProvider<T>) {}
     
     getTreeItem(element: T): vscode.TreeItem {
         const item = this.dataProvider.getTreeItem(element);
@@ -176,7 +176,7 @@ export class PaginatedTreeProvider<T> extends VirtualTreeProvider<T> {
     
     constructor(
         dataProvider: DataProvider<T>,
-        private readonly pageSize: number = 100
+        protected readonly paginatedPageSize: number = 100
     ) {
         super(dataProvider);
     }
@@ -207,7 +207,7 @@ export class PaginatedTreeProvider<T> extends VirtualTreeProvider<T> {
         
         // For now, return first page
         // TODO: Implement "Load More" functionality
-        const pageItems = allItems.slice(0, this.pageSize);
+        const pageItems = allItems.slice(0, this.paginatedPageSize);
         
         this.pageCache.set(cacheKey, {
             items: pageItems,
@@ -223,7 +223,7 @@ export class PaginatedTreeProvider<T> extends VirtualTreeProvider<T> {
         if (!cached) return;
         
         const nextPage = cached.page + 1;
-        const startIndex = nextPage * this.pageSize;
+        const startIndex = nextPage * this.paginatedPageSize;
         
         // TODO: Implement actual paginated loading
         // For now, this is a placeholder

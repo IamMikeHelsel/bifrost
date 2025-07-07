@@ -9,7 +9,7 @@ export interface Update {
 
 export class BatchUpdateManager {
     private pendingUpdates = new Map<string, Update>();
-    private updateTimer?: NodeJS.Timer;
+    private updateTimer?: NodeJS.Timeout;
     private readonly batchDelay = 16; // ~60 FPS
     private readonly maxBatchSize = 1000;
     
@@ -68,7 +68,7 @@ export class BatchUpdateManager {
 
 // Debounced function wrapper for expensive operations
 export class Debouncer {
-    private timers = new Map<string, NodeJS.Timer>();
+    private timers = new Map<string, NodeJS.Timeout>();
     
     debounce<T extends (...args: any[]) => any>(
         key: string, 
