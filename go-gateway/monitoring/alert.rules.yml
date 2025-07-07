@@ -1,0 +1,156 @@
+groups:
+  - name: bifrost-gateway
+    rules:
+      # High-level service availability
+      - alert: BifrostGatewayDown
+        expr: up{job="bifrost-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Bifrost Gateway is down"
+          description: "Bifrost Gateway has been down for more than 1 minute"
+
+      # Connection health
+      - alert: HighConnectionFailureRate
+        expr: rate(bifrost_connections_failed_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High connection failure rate detected"
+          description: "Connection failure rate is {{ $value }} failures per second"
+
+      - alert: TooManyActiveConnections
+        expr: bifrost_connections_active > 800
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many active connections"
+          description: "Active connections ({{ $value }}) approaching limit"
+
+      # Response time and performance
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(bifrost_request_duration_seconds_bucket[5m])) > 2.0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s"
+
+      - alert: HighErrorRate
+        expr: rate(bifrost_errors_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      # Resource utilization
+      - alert: HighMemoryUsage
+        expr: (go_memstats_heap_inuse_bytes / go_memstats_heap_sys_bytes) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # Industrial automation specific alerts
+      - alert: ModbusDeviceDisconnected
+        expr: bifrost_device_connected{protocol="modbus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Modbus device disconnected"
+          description: "Modbus device {{ $labels.device_id }} has been disconnected"
+
+      - alert: TagReadFailures
+        expr: rate(bifrost_tag_read_failures_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tag read failures detected"
+          description: "Tag read failure rate is {{ $value }} failures per second"
+
+      - alert: DataBufferOverflow
+        expr: bifrost_data_buffer_usage > 0.9
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Data buffer overflow risk"
+          description: "Data buffer usage is {{ $value | humanizePercentage }}"
+
+      # Network and connectivity
+      - alert: NetworkLatencyHigh
+        expr: histogram_quantile(0.95, rate(bifrost_network_latency_seconds_bucket[5m])) > 0.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network latency"
+          description: "95th percentile network latency is {{ $value }}s"
+
+      - alert: PacketLoss
+        expr: rate(bifrost_network_packets_lost_total[5m]) > 0.001
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Network packet loss detected"
+          description: "Packet loss rate is {{ $value }} packets per second"
+
+  - name: system-resources
+    rules:
+      - alert: DiskSpaceRunningLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk usage is {{ $value | humanizePercentage }}"
+
+      - alert: DiskSpaceCritical
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) > 0.95
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space critical"
+          description: "Disk usage is {{ $value | humanizePercentage }}"
+
+  - name: dependencies
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 1 minute"
+
+      - alert: ElasticsearchDown
+        expr: up{job="elasticsearch"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elasticsearch is down"
+          description: "Elasticsearch has been down for more than 1 minute"

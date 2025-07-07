@@ -1,0 +1,162 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: bifrost-psp
+  namespace: bifrost-system
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: true
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bifrost-network-policy
+  namespace: bifrost-system
+spec:
+  podSelector:
+    matchLabels:
+      app: bifrost-gateway
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: bifrost-system
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 2112
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 502  # Modbus TCP
+    - protocol: TCP
+      port: 4840 # OPC UA
+    - protocol: TCP
+      port: 44818 # EtherNet/IP
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: bifrost-peer-auth
+  namespace: bifrost-system
+spec:
+  selector:
+    matchLabels:
+      app: bifrost-gateway
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: bifrost-authz
+  namespace: bifrost-system
+spec:
+  selector:
+    matchLabels:
+      app: bifrost-gateway
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/bifrost-system/sa/bifrost-gateway"]
+    - source:
+        principals: ["cluster.local/ns/monitoring/sa/prometheus"]
+  - to:
+    - operation:
+        methods: ["GET", "POST"]
+        paths: ["/api/*", "/health", "/metrics", "/readiness"]
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bifrost-tls
+  namespace: bifrost-system
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t  # Base64 encoded certificate
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0t  # Base64 encoded private key
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bifrost-secrets
+  namespace: bifrost-system
+type: Opaque
+data:
+  redis-password: ""  # Base64 encoded Redis password
+  api-key: ""         # Base64 encoded API key
+  jwt-secret: ""      # Base64 encoded JWT secret
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: bifrost-gateway-minimal
+  namespace: bifrost-system
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+  resourceNames: ["bifrost-secrets", "bifrost-tls"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bifrost-gateway-minimal
+  namespace: bifrost-system
+subjects:
+- kind: ServiceAccount
+  name: bifrost-gateway
+  namespace: bifrost-system
+roleRef:
+  kind: Role
+  name: bifrost-gateway-minimal
+  apiGroup: rbac.authorization.k8s.io

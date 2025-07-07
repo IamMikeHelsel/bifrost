@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -43,12 +44,18 @@ type Config struct {
 func main() {
 	// Parse command-line flags
 	var (
-		configFile = flag.String("config", "gateway.yaml", "Path to configuration file")
-		logLevel   = flag.String("log-level", "info", "Log level (debug, info, warn, error)")
-		port       = flag.Int("port", 8080, "HTTP server port")
-		grpcPort   = flag.Int("grpc-port", 9090, "gRPC server port")
+		configFile  = flag.String("config", "gateway.yaml", "Path to configuration file")
+		logLevel    = flag.String("log-level", "info", "Log level (debug, info, warn, error)")
+		port        = flag.Int("port", 8080, "HTTP server port")
+		grpcPort    = flag.Int("grpc-port", 9090, "gRPC server port")
+		healthCheck = flag.Bool("health-check", false, "Perform health check and exit")
 	)
 	flag.Parse()
+
+	// Handle health check
+	if *healthCheck {
+		os.Exit(performHealthCheck())
+	}
 
 	// Load configuration
 	config, err := loadConfig(*configFile)
@@ -188,4 +195,23 @@ func setupLogger(level string) *zap.Logger {
 	}
 
 	return logger
+}
+
+func performHealthCheck() int {
+	// Simple health check - try to connect to the health endpoint
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	
+	resp, err := client.Get("http://localhost:8080/health")
+	if err != nil {
+		return 1
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode == http.StatusOK {
+		return 0
+	}
+	
+	return 1
 }

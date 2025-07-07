@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bifrost-gateway-service
+  namespace: bifrost-system
+  labels:
+    app: bifrost-gateway
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "2112"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    app: bifrost-gateway
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: grpc
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  - name: metrics
+    port: 2112
+    targetPort: 2112
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bifrost-gateway-headless
+  namespace: bifrost-system
+  labels:
+    app: bifrost-gateway
+spec:
+  selector:
+    app: bifrost-gateway
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: grpc
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  - name: metrics
+    port: 2112
+    targetPort: 2112
+    protocol: TCP
+  clusterIP: None
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bifrost-gateway-ingress
+  namespace: bifrost-system
+  labels:
+    app: bifrost-gateway
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - bifrost-gateway.company.com
+    secretName: bifrost-gateway-tls
+  rules:
+  - host: bifrost-gateway.company.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bifrost-gateway-service
+            port:
+              number: 8080

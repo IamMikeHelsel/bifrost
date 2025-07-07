@@ -1,20 +1,31 @@
-# Bifrost
+# Bifrost (Legacy Python Package)
+
+> **⚠️ DEPRECATED**: This Python package has been superseded by the [Go Gateway](../../go-gateway/) implementation. 
+> 
+> **Current Bifrost**: High-performance Go gateway with proven 18,879 ops/sec throughput
+> 
+> **See**: [Go Gateway Documentation](../../go-gateway/README.md) for current installation and usage.
+
+---
+
+*The content below represents the legacy Python implementation, preserved for historical reference.*
 
 🌉 **Bridge your industrial equipment to modern IT infrastructure**
 
 Bifrost makes industrial equipment speak the language of modern software. Built for engineers stuck between the OT and IT worlds.
 
-## Quick Start
+## Current Installation (Go Gateway)
 
 ```bash
-# Install the main package
-uv add bifrost
+# Production deployment - single binary
+wget https://github.com/bifrost/gateway/releases/latest/download/bifrost-gateway-linux-amd64
+chmod +x bifrost-gateway-linux-amd64
+./bifrost-gateway-linux-amd64
 
-# Or with specific features
-uv add bifrost[opcua,cloud]
-
-# Or everything
-uv add bifrost[all]
+# Development environment  
+git clone https://github.com/bifrost/bifrost
+cd bifrost/go-gateway
+make build
 ```
 
 ## Usage

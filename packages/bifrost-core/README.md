@@ -1,11 +1,24 @@
-# bifrost-core
+# bifrost-core (Legacy Python Package)
+
+> **⚠️ DEPRECATED**: This Python package has been superseded by the [Go Gateway](../../go-gateway/) implementation.
+> 
+> **Current Bifrost**: High-performance Go gateway with native protocol implementations
+> 
+> **See**: [Go Gateway Documentation](../../go-gateway/README.md) for current installation and usage.
+
+---
+
+*The content below represents the legacy Python implementation, preserved for historical reference.*
 
 Core abstractions and base classes for the Bifrost industrial IoT framework.
 
-## Installation
+## Current Installation (Go Gateway)
 
 ```bash
-uv add bifrost-core
+# Single binary deployment - no dependencies
+wget https://github.com/bifrost/gateway/releases/latest/download/bifrost-gateway-linux-amd64
+chmod +x bifrost-gateway-linux-amd64
+./bifrost-gateway-linux-amd64
 ```
 
 ## Usage
