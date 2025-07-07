@@ -4,8 +4,12 @@
   "description": "Bridge OT equipment to modern IT infrastructure with real-time monitoring, device discovery, and protocol debugging",
   "version": "0.1.0",
   "publisher": "bifrost-team",
-  "icon": "media/bifrost-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bifrost/bifrost"
+  },
   "engines": {
+    "vscode": "^1.85.0",
     "node": ">=18.0.0"
   },
   "categories": [
@@ -296,11 +300,9 @@
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
+    "@vscode/vsce": "^3.6.0",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
-  },
-  "optionalDependencies": {
-    "@typescript/go": "^7.0.0-preview"
   },
   "dependencies": {
     "@typescript/native-preview": "^7.0.0-dev.20250705.1",
