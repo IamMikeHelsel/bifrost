@@ -5,7 +5,7 @@
 ## 🏆 Core Features
 
 - **High-Performance Go Gateway**: Achieves 18,879 ops/sec with 53µs latency.
-- **Protocol Support**: Native Modbus TCP/RTU, with OPC UA and others in development.
+- **Protocol Support**: Native Modbus TCP/RTU (production ready), EtherNet/IP (in progress), with comprehensive fieldbus support planned (EtherCAT, BACnet, ProfiNet).
 - **Modern IT Integration**: RESTful APIs, WebSocket streaming, and Prometheus metrics.
 - **Cross-Platform**: Single binary deployment for Windows, Linux, and macOS.
 - **VS Code Extension**: Enhances development with real-time monitoring and debugging.
@@ -80,6 +80,13 @@ gantt
 
    - Open the Bifrost extension.
    - Add a new device and enter its IP address.
+
+## 📚 Documentation
+
+- **[Development Roadmap](docs/bifrost_dev_roadmap.md)**: Complete development timeline and current status
+- **[Protocol Implementation Plan](docs/FIELDBUS_PROTOCOLS_IMPLEMENTATION_PLAN.md)**: Comprehensive plan for EtherCAT, BACnet, and ProfiNet support
+- **[Protocol Integration Guide](docs/FIELDBUS_PROTOCOL_INTEGRATION_GUIDE.md)**: Technical guide for implementing new protocol handlers
+- **[Technical Specification](docs/bifrost_spec.md)**: Detailed architecture and API documentation
 
 ## 🤝 Contributing
 

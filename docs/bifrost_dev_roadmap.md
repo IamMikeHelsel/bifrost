@@ -94,9 +94,12 @@ ______________________________________________________________________
 **Protocol Implementation Strategy**:
 
 - ✅ **Native Go**: High-performance Modbus implementation (COMPLETE)
-- 🔄 **Ethernet/IP**: Native Go implementation (IN PROGRESS)
-- 📅 **OPC UA**: Future native implementation or CGO wrapper
-- 📅 **S7**: Future protocol support
+- 🔄 **Ethernet/IP**: Native Go implementation (IN PROGRESS) 
+- 📅 **EtherCAT**: pysoem integration via CGO bridge (PLANNED - Phase 5)
+- 📅 **BACnet**: Native Go implementation using go-bacnet (PLANNED - Phase 5)
+- 📅 **ProfiNet**: pnio-dcp + custom RT implementation (PLANNED - Phase 5)
+- 📅 **OPC UA**: Future native implementation or CGO wrapper (PLANNED - Phase 3)
+- 📅 **Extended Protocol Support**: Additional libraries and implementations (PLANNED - Phase 5)
 
 ### ✅ Deliverables Complete
 
@@ -354,7 +357,79 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 📅 Phase 5: Edge Analytics Engine (Future)
+## 📅 Phase 5: Extended Fieldbus Protocol Support (Planned)
+
+**Goal**: Comprehensive industrial communication protocol coverage
+
+### Implementation Plan
+For detailed implementation strategy, see: [Fieldbus Protocols Implementation Plan](FIELDBUS_PROTOCOLS_IMPLEMENTATION_PLAN.md)
+
+### Planned Deliverables
+
+- [ ] **EtherCAT Support (Priority: High)**
+  - [ ] Integration with pysoem library via CGO bridge
+  - [ ] Real-time cyclic data exchange (< 1ms cycle time)
+  - [ ] Distributed Clock (DC) synchronization
+  - [ ] Slave auto-discovery and configuration
+  - [ ] Process data mapping and domain handling
+
+- [ ] **BACnet Support (Priority: High)**
+  - [ ] Native Go implementation using go-bacnet library
+  - [ ] BACnet/IP protocol support with object discovery
+  - [ ] Property read/write operations for all standard objects
+  - [ ] Change of Value (COV) subscription support
+  - [ ] Network routing and time synchronization
+
+- [ ] **ProfiNet Support (Priority: Medium)**
+  - [ ] DCP device discovery using pnio-dcp library
+  - [ ] Custom ProfiNet RT communication layer
+  - [ ] GSDML file parsing and device configuration
+  - [ ] Real-time data exchange with sub-10ms cycles
+  - [ ] Advanced features (alarms, diagnostics, topology)
+
+- [ ] **Enhanced Protocol Libraries**
+  - [ ] Alternative Modbus implementations (go-modbus, jsmodbus)
+  - [ ] Enhanced EtherNet/IP support (pycomm3, go-ethernet-ip, ts-enip)
+  - [ ] Protocol-specific optimization and features
+
+### Technical Integration
+
+- [ ] **Unified Protocol Handler Integration**
+  - [ ] All protocols implement common ProtocolHandler interface
+  - [ ] Consistent API endpoints and WebSocket streaming
+  - [ ] Protocol auto-detection and registration system
+  - [ ] Cross-protocol device discovery and management
+
+- [ ] **Performance Optimization**
+  - [ ] Connection pooling for all protocols
+  - [ ] Real-time scheduling for time-critical protocols
+  - [ ] Memory optimization for edge deployment
+  - [ ] Protocol multiplexing and batch operations
+
+### Performance Targets
+
+| Protocol | Target Connections | Latency Goal | Throughput Goal |
+|----------|-------------------|--------------|-----------------|
+| EtherCAT | 50+ slaves | < 1ms cycle | 10,000+ I/O points |
+| BACnet | 100+ devices | < 100ms | 1,000+ objects/sec |
+| ProfiNet | 25+ devices | < 10ms cycle | 5,000+ I/O points |
+
+### Testing Framework
+
+- [ ] **Protocol-specific testing suites**
+  - [ ] Real device communication tests
+  - [ ] Protocol conformance validation
+  - [ ] Performance benchmarking for each protocol
+  - [ ] Long-term stability testing
+
+- [ ] **Virtual device simulators**
+  - [ ] EtherCAT slave simulators
+  - [ ] BACnet device simulators
+  - [ ] ProfiNet device simulators
+
+______________________________________________________________________
+
+## 📅 Phase 6: Edge Analytics Engine (Future)
 
 **Goal**: Real-time data processing and analytics capabilities
 
@@ -392,7 +467,7 @@ type AnalyticsEngine struct {
 
 ______________________________________________________________________
 
-## 📅 Phase 6: Cloud Connectors (Future)
+## 📅 Phase 7: Cloud Connectors (Future)
 
 **Goal**: Reliable, efficient edge-to-cloud connectivity
 
