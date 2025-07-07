@@ -260,9 +260,23 @@ GET /health                         # Health checks
 ```bash
 # Initial setup
 just dev-setup                     # Set up Go + TypeScript development environment
+just install-hooks                 # Install pre-commit hooks
+
+# Root-level Development Commands
+just dev                           # Full dev cycle (format + lint + test)
+just check                         # Quick check (format + lint + typecheck)
+just fmt                           # Format all code
+just lint                          # Lint all code
+just test                          # Run all tests
+just test-cov                      # Run tests with coverage
+just build                         # Build all packages
+just build-rust                    # Build Rust components only
 
 # Go Gateway Development
 cd go-gateway
+just run                           # Build and run gateway
+just bench                         # Run benchmarks
+just perf-test                     # Run performance tests
 make dev                           # Run in development mode with hot reload
 make build                         # Build production binary
 make test                          # Run all tests with coverage
