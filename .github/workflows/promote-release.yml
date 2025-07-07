@@ -27,6 +27,10 @@ on:
       - 'packages/*/Cargo.toml'
     # Only if version was manually bumped in main
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   promote:
     runs-on: ubuntu-latest
