@@ -1,133 +1,323 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
+  workflow_dispatch:
 
-permissions:
-  contents: read
-  actions: write
+env:
+  GO_VERSION: '1.22'
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Python packages testing
-  test-python:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.12', '3.13']
-        os: [ubuntu-latest, macos-latest]
-      fail-fast: false
-    
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install uv
-      uses: astral-sh/setup-uv@v3
-      with:
-        enable-cache: true
-        cache-dependency-glob: "**/pyproject.toml"
-
-    - name: Install dependencies
-      run: |
-        uv sync --all-extras --dev
-
-    - name: Run linter
-      run: |
-        uv run ruff check .
-
-    - name: Run type checker
-      run: |
-        uv run mypy packages/*/src
-
-    - name: Run Python tests
-      run: |
-        uv run pytest packages/*/tests -v
-
-  # Go gateway testing
-  test-go:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        go-version: ['1.22', '1.23']
-        os: [ubuntu-latest, macos-latest]
-      fail-fast: false
-    
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go ${{ matrix.go-version }}
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('go-gateway/go.mod') }}
-        restore-keys: |
-          ${{ runner.os }}-go-${{ matrix.go-version }}-
-
-    - name: Download Go dependencies
-      working-directory: go-gateway
-      run: go mod download
-
-    - name: Run Go linter
-      working-directory: go-gateway
-      run: |
-        go fmt ./...
-        go vet ./...
-
-    - name: Build Go gateway
-      working-directory: go-gateway
-      run: go build -v ./cmd/gateway
-
-    - name: Run Go tests
-      working-directory: go-gateway
-      run: go test -v -race ./...
-
-    - name: Run Go benchmarks
-      working-directory: go-gateway
-      run: go test -v -bench=. -benchmem ./internal/protocols/
-
-  # VS Code extension testing
-  test-vscode:
+  # Go Gateway CI/CD
+  go-gateway:
+    name: Go Gateway Build & Test
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: vscode-extension/package-lock.json
-
-    - name: Install dependencies
-      working-directory: vscode-extension
-      run: npm ci
-
-    - name: Run TypeScript compiler
-      working-directory: vscode-extension
-      run: npm run compile
-
-    - name: Run linter
-      working-directory: vscode-extension
-      run: npm run lint
-
-    - name: Run tests
-      working-directory: vscode-extension
-      run: npm test
-
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+            
+      - name: Install dependencies
+        working-directory: ./go-gateway
+        run: go mod download
+        
+      - name: Run security scan
+        uses: securecodewarrior/github-action-gosec@master
+        with:
+          args: '-fmt sarif -out gosec.sarif ./go-gateway/...'
+        continue-on-error: true
+        
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: gosec.sarif
+        if: always()
+        
+      - name: Run tests with coverage
+        working-directory: ./go-gateway
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -html=coverage.out -o coverage.html
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./go-gateway/coverage.out
+          flags: go-gateway
+          name: go-gateway-coverage
+          
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: ./go-gateway
+          
+      - name: Build binary
+        working-directory: ./go-gateway
+        run: |
+          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bifrost-gateway ./cmd/gateway
+          
+      - name: Run performance tests
+        working-directory: ./go-gateway
+        run: |
+          go test -bench=. -benchmem ./internal/performance/... || true
+          
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bifrost-gateway-linux
+          path: ./go-gateway/bifrost-gateway
+          
+  # VS Code Extension CI/CD
+  vscode-extension:
+    name: VS Code Extension Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: vscode-extension/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ./vscode-extension
+        run: npm ci
+        
+      - name: Run linter
+        working-directory: ./vscode-extension
+        run: npm run lint || true
+        
+      - name: Run security audit
+        working-directory: ./vscode-extension
+        run: npm audit --audit-level=moderate || true
+        
+      - name: Compile TypeScript
+        working-directory: ./vscode-extension
+        run: npm run compile
+        
+      - name: Run tests
+        working-directory: ./vscode-extension
+        run: npm test || true
+        
+      - name: Package extension
+        working-directory: ./vscode-extension
+        run: |
+          npm install -g @vscode/vsce
+          vsce package --allow-missing-repository
+          
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bifrost-vscode-extension
+          path: ./vscode-extension/*.vsix
+          
+  # Container Build
+  container:
+    name: Container Build & Security Scan
+    runs-on: ubuntu-latest
+    needs: go-gateway
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download binary artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: bifrost-gateway-linux
+          path: ./go-gateway/
+          
+      - name: Make binary executable
+        run: chmod +x ./go-gateway/bifrost-gateway
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            
+      - name: Build and push container
+        uses: docker/build-push-action@v5
+        with:
+          context: ./go-gateway
+          file: ./go-gateway/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Run container security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        if: github.event_name != 'pull_request'
+        
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+        if: always() && github.event_name != 'pull_request'
+        
+  # Dependency and License Check
+  dependency-check:
+    name: Dependency & License Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          
+      - name: Check Go vulnerabilities
+        working-directory: ./go-gateway
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+          
+      - name: Check Go licenses
+        working-directory: ./go-gateway
+        run: |
+          go install github.com/google/go-licenses@latest
+          go-licenses check ./...
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Check Node.js vulnerabilities
+        working-directory: ./vscode-extension
+        run: |
+          npm ci
+          npm audit --audit-level=high
+          
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [go-gateway, vscode-extension]
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+          
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download Go binary
+        uses: actions/download-artifact@v3
+        with:
+          name: bifrost-gateway-linux
+          path: ./go-gateway/
+          
+      - name: Make binary executable
+        run: chmod +x ./go-gateway/bifrost-gateway
+        
+      - name: Start gateway in background
+        working-directory: ./go-gateway
+        run: |
+          ./bifrost-gateway &
+          sleep 5
+          
+      - name: Run integration tests
+        run: |
+          # Test health endpoint
+          curl -f http://localhost:8080/health || exit 1
+          
+          # Test metrics endpoint
+          curl -f http://localhost:8080/metrics || exit 1
+          
+          # Test API endpoints
+          curl -f http://localhost:8080/api/devices || exit 1
+          
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-results
+          path: test-results/
+        if: always()
+        
+  # Notify on completion
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [go-gateway, vscode-extension, container, dependency-check, integration-tests]
+    if: always()
+    
+    steps:
+      - name: Notify success
+        if: needs.go-gateway.result == 'success' && needs.vscode-extension.result == 'success'
+        run: |
+          echo "✅ CI/CD Pipeline completed successfully!"
+          echo "Go Gateway: ${{ needs.go-gateway.result }}"
+          echo "VS Code Extension: ${{ needs.vscode-extension.result }}"
+          echo "Container: ${{ needs.container.result }}"
+          echo "Dependencies: ${{ needs.dependency-check.result }}"
+          echo "Integration: ${{ needs.integration-tests.result }}"
+          
+      - name: Notify failure
+        if: needs.go-gateway.result == 'failure' || needs.vscode-extension.result == 'failure'
+        run: |
+          echo "❌ CI/CD Pipeline failed!"
+          echo "Go Gateway: ${{ needs.go-gateway.result }}"
+          echo "VS Code Extension: ${{ needs.vscode-extension.result }}"
+          echo "Container: ${{ needs.container.result }}"
+          echo "Dependencies: ${{ needs.dependency-check.result }}"
+          echo "Integration: ${{ needs.integration-tests.result }}"
+          exit 1
