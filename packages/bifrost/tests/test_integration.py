@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 from bifrost.cli import app as cli_app
 from bifrost.connections import ConnectionFactory
 from bifrost.discovery import discover_devices
-from bifrost.modbus import ModbusConnection
+from bifrost.modbus import ModbusConnection, ModbusDevice
 from bifrost_core import (
     DataType,
     DeviceInfo,
@@ -223,7 +223,7 @@ class TestEndToEndModbusWorkflow:
 
             connection = ModbusConnection("192.168.1.100", 502)
             device = ModbusDevice(connection)
-            async with connection as conn:
+            async with connection:
                 # Test batch read
                 readings = await device.read(
                     [
@@ -409,9 +409,7 @@ class TestEventSystemIntegration:
         async def event_handler(event):
             events_received.append(event)
 
-        # Subscribe to all events
-        event_bus = EventBus()
-        # event_bus.subscribe_global(event_handler) # No subscribe_global in new EventBus
+        # Note: EventBus subscribe_global not available in new version
 
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
             mock_client = AsyncMock()

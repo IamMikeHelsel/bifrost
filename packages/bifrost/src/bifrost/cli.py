@@ -5,6 +5,7 @@ including device discovery and network scanning capabilities.
 """
 
 import asyncio
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -16,7 +17,7 @@ from rich.text import Text
 from .discovery import DiscoveryConfig, discover_devices
 
 
-def complete_protocols(incomplete: str):
+def complete_protocols(incomplete: str) -> list[str]:
     """Autocomplete function for protocol options."""
     protocols = ["modbus", "cip", "bootp", "ethernet_ip"]
     return [
@@ -24,7 +25,7 @@ def complete_protocols(incomplete: str):
     ]
 
 
-def complete_network_ranges(incomplete: str):
+def complete_network_ranges(incomplete: str) -> list[str]:
     """Autocomplete function for common network ranges."""
     common_ranges = [
         "192.168.1.0/24",
@@ -41,7 +42,7 @@ def complete_network_ranges(incomplete: str):
     ]
 
 
-def complete_timeouts(incomplete: str):
+def complete_timeouts(incomplete: str) -> list[str]:
     """Autocomplete function for timeout values."""
     timeouts = ["0.5", "1.0", "2.0", "5.0", "10.0"]
     return [timeout for timeout in timeouts if timeout.startswith(incomplete)]
@@ -376,7 +377,7 @@ def discover(
                     confidence_text, style=confidence_style
                 )
 
-                row_data = [
+                row_data: list[Any] = [
                     device.host,
                     str(device.port),
                     device.protocol,
