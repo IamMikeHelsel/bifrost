@@ -159,7 +159,7 @@ curl -X POST http://localhost:8080/api/tags/write \
 wscat -c ws://localhost:8080/ws
 ```
 
-### 3.2 Protocol Handler System (`internal/protocols/`)
+### 4.2 Protocol Handler System (`internal/protocols/`)
 
 #### Supported Protocols
 
