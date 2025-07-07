@@ -8,11 +8,12 @@ using the modern pymodbus 3.x API.
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, List, Optional
 
 from pymodbus.client import ModbusTcpClient
 
 
-def test_sequential_reads(host="127.0.0.1", port=502, iterations=1000):
+def test_sequential_reads(host: str = "127.0.0.1", port: int = 502, iterations: int = 1000) -> Optional[Dict[str, float]]:
     """Test sequential read performance."""
     print(f"Python Sequential Read Test ({iterations} iterations)...")
 
@@ -68,7 +69,7 @@ def test_sequential_reads(host="127.0.0.1", port=502, iterations=1000):
     return None
 
 
-def worker_thread(thread_id, host, port, reads_per_thread):
+def worker_thread(thread_id: int, host: str, port: int, reads_per_thread: int) -> tuple[int, List[float]]:
     """Worker function for concurrent test."""
     client = ModbusTcpClient(host=host, port=port)
 
@@ -99,8 +100,8 @@ def worker_thread(thread_id, host, port, reads_per_thread):
 
 
 def test_concurrent_reads(
-    host="127.0.0.1", port=502, num_threads=10, reads_per_thread=100
-):
+    host: str = "127.0.0.1", port: int = 502, num_threads: int = 10, reads_per_thread: int = 100
+) -> Optional[Dict[str, float]]:
     """Test concurrent read performance."""
     print(
         f"Python Concurrent Read Test ({num_threads} threads, {reads_per_thread} reads each)..."
@@ -150,7 +151,7 @@ def test_concurrent_reads(
     return None
 
 
-def test_write_operations(host="127.0.0.1", port=502, iterations=100):
+def test_write_operations(host: str = "127.0.0.1", port: int = 502, iterations: int = 100) -> Optional[Dict[str, float]]:
     """Test write operation performance."""
     print(f"Python Write Test ({iterations} iterations)...")
 
@@ -208,7 +209,7 @@ def test_write_operations(host="127.0.0.1", port=502, iterations=100):
     return None
 
 
-def main():
+def main() -> int:
     """Run Python benchmarks and compare with Go results."""
     print("Python Modbus Performance Benchmark")
     print("=" * 50)

@@ -215,7 +215,7 @@ class ModbusDevice(PLC):
             function_code = 3  # Read Holding Registers
             address = int(addr_str) - 40001
         else:
-            raise ValueError(f"Invalid Modbus address format: {address}")
+            raise ValueError(f"Invalid Modbus address format: {addr_str}")
 
         return function_code, address, count
 

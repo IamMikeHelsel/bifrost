@@ -4,7 +4,7 @@
 from pymodbus.client import ModbusTcpClient
 
 
-def test_simple_read():
+def test_simple_read() -> None:
     """Test a simple read operation with debug info."""
     print("Testing simple Modbus read...")
 

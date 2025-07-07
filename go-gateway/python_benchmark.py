@@ -8,6 +8,7 @@ to demonstrate the performance improvements achieved with the Go backend.
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Dict, List, Optional
 
 from pymodbus.client import ModbusTcpClient
 
@@ -15,7 +16,7 @@ from pymodbus.client import ModbusTcpClient
 class PythonModbusBenchmark:
     """Python Modbus performance benchmark for comparison with Go gateway."""
 
-    def __init__(self, host="127.0.0.1", port=502, unit_id=1):
+    def __init__(self, host: str = "127.0.0.1", port: int = 502, unit_id: int = 1) -> None:
         """Initializes the PythonModbusBenchmark with host, port, and unit ID."""
         self.host = host
         self.port = port
@@ -23,7 +24,7 @@ class PythonModbusBenchmark:
         self.client = None
         self.results = []
 
-    def connect(self):
+    def connect(self) -> bool:
         """Connect to Modbus device."""
         try:
             self.client = ModbusTcpClient(host=self.host, port=self.port)
@@ -35,12 +36,12 @@ class PythonModbusBenchmark:
             print(f"Connection failed: {e}")
             return False
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from Modbus device."""
         if self.client:
             self.client.close()
 
-    def read_holding_register(self, address, count=1):
+    def read_holding_register(self, address: int, count: int = 1) -> Optional[List[int]]:
         """Read holding register(s)."""
         try:
             if not self.client:
@@ -79,7 +80,7 @@ class PythonModbusBenchmark:
             print(f"Write error: {e}")
             return False
 
-    def benchmark_sequential_reads(self, iterations=1000):
+    def benchmark_sequential_reads(self, iterations: int = 1000) -> Optional[Dict[str, Any]]:
         """Benchmark sequential read operations."""
         print(
             f"\nPython Sequential Read Benchmark ({iterations} iterations)..."
@@ -88,8 +89,9 @@ class PythonModbusBenchmark:
         if not self.connect():
             return None
 
-        _address = 40001  # First holding register
+        address = 40001  # First holding register
         success_count = 0
+        latencies: List[float] = []
 
         start_time = time.time()
 
@@ -138,7 +140,7 @@ class PythonModbusBenchmark:
 
         return None
 
-    def benchmark_concurrent_reads(self, num_threads=10, reads_per_thread=100):
+    def benchmark_concurrent_reads(self, num_threads: int = 10, reads_per_thread: int = 100) -> Optional[Dict[str, Any]]:
         """Benchmark concurrent read operations."""
         print(
             f"\nPython Concurrent Read Benchmark ({num_threads} threads, {reads_per_thread} reads each)..."
@@ -149,7 +151,7 @@ class PythonModbusBenchmark:
         success_count = 0
         latencies = []
 
-        def worker_thread(thread_id):
+        def worker_thread(thread_id: int) -> tuple[List[float], int]:
             # Each thread gets its own client connection
             client = ModbusTcpClient(host=self.host, port=self.port)
             if not client.connect():
@@ -159,7 +161,7 @@ class PythonModbusBenchmark:
             thread_success = 0
 
             try:
-                for _i in range(iterations):
+                for _i in range(reads_per_thread):
                     read_start = time.time()
                     result = client.read_holding_registers(
                         0, 1, slave=self.unit_id
@@ -231,7 +233,7 @@ class PythonModbusBenchmark:
 
         return None
 
-    def benchmark_read_write_operations(self, iterations=100):
+    def benchmark_read_write_operations(self, iterations: int = 100) -> Optional[Dict[str, Any]]:
         """Benchmark read/write operations."""
         print(f"\nPython Read/Write Benchmark ({iterations} iterations)...")
 
@@ -247,7 +249,7 @@ class PythonModbusBenchmark:
 
         start_time = time.time()
 
-        for _i in range(iterations):
+        for i in range(iterations):
             test_value = 1000 + i  # Different value each time
 
             # Write operation
@@ -303,7 +305,7 @@ class PythonModbusBenchmark:
 
         return None
 
-    def run_all_benchmarks(self):
+    def run_all_benchmarks(self) -> List[Dict[str, Any]]:
         """Run all benchmark tests."""
         print("Python Modbus Performance Benchmark")
         print("=" * 50)
@@ -339,7 +341,7 @@ class PythonModbusBenchmark:
 
         return results
 
-    def compare_with_go_results(self, go_results):
+    def compare_with_go_results(self, go_results: List[Dict[str, Any]]) -> None:
         """Compare Python results with Go gateway results."""
         print("\n" + "=" * 60)
         print("PERFORMANCE COMPARISON: Python vs Go Gateway")
@@ -384,7 +386,7 @@ class PythonModbusBenchmark:
         return python_results
 
 
-def main():
+def main() -> int:
     """Main benchmark execution."""
     # Create benchmark instance
     benchmark = PythonModbusBenchmark()
