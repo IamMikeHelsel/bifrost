@@ -1,6 +1,6 @@
 # 🌉 Bifrost - High-Performance Industrial Gateway
 
-**Bifrost** is a high-performance industrial gateway built in Go that bridges OT equipment with modern IT infrastructure. Production-ready with proven performance improvements.
+**Bifrost** is a high-performance industrial gateway built in Go that bridges OT equipment with modern IT infrastructure. This project is in its infancy and would benefit significantly from folks with expertise using it, finding does and does not work and helping us get a useful set of tools assembled. 
 
 ## 🏆 Core Features
 
