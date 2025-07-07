@@ -299,3 +299,6 @@ requirements_lock.txt
 *.swo
 *~
 .DS_Store
+
+# Third-party dependencies (large external libraries)
+third_party/open62541/
