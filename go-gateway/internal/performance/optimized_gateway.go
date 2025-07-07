@@ -366,30 +366,30 @@ func (og *OptimizedGateway) collectProtocolBatch(ctx context.Context, protocol s
 	}
 
 	// Prepare batch requests
-	var batchRequests []*BatchRequest
+	// var batchRequests []*BatchRequest // Declared and not used
 
 	for _, device := range devices {
 		for _, tag := range device.Tags {
-			request := og.memoryOptimizer.AcquireRequest()
-			request.ID = fmt.Sprintf("%s_%s", device.ID, tag.ID)
-			request.DeviceID = device.ID
-			request.Operation = "read"
-			request.Address = tag.Address
-			// request.CanBatch = true // Commented out as CanBatch is not a field of Request
-			// request.Context = ctx // Commented out as Context is not a field of Request
+			// request := og.memoryOptimizer.AcquireRequest() // Declared and not used
+			// request.ID = fmt.Sprintf("%s_%s", device.ID, tag.ID)
+			// request.DeviceID = device.ID
+			// request.Operation = "read"
+			// request.Address = tag.Address
+			// // request.CanBatch = true // Commented out as CanBatch is not a field of Request
+			// // request.Context = ctx // Commented out as Context is not a field of Request
 
-			// Set callback for result processing
-			// request.Callback = func(result interface{}, err error) { // Commented out as Callback is not a field of Request
-			// 	defer og.memoryOptimizer.ReleaseRequest(request)
+			// // Set callback for result processing
+			// // request.Callback = func(result interface{}, err error) { // Commented out as Callback is not a field of Request
+			// // 	defer og.memoryOptimizer.ReleaseRequest(request)
 
-			// 	if err != nil {
-			// 		og.handleReadError(device, tag, err)
-			// 	} else {
-			// 		og.handleReadSuccess(device, tag, result)
-			// 	}
-			// }
+			// // 	if err != nil {
+			// // 		og.handleReadError(device, tag, err)
+			// // 	} else {
+			// // 		og.handleReadSuccess(device, tag, result)
+			// // 	}
+			// // }
 
-			// batchRequests = append(batchRequests, request) // Commented out as Request cannot be converted to BatchRequest
+			// // batchRequests = append(batchRequests, request) // Commented out as Request cannot be converted to BatchRequest
 		}
 	}
 

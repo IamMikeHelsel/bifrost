@@ -67,3 +67,9 @@ func (h *OPCUAHandler) GetDiagnostics(device *Device) (*Diagnostics, error) {
 	return &Diagnostics{},
 		nil
 }
+
+// GetSupportedDataTypes returns a list of data types supported by the OPC-UA protocol.
+func (h *OPCUAHandler) GetSupportedDataTypes() []string {
+	// TODO: Return actual supported data types.
+	return []string{"bool", "int16", "int32", "float32", "string"}
+}

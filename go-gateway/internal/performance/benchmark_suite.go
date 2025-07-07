@@ -3,7 +3,6 @@ package performance
 import (
 	"context"
 	"fmt"
-	"math"
 	"runtime"
 	"sort"
 	"sync"
