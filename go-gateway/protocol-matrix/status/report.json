@@ -1,10 +1,10 @@
 {
-  "GeneratedAt": "2025-07-08T14:16:51.869107525Z",
-  "OverallStatus": "not_run",
-  "TotalTests": 0,
-  "PassedTests": 0,
+  "GeneratedAt": "2025-07-08T14:19:34.963212328Z",
+  "OverallStatus": "passed",
+  "TotalTests": 10,
+  "PassedTests": 10,
   "FailedTests": 0,
-  "CoveragePercent": 0,
+  "CoveragePercent": 100,
   "ProtocolStatus": {
     "ethernetip": {
       "Name": "ethernetip",
@@ -17,12 +17,12 @@
     },
     "modbus": {
       "Name": "modbus",
-      "Status": "not_run",
-      "TestsRun": 0,
-      "TestsPassed": 0,
+      "Status": "passed",
+      "TestsRun": 10,
+      "TestsPassed": 10,
       "TestsFailed": 0,
-      "CoveragePercent": 0,
-      "LastRun": "2024-07-08T14:00:00Z"
+      "CoveragePercent": 100,
+      "LastRun": "2025-07-08T14:17:11.615980447Z"
     },
     "opcua": {
       "Name": "opcua",
