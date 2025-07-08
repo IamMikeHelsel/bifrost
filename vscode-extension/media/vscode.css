@@ -1,0 +1,173 @@
+/* VS Code theme variables and base styles */
+
+:root {
+  /* VS Code color tokens - these will be automatically replaced by VS Code */
+  --vscode-foreground: var(--vscode-foreground);
+  --vscode-disabledForeground: var(--vscode-disabledForeground);
+  --vscode-errorForeground: var(--vscode-errorForeground);
+  --vscode-descriptionForeground: var(--vscode-descriptionForeground);
+  --vscode-icon-foreground: var(--vscode-icon-foreground);
+  
+  --vscode-focusBorder: var(--vscode-focusBorder);
+  --vscode-textSeparator-foreground: var(--vscode-textSeparator-foreground);
+  --vscode-textLink-foreground: var(--vscode-textLink-foreground);
+  --vscode-textLink-activeForeground: var(--vscode-textLink-activeForeground);
+  --vscode-textPreformat-foreground: var(--vscode-textPreformat-foreground);
+  --vscode-textBlockQuote-background: var(--vscode-textBlockQuote-background);
+  --vscode-textBlockQuote-border: var(--vscode-textBlockQuote-border);
+  --vscode-textCodeBlock-background: var(--vscode-textCodeBlock-background);
+  
+  --vscode-widget-shadow: var(--vscode-widget-shadow);
+  --vscode-input-background: var(--vscode-input-background);
+  --vscode-input-foreground: var(--vscode-input-foreground);
+  --vscode-input-border: var(--vscode-input-border);
+  --vscode-input-placeholderForeground: var(--vscode-input-placeholderForeground);
+  --vscode-inputOption-activeBorder: var(--vscode-inputOption-activeBorder);
+  --vscode-inputValidation-infoBackground: var(--vscode-inputValidation-infoBackground);
+  --vscode-inputValidation-infoBorder: var(--vscode-inputValidation-infoBorder);
+  --vscode-inputValidation-warningBackground: var(--vscode-inputValidation-warningBackground);
+  --vscode-inputValidation-warningBorder: var(--vscode-inputValidation-warningBorder);
+  --vscode-inputValidation-errorBackground: var(--vscode-inputValidation-errorBackground);
+  --vscode-inputValidation-errorBorder: var(--vscode-inputValidation-errorBorder);
+  
+  --vscode-dropdown-background: var(--vscode-dropdown-background);
+  --vscode-dropdown-foreground: var(--vscode-dropdown-foreground);
+  --vscode-dropdown-border: var(--vscode-dropdown-border);
+  
+  --vscode-button-background: var(--vscode-button-background);
+  --vscode-button-foreground: var(--vscode-button-foreground);
+  --vscode-button-border: var(--vscode-button-border);
+  --vscode-button-hoverBackground: var(--vscode-button-hoverBackground);
+  --vscode-button-secondaryBackground: var(--vscode-button-secondaryBackground);
+  --vscode-button-secondaryForeground: var(--vscode-button-secondaryForeground);
+  --vscode-button-secondaryHoverBackground: var(--vscode-button-secondaryHoverBackground);
+  
+  --vscode-badge-background: var(--vscode-badge-background);
+  --vscode-badge-foreground: var(--vscode-badge-foreground);
+  
+  --vscode-progressBar-background: var(--vscode-progressBar-background);
+  
+  --vscode-list-activeSelectionBackground: var(--vscode-list-activeSelectionBackground);
+  --vscode-list-activeSelectionForeground: var(--vscode-list-activeSelectionForeground);
+  --vscode-list-inactiveSelectionBackground: var(--vscode-list-inactiveSelectionBackground);
+  --vscode-list-inactiveSelectionForeground: var(--vscode-list-inactiveSelectionForeground);
+  --vscode-list-hoverBackground: var(--vscode-list-hoverBackground);
+  --vscode-list-hoverForeground: var(--vscode-list-hoverForeground);
+  --vscode-list-focusBackground: var(--vscode-list-focusBackground);
+  --vscode-list-focusForeground: var(--vscode-list-focusForeground);
+  
+  --vscode-activityBar-background: var(--vscode-activityBar-background);
+  --vscode-activityBar-foreground: var(--vscode-activityBar-foreground);
+  --vscode-activityBar-border: var(--vscode-activityBar-border);
+  
+  --vscode-sideBar-background: var(--vscode-sideBar-background);
+  --vscode-sideBar-foreground: var(--vscode-sideBar-foreground);
+  --vscode-sideBar-border: var(--vscode-sideBar-border);
+  
+  --vscode-editorGroup-border: var(--vscode-editorGroup-border);
+  --vscode-editorGroupHeader-tabsBackground: var(--vscode-editorGroupHeader-tabsBackground);
+  
+  --vscode-editor-background: var(--vscode-editor-background);
+  --vscode-editor-foreground: var(--vscode-editor-foreground);
+  
+  --vscode-statusBar-background: var(--vscode-statusBar-background);
+  --vscode-statusBar-foreground: var(--vscode-statusBar-foreground);
+  --vscode-statusBar-border: var(--vscode-statusBar-border);
+  --vscode-statusBarItem-prominentBackground: var(--vscode-statusBarItem-prominentBackground);
+  
+  --vscode-charts-foreground: var(--vscode-charts-foreground);
+  --vscode-charts-lines: var(--vscode-charts-lines);
+  --vscode-charts-red: var(--vscode-charts-red);
+  --vscode-charts-blue: var(--vscode-charts-blue);
+  --vscode-charts-yellow: var(--vscode-charts-yellow);
+  --vscode-charts-orange: var(--vscode-charts-orange);
+  --vscode-charts-green: var(--vscode-charts-green);
+  --vscode-charts-purple: var(--vscode-charts-purple);
+  
+  --vscode-scrollbarSlider-background: var(--vscode-scrollbarSlider-background);
+  --vscode-scrollbarSlider-hoverBackground: var(--vscode-scrollbarSlider-hoverBackground);
+  --vscode-scrollbarSlider-activeBackground: var(--vscode-scrollbarSlider-activeBackground);
+}
+
+body {
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+  font-weight: var(--vscode-font-weight);
+  font-size: var(--vscode-font-size);
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  color: var(--vscode-foreground);
+}
+
+code {
+  font-family: var(--vscode-editor-font-family);
+}
+
+button {
+  border: none;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+button:focus {
+  outline-color: var(--vscode-focusBorder);
+}
+
+input, textarea, select {
+  font-family: var(--vscode-font-family);
+  border: 1px solid var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  padding: 4px 8px;
+  border-radius: 2px;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline-color: var(--vscode-focusBorder);
+  border-color: var(--vscode-focusBorder);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+a {
+  color: var(--vscode-textLink-foreground);
+}
+
+a:hover, a:active {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+blockquote {
+  background: var(--vscode-textBlockQuote-background);
+  border-left: 4px solid var(--vscode-textBlockQuote-border);
+  margin: 0;
+  padding: 8px 16px;
+}
+
+code {
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+pre {
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+}

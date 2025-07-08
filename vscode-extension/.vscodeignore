@@ -20,3 +20,4 @@ benchmark-results.json
 performance-comparison-results.json
 PERFORMANCE.md
 TYPESCRIPT_GO_ANALYSIS.md
+test_*.js

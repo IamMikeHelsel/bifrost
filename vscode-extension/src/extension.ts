@@ -3,6 +3,7 @@ import { DeviceTreeProvider } from './providers/deviceTreeProvider';
 import { DataPointProvider } from './providers/dataPointProvider';
 import { DiagnosticsProvider } from './providers/diagnosticsProvider';
 import { MonitorPanel } from './panels/monitorPanel';
+import { LadderLogicPanel } from './panels/ladderLogicPanel';
 import { DeviceManager } from './services/deviceManager';
 import { BifrostAPI } from './api/bifrostAPI';
 import { CommandHandler } from './commands/commandHandler';
@@ -60,6 +61,10 @@ export function activate(context: vscode.ExtensionContext) {
             commandHandler.openMonitor(device)
         ),
         
+        vscode.commands.registerCommand('bifrost.ladderLogic', (device) => 
+            commandHandler.openLadderLogic(device)
+        ),
+        
         vscode.commands.registerCommand('bifrost.refreshDevices', () => 
             commandHandler.refreshDevices()
         ),
@@ -82,6 +87,10 @@ export function activate(context: vscode.ExtensionContext) {
         
         vscode.commands.registerCommand('bifrost.benchmarkPerformance', () => 
             commandHandler.benchmarkPerformance()
+        ),
+        
+        vscode.commands.registerCommand('bifrost.viewLadderLogic', () => 
+            commandHandler.openLadderLogic(null)
         )
     );
     
