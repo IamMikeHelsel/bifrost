@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 
-	"bifrost-gateway/internal/protocols"
+	"github.com/bifrost/go-gateway/internal/protocols"
 )
 
 // OptimizedGateway is a high-performance industrial gateway with comprehensive optimizations

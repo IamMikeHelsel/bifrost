@@ -17,6 +17,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go-gateway/internal/protocols:go_default_library",
+        "@com_github_gorilla_websocket//:websocket",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@com_github_prometheus_client_golang//prometheus/promhttp",
+        "@com_github_sony_gobreaker//:gobreaker",
+        "@org_uber_go_zap//:zap",
     ],
 )
 

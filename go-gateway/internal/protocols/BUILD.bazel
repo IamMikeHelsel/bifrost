@@ -15,7 +15,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_goburrow_modbus//:modbus",
-        "@go_uber_org_zap//:zap",
+        "@org_uber_go_zap//:zap",
     ],
 )
 
@@ -28,6 +28,6 @@ go_test(
     embed = [":go_default_library"],
     deps = [
         "@com_github_stretchr_testify//assert",
-        "@go_uber_org_zap//:zap",
+        "@org_uber_go_zap//:zap",
     ],
 )

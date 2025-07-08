@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
-	"bifrost-gateway/internal/protocols"
+	"github.com/bifrost/go-gateway/internal/protocols"
 )
 
 // IndustrialGateway is the main server handling multiple industrial protocols

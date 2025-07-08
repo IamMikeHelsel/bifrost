@@ -1,6 +1,6 @@
 module(
     name = "bifrost",
-    version = "0.1.0"
+    version = "0.1.0",
 )
 
 bazel_dep(name = "rules_python", version = "0.40.0")
@@ -12,13 +12,13 @@ bazel_dep(name = "aspect_rules_ts", version = "3.5.0")
 
 # Python toolchain configuration
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-python.toolchain(python_version = "3.12") # Consider matching this with your project's Python version if different
+python.toolchain(python_version = "3.12")  # Consider matching this with your project's Python version if different
 use_repo(python, "python_versions")
 
 # Setup pip to parse requirements_lock.txt
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse_requirements(
-    name = "pip_deps", # This creates a repository named @pip_deps
+    name = "pip_deps",  # This creates a repository named @pip_deps
     requirements_lock = "//:requirements_lock.txt",
 )
 use_repo(pip, "pip_deps")
@@ -26,14 +26,15 @@ use_repo(pip, "pip_deps")
 # Go dependencies
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//go-gateway:go.mod")
-use_repo(go_deps, 
+use_repo(
+    go_deps,
     "com_github_goburrow_modbus",
-    "com_github_gorilla_websocket", 
+    "com_github_gorilla_websocket",
     "com_github_prometheus_client_golang",
     "com_github_sony_gobreaker",
     "com_github_stretchr_testify",
-    "go_uber_org_zap",
-    "in_gopkg_yaml_v3"
+    "in_gopkg_yaml_v3",
+    "org_uber_go_zap",
 )
 
 # Node.js toolchain configuration
@@ -42,7 +43,7 @@ node.toolchain(node_version = "18.20.4")
 use_repo(node, "nodejs_toolchains")
 
 # npm dependencies
-npm = use_extension("@aspect_rules_ts//npm:extensions.bzl", "npm")
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(
     name = "npm",
     npmrc = "//:.npmrc",

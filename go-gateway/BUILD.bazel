@@ -1,26 +1,3 @@
 # Bifrost Gateway Root BUILD file
-load("@rules_go//go:def.bzl", "go_binary", "go_library")
-
-go_library(
-    name = "go_default_library",
-    srcs = glob(["*.go"]),
-    importpath = "github.com/bifrost/go-gateway",
-    visibility = ["//visibility:private"],
-    deps = [
-        "//go-gateway/internal/protocols:go_default_library",
-        "@go_uber_org_zap//:zap",
-    ],
-)
-
-go_binary(
-    name = "gateway",
-    embed = [":go_default_library"],
-    visibility = ["//visibility:public"],
-)
-
-# Alias for the main binary
-alias(
-    name = "bifrost-gateway",
-    actual = ":gateway",
-    visibility = ["//visibility:public"],
-)
+# This is a marker file for the go-gateway package.
+# The actual binaries are in cmd/ subdirectories.
