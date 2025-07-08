@@ -12,7 +12,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"bifrost-gateway/internal/protocols"
+	"github.com/bifrost/go-gateway/internal/protocols"
 )
 
 // TestResult holds the result of a test operation

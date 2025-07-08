@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"bifrost-gateway/internal/protocols"
+	"github.com/bifrost/go-gateway/internal/protocols"
 )
 
 // EtherNet/IP Demo Application

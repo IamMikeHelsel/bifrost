@@ -8,7 +8,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"bifrost-gateway/internal/protocols"
+	"github.com/bifrost/go-gateway/internal/protocols"
 )
 
 // PerformanceTest demonstrates the high-performance capabilities of the Go gateway

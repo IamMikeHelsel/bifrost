@@ -14,7 +14,7 @@ type OPCUAHandler struct {
 }
 
 // NewOPCUAHandler creates a new OPC-UA handler.
-func NewOPCUAHandler(logger *zap.Logger) *OPCUAHandler {
+func NewOPCUAHandler(logger *zap.Logger) ProtocolHandler {
 	return &OPCUAHandler{
 		logger:    logger,
 		connected: make(map[string]bool),

@@ -9,6 +9,7 @@ go_library(
         "ethernetip_errors.go",
         "ethernetip_performance.go",
         "modbus.go",
+        "opcua.go",
         "protocol.go",
     ],
     importpath = "github.com/bifrost/go-gateway/internal/protocols",

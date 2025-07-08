@@ -10,6 +10,8 @@ go_library(
         "//go-gateway/internal/gateway:go_default_library",
         "//go-gateway/internal/protocols:go_default_library",
         "//go-gateway/internal/performance:go_default_library",
+        "@org_uber_go_zap//:zap",
+        "@org_uber_go_zap//zapcore",
     ],
 )
 

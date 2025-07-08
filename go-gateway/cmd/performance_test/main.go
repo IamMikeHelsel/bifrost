@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"bifrost-gateway/internal/performance"
+	"github.com/bifrost/go-gateway/internal/performance"
 )
 
 func main() {

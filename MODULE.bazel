@@ -43,11 +43,12 @@ node.toolchain(node_version = "18.20.4")
 use_repo(node, "nodejs_toolchains")
 
 # npm dependencies
-npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
-npm.npm_translate_lock(
-    name = "npm",
-    npmrc = "//:.npmrc",
-    pnpm_lock = "//vscode-extension:package-lock.json",
-    verify_node_modules_ignored = "//:.bazelignore",
-)
-use_repo(npm, "npm")
+# Note: Commenting out npm dependencies for now as they require pnpm-lock.yaml
+# npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+# npm.npm_translate_lock(
+#     name = "npm",
+#     npmrc = "//:.npmrc",
+#     pnpm_lock = "//vscode-extension:pnpm-lock.yaml",
+#     verify_node_modules_ignored = "//:.bazelignore",
+# )
+# use_repo(npm, "npm")

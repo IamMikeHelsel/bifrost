@@ -9,6 +9,9 @@ go_library(
     deps = [
         "//go-gateway/internal/gateway:go_default_library",
         "//go-gateway/internal/protocols:go_default_library",
+        "@org_uber_go_zap//:zap",
+        "@org_uber_go_zap//zapcore",
+        "@in_gopkg_yaml_v3//:yaml_v3",
         # "//go-gateway/pkg/api",  # Empty for now
     ],
 )
