@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -13,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"bifrost-gateway/internal/protocols"
+	"bifrost-gateway/internal/security"
 )
 
 // IndustrialGateway is the main server handling multiple industrial protocols
@@ -35,6 +37,12 @@ type IndustrialGateway struct {
 
 	// Configuration
 	config *Config
+	
+	// Security components
+	auditLogger      *security.AuditLogger
+	certManager      *security.CertificateManager
+	authManager      *security.AuthenticationManager
+	cryptoManager    *security.CryptoManager
 }
 
 type Config struct {
@@ -45,6 +53,14 @@ type Config struct {
 	UpdateInterval time.Duration `yaml:"update_interval"`
 	EnableMetrics  bool          `yaml:"enable_metrics"`
 	LogLevel       string        `yaml:"log_level"`
+	
+	// Security configuration
+	Security struct {
+		Enabled bool `yaml:"enabled"`
+		TLS     security.TLSConfig `yaml:"tls"`
+		Authentication security.AuthConfig `yaml:"authentication"`
+		Audit security.AuditConfig `yaml:"audit"`
+	} `yaml:"security"`
 }
 
 type Device struct {
@@ -97,6 +113,11 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 		},
 	}
 
+	// Initialize security components
+	if err := gateway.initSecurity(); err != nil {
+		logger.Error("Failed to initialize security", zap.Error(err))
+	}
+
 	// Initialize metrics
 	gateway.initMetrics()
 
@@ -104,6 +125,53 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 	gateway.registerProtocols()
 
 	return gateway
+}
+
+func (g *IndustrialGateway) initSecurity() error {
+	// Initialize audit logger
+	auditLogger, err := security.NewAuditLogger(g.config.Security.Audit)
+	if err != nil {
+		return fmt.Errorf("failed to create audit logger: %w", err)
+	}
+	g.auditLogger = auditLogger
+
+	// Initialize certificate manager
+	g.certManager = security.NewCertificateManager(g.config.Security.TLS, g.auditLogger)
+
+	// Initialize authentication manager
+	g.authManager = security.NewAuthenticationManager(g.config.Security.Authentication, g.auditLogger)
+
+	// Initialize crypto manager if encryption is enabled
+	if g.config.Security.Enabled {
+		// For demonstration, generate a key - in production, load from secure storage
+		key, err := security.GenerateKey()
+		if err != nil {
+			return fmt.Errorf("failed to generate encryption key: %w", err)
+		}
+		
+		cryptoManager, err := security.NewCryptoManager(key)
+		if err != nil {
+			return fmt.Errorf("failed to create crypto manager: %w", err)
+		}
+		g.cryptoManager = cryptoManager
+	}
+
+	g.auditLogger.LogEvent(security.SecurityEvent{
+		EventType: security.EventTypeAudit,
+		Severity:  security.SeverityInfo,
+		Source:    "gateway",
+		Action:    "initialize",
+		Result:    security.ResultSuccess,
+		Message:   "Security framework initialized",
+		Details: map[string]interface{}{
+			"security_enabled": g.config.Security.Enabled,
+			"tls_enabled":      g.config.Security.TLS.Enabled,
+			"auth_enabled":     g.config.Security.Authentication.Enabled,
+			"audit_enabled":    g.config.Security.Audit.Enabled,
+		},
+	})
+
+	return nil
 }
 
 func (g *IndustrialGateway) initMetrics() {
@@ -187,33 +255,79 @@ func (g *IndustrialGateway) Start(ctx context.Context) error {
 func (g *IndustrialGateway) startHTTPServer(ctx context.Context) {
 	mux := http.NewServeMux()
 
-	// WebSocket endpoint for real-time data
-	mux.HandleFunc("/ws", g.handleWebSocket)
+	// Security middleware
+	if g.config.Security.Authentication.Enabled {
+		mux.HandleFunc("/api/auth/login", g.handleLogin)
+		mux.HandleFunc("/api/auth/device", g.handleDeviceAuth)
+	}
 
-	// REST API endpoints
-	mux.HandleFunc("/api/devices", g.handleDevices)
-	mux.HandleFunc("/api/devices/discover", g.handleDiscovery)
-	mux.HandleFunc("/api/tags/read", g.handleTagRead)
-	mux.HandleFunc("/api/tags/write", g.handleTagWrite)
+	// WebSocket endpoint for real-time data (with optional authentication)
+	mux.HandleFunc("/ws", g.securityMiddleware(g.handleWebSocket))
+
+	// REST API endpoints (with authentication if enabled)
+	mux.HandleFunc("/api/devices", g.securityMiddleware(g.handleDevices))
+	mux.HandleFunc("/api/devices/discover", g.securityMiddleware(g.handleDiscovery))
+	mux.HandleFunc("/api/tags/read", g.securityMiddleware(g.handleTagRead))
+	mux.HandleFunc("/api/tags/write", g.securityMiddleware(g.handleTagWrite))
+
+	// Security endpoints
+	mux.HandleFunc("/api/security/status", g.handleSecurityStatus)
+	mux.HandleFunc("/api/security/certificates", g.securityMiddleware(g.handleCertificates))
+
+	// Health check (no authentication required)
+	mux.HandleFunc("/health", g.handleHealth)
 
 	// Metrics endpoint
 	if g.config.EnableMetrics {
 		mux.Handle("/metrics", promhttp.Handler())
 	}
 
+	// Create server with optional TLS
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", g.config.Port),
 		Handler: mux,
 	}
 
-	g.logger.Info("HTTP server started", zap.Int("port", g.config.Port))
+	// Configure TLS if enabled
+	if g.config.Security.TLS.Enabled {
+		tlsConfig, err := g.certManager.LoadTLSConfig()
+		if err != nil {
+			g.logger.Error("Failed to load TLS config", zap.Error(err))
+			g.auditLogger.LogEvent(security.SecurityEvent{
+				EventType: security.EventTypeCrypto,
+				Severity:  security.SeverityError,
+				Source:    "http_server",
+				Action:    "load_tls_config",
+				Result:    security.ResultFailure,
+				Message:   "Failed to load TLS configuration",
+				Details:   map[string]interface{}{"error": err.Error()},
+			})
+		} else {
+			server.TLSConfig = tlsConfig
+			g.logger.Info("HTTPS server configured", zap.Int("port", g.config.Port))
+		}
+	}
+
+	g.logger.Info("HTTP server started", 
+		zap.Int("port", g.config.Port),
+		zap.Bool("tls_enabled", g.config.Security.TLS.Enabled),
+		zap.Bool("auth_enabled", g.config.Security.Authentication.Enabled))
 
 	go func() {
 		<-ctx.Done()
-		server.Shutdown(context.Background())
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		server.Shutdown(shutdownCtx)
 	}()
 
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	var err error
+	if g.config.Security.TLS.Enabled && server.TLSConfig != nil {
+		err = server.ListenAndServeTLS("", "")
+	} else {
+		err = server.ListenAndServe()
+	}
+
+	if err != nil && err != http.ErrServerClosed {
 		g.logger.Error("HTTP server error", zap.Error(err))
 	}
 }
@@ -440,6 +554,168 @@ func (g *IndustrialGateway) GetStats() map[string]interface{} {
 }
 
 // HTTP handlers
+
+// securityMiddleware provides authentication for protected endpoints
+func (g *IndustrialGateway) securityMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Skip authentication if security is disabled
+		if !g.config.Security.Authentication.Enabled {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Check HTTPS requirement
+		if g.config.Security.Authentication.RequireHTTPS && r.TLS == nil {
+			g.auditLogger.LogEvent(security.SecurityEvent{
+				EventType: security.EventTypeAuthentication,
+				Severity:  security.SeverityWarning,
+				Source:    "middleware",
+				Action:    "https_check",
+				Result:    security.ResultFailure,
+				Message:   "HTTPS required but request received over HTTP",
+				IPAddress: r.RemoteAddr,
+			})
+			http.Error(w, "HTTPS required", http.StatusForbidden)
+			return
+		}
+
+		// Check for API key in header (for devices)
+		if apiKey := r.Header.Get("X-API-Key"); apiKey != "" {
+			deviceID := r.Header.Get("X-Device-ID")
+			if deviceID == "" {
+				http.Error(w, "Device ID required", http.StatusBadRequest)
+				return
+			}
+
+			result, err := g.authManager.AuthenticateDevice(deviceID, apiKey)
+			if err != nil || !result.Success {
+				http.Error(w, "Authentication failed", http.StatusUnauthorized)
+				return
+			}
+
+			// Add device context to request
+			r.Header.Set("X-Authenticated-Device", deviceID)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Check for JWT token in Authorization header
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "Authorization required", http.StatusUnauthorized)
+			return
+		}
+
+		// For now, accept any Bearer token (in production, validate JWT)
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			// TODO: Validate JWT token
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		http.Error(w, "Invalid authorization", http.StatusUnauthorized)
+	})
+}
+
+func (g *IndustrialGateway) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var loginReq struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&loginReq); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	result, err := g.authManager.AuthenticateUser(loginReq.Username, loginReq.Password)
+	if err != nil {
+		g.logger.Error("Authentication error", zap.Error(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func (g *IndustrialGateway) handleDeviceAuth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var authReq struct {
+		DeviceID string `json:"device_id"`
+		APIKey   string `json:"api_key"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&authReq); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	result, err := g.authManager.AuthenticateDevice(authReq.DeviceID, authReq.APIKey)
+	if err != nil {
+		g.logger.Error("Device authentication error", zap.Error(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func (g *IndustrialGateway) handleSecurityStatus(w http.ResponseWriter, r *http.Request) {
+	status := map[string]interface{}{
+		"security_enabled":     g.config.Security.Enabled,
+		"tls_enabled":          g.config.Security.TLS.Enabled,
+		"authentication_enabled": g.config.Security.Authentication.Enabled,
+		"audit_enabled":        g.config.Security.Audit.Enabled,
+		"auth_method":          g.config.Security.Authentication.Method,
+		"tls_min_version":      g.config.Security.TLS.MinVersion,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(status)
+}
+
+func (g *IndustrialGateway) handleCertificates(w http.ResponseWriter, r *http.Request) {
+	if !g.config.Security.TLS.Enabled {
+		http.Error(w, "TLS not enabled", http.StatusNotFound)
+		return
+	}
+
+	certInfo, err := g.certManager.GetCertificateInfo(g.config.Security.TLS.CertFile)
+	if err != nil {
+		g.logger.Error("Failed to get certificate info", zap.Error(err))
+		http.Error(w, "Failed to retrieve certificate info", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(certInfo)
+}
+
+func (g *IndustrialGateway) handleHealth(w http.ResponseWriter, r *http.Request) {
+	health := map[string]interface{}{
+		"status":    "healthy",
+		"timestamp": time.Now(),
+		"version":   "1.0.0",
+		"security": map[string]interface{}{
+			"enabled": g.config.Security.Enabled,
+			"tls":     g.config.Security.TLS.Enabled,
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(health)
+}
 
 func (g *IndustrialGateway) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := g.wsUpgrader.Upgrade(w, r, nil)

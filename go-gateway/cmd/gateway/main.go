@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"bifrost-gateway/internal/gateway"
+	"bifrost-gateway/internal/security"
 )
 
 // Config represents the gateway configuration
@@ -28,6 +29,37 @@ type Config struct {
 		LogLevel       string        `yaml:"log_level"`
 	} `yaml:"gateway"`
 
+	Security struct {
+		Enabled bool `yaml:"enabled"`
+		TLS     struct {
+			Enabled      bool   `yaml:"enabled"`
+			CertFile     string `yaml:"cert_file"`
+			KeyFile      string `yaml:"key_file"`
+			CAFile       string `yaml:"ca_file"`
+			MinVersion   string `yaml:"min_version"`   // TLS1.2, TLS1.3
+			CipherSuites []string `yaml:"cipher_suites"`
+		} `yaml:"tls"`
+		Encryption struct {
+			Enabled   bool   `yaml:"enabled"`
+			Algorithm string `yaml:"algorithm"` // AES-256-GCM
+			KeyFile   string `yaml:"key_file"`
+		} `yaml:"encryption"`
+		Authentication struct {
+			Enabled      bool   `yaml:"enabled"`
+			Method       string `yaml:"method"`        // jwt, certificate, basic
+			SecretKey    string `yaml:"secret_key"`
+			TokenExpiry  time.Duration `yaml:"token_expiry"`
+			RequireHTTPS bool   `yaml:"require_https"`
+		} `yaml:"authentication"`
+		Audit struct {
+			Enabled   bool   `yaml:"enabled"`
+			LogFile   string `yaml:"log_file"`
+			LogLevel  string `yaml:"log_level"`
+			MaxSize   int    `yaml:"max_size"`   // MB
+			MaxBackups int   `yaml:"max_backups"`
+		} `yaml:"audit"`
+	} `yaml:"security"`
+
 	Protocols struct {
 		Modbus struct {
 			DefaultTimeout    time.Duration `yaml:"default_timeout"`
@@ -37,7 +69,18 @@ type Config struct {
 			ReadTimeout       time.Duration `yaml:"read_timeout"`
 			WriteTimeout      time.Duration `yaml:"write_timeout"`
 			EnableKeepAlive   bool          `yaml:"enable_keep_alive"`
+			Security struct {
+				EnableTLS        bool `yaml:"enable_tls"`
+				RequireAuth      bool `yaml:"require_auth"`
+				EncryptData      bool `yaml:"encrypt_data"`
+			} `yaml:"security"`
 		} `yaml:"modbus"`
+		OPCUA struct {
+			SecurityPolicy string `yaml:"security_policy"` // None, Basic256Sha256, Aes256_Sha256_RsaPss
+			MessageSecurity string `yaml:"message_security"` // None, Sign, SignAndEncrypt
+			CertificateFile string `yaml:"certificate_file"`
+			PrivateKeyFile  string `yaml:"private_key_file"`
+		} `yaml:"opcua"`
 	} `yaml:"protocols"`
 }
 
@@ -95,6 +138,31 @@ func main() {
 		EnableMetrics:  config.Gateway.EnableMetrics,
 		LogLevel:       config.Gateway.LogLevel,
 	}
+	
+	// Copy security configuration
+	gatewayConfig.Security.Enabled = config.Security.Enabled
+	gatewayConfig.Security.TLS = security.TLSConfig{
+		Enabled:      config.Security.TLS.Enabled,
+		CertFile:     config.Security.TLS.CertFile,
+		KeyFile:      config.Security.TLS.KeyFile,
+		CAFile:       config.Security.TLS.CAFile,
+		MinVersion:   config.Security.TLS.MinVersion,
+		CipherSuites: config.Security.TLS.CipherSuites,
+	}
+	gatewayConfig.Security.Authentication = security.AuthConfig{
+		Enabled:      config.Security.Authentication.Enabled,
+		Method:       config.Security.Authentication.Method,
+		SecretKey:    config.Security.Authentication.SecretKey,
+		TokenExpiry:  config.Security.Authentication.TokenExpiry,
+		RequireHTTPS: config.Security.Authentication.RequireHTTPS,
+	}
+	gatewayConfig.Security.Audit = security.AuditConfig{
+		Enabled:    config.Security.Audit.Enabled,
+		LogFile:    config.Security.Audit.LogFile,
+		LogLevel:   config.Security.Audit.LogLevel,
+		MaxSize:    config.Security.Audit.MaxSize,
+		MaxBackups: config.Security.Audit.MaxBackups,
+	}
 
 	// Create and start the gateway
 	gw := gateway.NewIndustrialGateway(gatewayConfig, logger)
@@ -135,6 +203,26 @@ func loadConfig(filename string) (*Config, error) {
 	config.Gateway.EnableMetrics = true
 	config.Gateway.LogLevel = "info"
 
+	// Security defaults
+	config.Security.Enabled = false
+	config.Security.TLS.Enabled = false
+	config.Security.TLS.MinVersion = "TLS1.3"
+	config.Security.TLS.CipherSuites = []string{
+		"TLS_AES_256_GCM_SHA384",
+		"TLS_AES_128_GCM_SHA256",
+		"TLS_CHACHA20_POLY1305_SHA256",
+	}
+	config.Security.Encryption.Enabled = false
+	config.Security.Encryption.Algorithm = "AES-256-GCM"
+	config.Security.Authentication.Enabled = false
+	config.Security.Authentication.Method = "jwt"
+	config.Security.Authentication.TokenExpiry = 24 * time.Hour
+	config.Security.Authentication.RequireHTTPS = true
+	config.Security.Audit.Enabled = false
+	config.Security.Audit.LogLevel = "info"
+	config.Security.Audit.MaxSize = 100 // MB
+	config.Security.Audit.MaxBackups = 10
+
 	config.Protocols.Modbus.DefaultTimeout = 5 * time.Second
 	config.Protocols.Modbus.DefaultUnitID = 1
 	config.Protocols.Modbus.MaxConnections = 100
@@ -142,6 +230,13 @@ func loadConfig(filename string) (*Config, error) {
 	config.Protocols.Modbus.ReadTimeout = 5 * time.Second
 	config.Protocols.Modbus.WriteTimeout = 5 * time.Second
 	config.Protocols.Modbus.EnableKeepAlive = true
+	config.Protocols.Modbus.Security.EnableTLS = false
+	config.Protocols.Modbus.Security.RequireAuth = false
+	config.Protocols.Modbus.Security.EncryptData = false
+
+	// OPC UA security defaults
+	config.Protocols.OPCUA.SecurityPolicy = "Basic256Sha256"
+	config.Protocols.OPCUA.MessageSecurity = "SignAndEncrypt"
 
 	// Try to load from file
 	if data, err := os.ReadFile(filename); err == nil {
