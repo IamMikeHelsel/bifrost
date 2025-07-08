@@ -97,7 +97,11 @@ func main() {
 	}
 
 	// Create and start the gateway
-	gw := gateway.NewIndustrialGateway(gatewayConfig, logger)
+	gw, err := gateway.NewIndustrialGateway(gatewayConfig, logger)
+	if err != nil {
+		logger.Error("Failed to create gateway", zap.Error(err))
+		os.Exit(1)
+	}
 
 	// Set up graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
@@ -107,16 +111,21 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		<-sigChan
-		logger.Info("Received shutdown signal, shutting down gracefully...")
-		cancel()
-	}()
-
 	// Start the gateway
 	if err := gw.Start(ctx); err != nil {
 		logger.Error("Gateway startup failed", zap.Error(err))
 		os.Exit(1)
+	}
+
+	// Graceful shutdown
+	<-sigChan
+	logger.Info("Received shutdown signal, shutting down gracefully...")
+	
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+	
+	if err := gw.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Error during shutdown", zap.Error(err))
 	}
 
 	logger.Info("Gateway shutdown complete")

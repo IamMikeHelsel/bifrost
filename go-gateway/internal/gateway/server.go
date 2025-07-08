@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"bifrost-gateway/internal/protocols"
+	"bifrost-gateway/internal/cloud"
 )
 
 // IndustrialGateway is the main server handling multiple industrial protocols
@@ -20,6 +21,9 @@ type IndustrialGateway struct {
 	logger    *zap.Logger
 	devices   sync.Map // map[string]*Device
 	protocols map[string]protocols.ProtocolHandler
+
+	// Cloud connectivity
+	cloudManager *cloud.Manager
 
 	// Performance metrics
 	metrics struct {
@@ -45,6 +49,9 @@ type Config struct {
 	UpdateInterval time.Duration `yaml:"update_interval"`
 	EnableMetrics  bool          `yaml:"enable_metrics"`
 	LogLevel       string        `yaml:"log_level"`
+	
+	// Cloud configuration
+	Cloud *cloud.ManagerConfig `yaml:"cloud"`
 }
 
 type Device struct {
@@ -85,7 +92,7 @@ type Tag struct {
 }
 
 // NewIndustrialGateway creates a new gateway instance
-func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway {
+func NewIndustrialGateway(config *Config, logger *zap.Logger) (*IndustrialGateway, error) {
 	gateway := &IndustrialGateway{
 		logger:    logger,
 		protocols: make(map[string]protocols.ProtocolHandler),
@@ -103,7 +110,17 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 	// Register protocol handlers
 	gateway.registerProtocols()
 
-	return gateway
+	// Initialize cloud manager if configured
+	if config.Cloud != nil {
+		cloudManager, err := cloud.NewManager(logger, config.Cloud)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize cloud manager: %w", err)
+		}
+		gateway.cloudManager = cloudManager
+		logger.Info("Cloud manager initialized")
+	}
+
+	return gateway, nil
 }
 
 func (g *IndustrialGateway) initMetrics() {
@@ -320,6 +337,11 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 			device.Stats.RequestsSuccessful++
 			g.metrics.dataPointsProcessed.Inc()
 
+			// Send to cloud connectors if available
+			if g.cloudManager != nil {
+				g.sendToCloud(ctx, device, tag)
+			}
+
 			// Broadcast to WebSocket clients
 			g.broadcastTagUpdate(device, tag)
 		}
@@ -501,4 +523,151 @@ func (g *IndustrialGateway) handleTagWrite(w http.ResponseWriter, r *http.Reques
 
 	// TODO: Implement tag writing
 	w.Write([]byte(`{"message": "Tag writing not implemented yet"}`))
+}
+
+// sendToCloud sends tag data to configured cloud connectors
+func (g *IndustrialGateway) sendToCloud(ctx context.Context, device *Device, tag *Tag) {
+	if g.cloudManager == nil {
+		return
+	}
+
+	// Convert to cloud data format
+	cloudData := &cloud.CloudData{
+		ID:        fmt.Sprintf("%s_%s_%d", device.ID, tag.ID, time.Now().UnixNano()),
+		DeviceID:  device.ID,
+		TagName:   tag.Name,
+		Value:     tag.Value,
+		Quality:   tag.Quality,
+		Timestamp: tag.Timestamp,
+		Metadata: map[string]interface{}{
+			"device_name":    device.Name,
+			"protocol":       device.Protocol,
+			"address":        device.Address,
+			"data_type":      tag.DataType,
+			"unit":          tag.Unit,
+			"description":    tag.Description,
+		},
+	}
+
+	// Send asynchronously to avoid blocking data collection
+	go func() {
+		if err := g.cloudManager.SendData(ctx, cloudData); err != nil {
+			g.logger.Error("Failed to send data to cloud",
+				zap.String("device", device.ID),
+				zap.String("tag", tag.ID),
+				zap.Error(err))
+		}
+	}()
+}
+
+// InitializeCloudConnectors sets up and connects cloud connectors
+func (g *IndustrialGateway) InitializeCloudConnectors(ctx context.Context) error {
+	if g.cloudManager == nil {
+		return nil
+	}
+
+	// Register connectors based on configuration
+	for name, config := range g.config.Cloud.Connectors {
+		if !config.Enabled {
+			continue
+		}
+
+		var connector cloud.CloudConnector
+		var err error
+
+		switch config.Type {
+		case "mqtt":
+			connector, err = g.createMQTTConnector(config)
+		case "aws-iot":
+			connector, err = g.createAWSIoTConnector(config)
+		case "influxdb":
+			connector, err = g.createInfluxDBConnector(config)
+		default:
+			g.logger.Warn("Unknown connector type", zap.String("type", config.Type), zap.String("name", name))
+			continue
+		}
+
+		if err != nil {
+			g.logger.Error("Failed to create connector", 
+				zap.String("name", name), 
+				zap.String("type", config.Type),
+				zap.Error(err))
+			continue
+		}
+
+		if err := g.cloudManager.RegisterConnector(name, connector); err != nil {
+			g.logger.Error("Failed to register connector", 
+				zap.String("name", name), 
+				zap.Error(err))
+			continue
+		}
+
+		g.logger.Info("Registered cloud connector", 
+			zap.String("name", name), 
+			zap.String("type", config.Type))
+	}
+
+	// Connect all registered connectors
+	return g.cloudManager.ConnectAll(ctx)
+}
+
+// createMQTTConnector creates an MQTT connector (placeholder)
+func (g *IndustrialGateway) createMQTTConnector(config *cloud.ConnectorConfig) (cloud.CloudConnector, error) {
+	// This would use a real MQTT library like github.com/eclipse/paho.mqtt.golang
+	// For now, returning nil to avoid dependency issues
+	g.logger.Info("MQTT connector creation not implemented yet")
+	return nil, fmt.Errorf("MQTT connector not implemented")
+}
+
+// createAWSIoTConnector creates an AWS IoT connector (placeholder)
+func (g *IndustrialGateway) createAWSIoTConnector(config *cloud.ConnectorConfig) (cloud.CloudConnector, error) {
+	// This would use AWS SDK
+	// For now, returning nil to avoid dependency issues
+	g.logger.Info("AWS IoT connector creation not implemented yet")
+	return nil, fmt.Errorf("AWS IoT connector not implemented")
+}
+
+// createInfluxDBConnector creates an InfluxDB connector (placeholder)
+func (g *IndustrialGateway) createInfluxDBConnector(config *cloud.ConnectorConfig) (cloud.CloudConnector, error) {
+	// This would use InfluxDB client library
+	// For now, returning nil to avoid dependency issues
+	g.logger.Info("InfluxDB connector creation not implemented yet")
+	return nil, fmt.Errorf("InfluxDB connector not implemented")
+}
+
+// Shutdown gracefully shuts down the gateway including cloud connectors
+func (g *IndustrialGateway) Shutdown(ctx context.Context) error {
+	g.logger.Info("Shutting down industrial gateway")
+
+	// Shutdown cloud manager first
+	if g.cloudManager != nil {
+		if err := g.cloudManager.Shutdown(ctx); err != nil {
+			g.logger.Error("Error shutting down cloud manager", zap.Error(err))
+		}
+	}
+
+	// Disconnect all devices
+	g.devices.Range(func(key, value interface{}) bool {
+		device := value.(*Device)
+		if device.Connected && device.Handler != nil {
+			protocolDevice := &protocols.Device{
+				ID:       device.ID,
+				Name:     device.Name,
+				Protocol: device.Protocol,
+				Address:  device.Address,
+				Port:     device.Port,
+				Config:   device.Config,
+			}
+			
+			if err := device.Handler.Disconnect(protocolDevice); err != nil {
+				g.logger.Error("Error disconnecting device", 
+					zap.String("device", device.ID), 
+					zap.Error(err))
+			}
+		}
+		return true
+	})
+
+	g.logger.Info("Industrial gateway shutdown complete")
+	return nil
 }
