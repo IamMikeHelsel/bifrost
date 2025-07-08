@@ -254,6 +254,11 @@ func NewBenchmarkSuite(config *BenchmarkConfig, targets *PerformanceTargets, log
 	}
 }
 
+// GetTargets returns the performance targets for this suite
+func (bs *BenchmarkSuite) GetTargets() *PerformanceTargets {
+	return bs.targets
+}
+
 // RunComprehensiveBenchmark runs the complete benchmark suite
 func (bs *BenchmarkSuite) RunComprehensiveBenchmark(ctx context.Context) (*BenchmarkResults, error) {
 	bs.mutex.Lock()
