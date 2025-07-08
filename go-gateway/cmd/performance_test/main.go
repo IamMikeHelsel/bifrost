@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -64,19 +65,19 @@ func main() {
 
 	switch *testType {
 	case "latency":
-		results, testErr = runLatencyTest(ctx, suite, logger)
+		results, testErr = runLatencyTest(ctx, suite, testConfig, logger)
 	case "throughput":
-		results, testErr = runThroughputTest(ctx, suite, logger)
+		results, testErr = runThroughputTest(ctx, suite, testConfig, logger)
 	case "concurrency":
-		results, testErr = runConcurrencyTest(ctx, suite, logger)
+		results, testErr = runConcurrencyTest(ctx, suite, testConfig, logger)
 	case "stress":
-		results, testErr = runStressTest(ctx, suite, logger)
+		results, testErr = runStressTest(ctx, suite, testConfig, logger)
 	case "memory":
-		results, testErr = runMemoryTest(ctx, suite, logger)
+		results, testErr = runMemoryTest(ctx, suite, testConfig, logger)
 	case "edge":
-		results, testErr = runEdgeTest(ctx, suite, logger)
+		results, testErr = runEdgeTest(ctx, suite, testConfig, logger)
 	case "comprehensive":
-		results, testErr = runComprehensiveTest(ctx, suite, logger)
+		results, testErr = runComprehensiveTest(ctx, suite, testConfig, logger)
 	default:
 		logger.Fatal("Unknown test type", zap.String("test_type", *testType))
 	}
@@ -379,7 +380,7 @@ func setupPerformanceTestSuite(config *TestConfig, logger *zap.Logger) *performa
 	return suite
 }
 
-func runLatencyTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runLatencyTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running latency-focused performance test")
 
 	// Configure for latency-focused testing
@@ -396,11 +397,11 @@ func runLatencyTest(ctx context.Context, suite *performance.BenchmarkSuite, logg
 		RequestsPerSecond:      1000,
 	}
 
-	latencySuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
+	latencySuite := performance.NewBenchmarkSuite(config, &testConfig.Targets, logger)
 	return latencySuite.RunComprehensiveBenchmark(ctx)
 }
 
-func runThroughputTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runThroughputTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running throughput-focused performance test")
 
 	// Configure for throughput-focused testing
@@ -418,11 +419,11 @@ func runThroughputTest(ctx context.Context, suite *performance.BenchmarkSuite, l
 		MaxConcurrentRequests:  5000,
 	}
 
-	throughputSuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
+	throughputSuite := performance.NewBenchmarkSuite(config, &testConfig.Targets, logger)
 	return throughputSuite.RunComprehensiveBenchmark(ctx)
 }
 
-func runConcurrencyTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runConcurrencyTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running concurrency-focused performance test")
 
 	config := &performance.BenchmarkConfig{
@@ -439,11 +440,11 @@ func runConcurrencyTest(ctx context.Context, suite *performance.BenchmarkSuite, 
 		RequestsPerSecond:      15000,
 	}
 
-	concurrencySuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
+	concurrencySuite := performance.NewBenchmarkSuite(config, &testConfig.Targets, logger)
 	return concurrencySuite.RunComprehensiveBenchmark(ctx)
 }
 
-func runStressTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runStressTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running stress performance test")
 
 	config := &performance.BenchmarkConfig{
@@ -461,11 +462,11 @@ func runStressTest(ctx context.Context, suite *performance.BenchmarkSuite, logge
 		StressRampUpTime:       2 * time.Minute,
 	}
 
-	stressSuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
+	stressSuite := performance.NewBenchmarkSuite(config, &testConfig.Targets, logger)
 	return stressSuite.RunComprehensiveBenchmark(ctx)
 }
 
-func runMemoryTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runMemoryTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running memory-focused performance test")
 
 	config := &performance.BenchmarkConfig{
@@ -482,11 +483,11 @@ func runMemoryTest(ctx context.Context, suite *performance.BenchmarkSuite, logge
 		MaxMemoryAllocation:    1024 * 1024 * 1024, // 1GB
 	}
 
-	memorySuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
+	memorySuite := performance.NewBenchmarkSuite(config, &testConfig.Targets, logger)
 	return memorySuite.RunComprehensiveBenchmark(ctx)
 }
 
-func runEdgeTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runEdgeTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running edge device performance test")
 
 	config := &performance.BenchmarkConfig{
@@ -505,11 +506,11 @@ func runEdgeTest(ctx context.Context, suite *performance.BenchmarkSuite, logger 
 		RequestsPerSecond:      500, // Lower load for edge devices
 	}
 
-	edgeSuite := performance.NewBenchmarkSuite(config, suite.GetResults().TargetsAchieved, logger)
+	edgeSuite := performance.NewBenchmarkSuite(config, &testConfig.Targets, logger)
 	return edgeSuite.RunComprehensiveBenchmark(ctx)
 }
 
-func runComprehensiveTest(ctx context.Context, suite *performance.BenchmarkSuite, logger *zap.Logger) (*performance.BenchmarkResults, error) {
+func runComprehensiveTest(ctx context.Context, suite *performance.BenchmarkSuite, testConfig *TestConfig, logger *zap.Logger) (*performance.BenchmarkResults, error) {
 	logger.Info("🚀 Running comprehensive performance test suite")
 	logger.Info("This will test all performance aspects including:")
 	logger.Info("  ✓ Latency optimization (< 1ms target)")
@@ -524,7 +525,7 @@ func runComprehensiveTest(ctx context.Context, suite *performance.BenchmarkSuite
 
 func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 	logger.Info("🏁 PERFORMANCE TEST RESULTS 🏁")
-	logger.Info("=" * 80)
+	logger.Info(strings.Repeat("=", 80))
 
 	// Overall summary
 	logger.Info("📊 OVERALL PERFORMANCE SUMMARY",
@@ -648,7 +649,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 		}
 	}
 
-	logger.Info("=" * 80)
+	logger.Info(strings.Repeat("=", 80))
 }
 
 func saveResults(results *performance.BenchmarkResults, filename string) error {

@@ -10,7 +10,8 @@ ts_project(
         "src/**/*.ts",
     ]),
     declaration = True,
-    tsconfig = "//vscode-extension:tsconfig.json",
+    tsconfig = "tsconfig.json",
+    transpiler = "tsc",
     deps = [
         ":node_modules/@types/node",
         ":node_modules/@types/vscode",
