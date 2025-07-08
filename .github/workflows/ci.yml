@@ -73,7 +73,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          file: ./go-gateway/coverage.out
+          files: ./go-gateway/coverage.out
           flags: go-gateway
           name: go-gateway-coverage
         continue-on-error: true
