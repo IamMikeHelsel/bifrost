@@ -1,0 +1,386 @@
+# Release Card Schema Definition
+# JSON Schema in YAML format for Bifrost release cards
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://github.com/IamMikeHelsel/bifrost/schemas/release-card.json"
+title: "Bifrost Release Card"
+description: "Schema for Bifrost release cards documenting tested fieldbus protocols and device compatibility"
+type: "object"
+
+required:
+  - version
+  - release_date
+  - release_type
+  - protocols
+  - testing_summary
+
+properties:
+  version:
+    type: "string"
+    pattern: "^v?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.-]+)?$"
+    description: "Semantic version number (e.g., 'v0.1.0', '1.2.3-alpha')"
+    
+  release_date:
+    type: "string"
+    format: "date"
+    description: "Release date in ISO 8601 format (YYYY-MM-DD)"
+    
+  release_type:
+    type: "string"
+    enum: ["alpha", "beta", "rc", "stable"]
+    description: "Release maturity level"
+    
+  major_features:
+    type: "array"
+    description: "Major features and changes in this release"
+    items:
+      type: "string"
+      
+  breaking_changes:
+    type: "array"
+    description: "Breaking changes and migration notes"
+    items:
+      type: "object"
+      required: ["change", "migration_guide"]
+      properties:
+        change:
+          type: "string"
+          description: "Description of the breaking change"
+        migration_guide:
+          type: "string"
+          description: "How to migrate from previous version"
+          
+  protocols:
+    type: "object"
+    description: "Protocol support matrix"
+    additionalProperties:
+      type: "object"
+      description: "Protocol family (e.g., modbus, opcua, ethernetip)"
+      additionalProperties:
+        type: "object"
+        description: "Protocol variant (e.g., tcp, rtu, client, server)"
+        required: ["status"]
+        properties:
+          status:
+            type: "string"
+            enum: ["stable", "beta", "experimental", "deprecated", "unsupported"]
+            description: "Implementation status"
+          version:
+            type: "string"
+            description: "Protocol version implemented"
+          performance:
+            type: "object"
+            description: "Performance characteristics"
+            properties:
+              throughput:
+                type: "string"
+                description: "Throughput measurement (e.g., '1000+ regs/sec')"
+              latency:
+                type: "string"
+                description: "Latency measurement (e.g., '<1ms', '100µs')"
+              concurrent_connections:
+                type: "integer"
+                description: "Maximum concurrent connections supported"
+              memory_usage:
+                type: "string"
+                description: "Memory usage characteristics"
+              cpu_usage:
+                type: "string"
+                description: "CPU usage characteristics"
+          tested_devices:
+            type: "object"
+            description: "Device testing coverage"
+            properties:
+              virtual:
+                type: "array"
+                description: "Virtual devices tested"
+                items:
+                  type: "string"
+              real:
+                type: "array"
+                description: "Real hardware devices tested"
+                items:
+                  type: "object"
+                  required: ["device", "vendor"]
+                  properties:
+                    device:
+                      type: "string"
+                      description: "Device model/name"
+                    vendor:
+                      type: "string"
+                      description: "Device vendor"
+                    firmware_version:
+                      type: "string"
+                      description: "Firmware version tested"
+                    test_date:
+                      type: "string"
+                      format: "date"
+                      description: "Date when testing was performed"
+                    notes:
+                      type: "string"
+                      description: "Additional testing notes"
+          limitations:
+            type: "array"
+            description: "Known limitations and restrictions"
+            items:
+              type: "string"
+          vendor_compatibility:
+            type: "array"
+            description: "Vendor-specific compatibility notes"
+            items:
+              type: "object"
+              required: ["vendor", "status"]
+              properties:
+                vendor:
+                  type: "string"
+                  description: "Vendor name"
+                status:
+                  type: "string"
+                  enum: ["full", "partial", "untested", "incompatible"]
+                  description: "Compatibility status"
+                notes:
+                  type: "string"
+                  description: "Compatibility details"
+                  
+  device_registry:
+    type: "object"
+    description: "Device compatibility matrix"
+    properties:
+      total_devices_tested:
+        type: "integer"
+        description: "Total number of devices tested"
+      virtual_devices:
+        type: "integer"
+        description: "Number of virtual devices tested"
+      real_devices:
+        type: "integer"
+        description: "Number of real hardware devices tested"
+      device_categories:
+        type: "object"
+        description: "Devices grouped by category"
+        additionalProperties:
+          type: "array"
+          items:
+            type: "object"
+            required: ["name", "status"]
+            properties:
+              name:
+                type: "string"
+                description: "Device name"
+              vendor:
+                type: "string"
+                description: "Device vendor"
+              status:
+                type: "string"
+                enum: ["passed", "failed", "partial", "untested"]
+                description: "Test status"
+              protocols_supported:
+                type: "array"
+                description: "Protocols supported by this device"
+                items:
+                  type: "string"
+                  
+  performance_metrics:
+    type: "object"
+    description: "Performance benchmarks and metrics"
+    properties:
+      benchmark_environment:
+        type: "object"
+        description: "Benchmarking environment details"
+        properties:
+          cpu:
+            type: "string"
+            description: "CPU specifications"
+          memory:
+            type: "string"
+            description: "Memory specifications"
+          os:
+            type: "string"
+            description: "Operating system"
+          go_version:
+            type: "string"
+            description: "Go version used for builds"
+      overall_performance:
+        type: "object"
+        description: "Overall system performance metrics"
+        properties:
+          max_throughput:
+            type: "string"
+            description: "Maximum throughput achieved"
+          avg_latency:
+            type: "string"
+            description: "Average latency"
+          memory_footprint:
+            type: "string"
+            description: "Memory footprint"
+          binary_size:
+            type: "string"
+            description: "Binary size"
+      protocol_benchmarks:
+        type: "object"
+        description: "Per-protocol performance metrics"
+        additionalProperties:
+          type: "object"
+          description: "Protocol-specific metrics"
+          properties:
+            operations_per_second:
+              type: "number"
+              description: "Operations per second"
+            latency_p50:
+              type: "string"
+              description: "50th percentile latency"
+            latency_p95:
+              type: "string"
+              description: "95th percentile latency"
+            latency_p99:
+              type: "string"
+              description: "99th percentile latency"
+            max_concurrent_connections:
+              type: "integer"
+              description: "Maximum concurrent connections tested"
+              
+  testing_summary:
+    type: "object"
+    description: "Testing coverage and results"
+    required: ["total_tests", "passed", "failed"]
+    properties:
+      total_tests:
+        type: "integer"
+        description: "Total number of tests executed"
+      passed:
+        type: "integer"
+        description: "Number of tests passed"
+      failed:
+        type: "integer"
+        description: "Number of tests failed"
+      skipped:
+        type: "integer"
+        description: "Number of tests skipped"
+      coverage_percentage:
+        type: "string"
+        description: "Test coverage percentage"
+      test_categories:
+        type: "object"
+        description: "Test results by category"
+        properties:
+          unit_tests:
+            $ref: "#/definitions/test_category"
+          integration_tests:
+            $ref: "#/definitions/test_category"
+          performance_tests:
+            $ref: "#/definitions/test_category"
+          security_tests:
+            $ref: "#/definitions/test_category"
+      automated_tests:
+        type: "object"
+        description: "Automated test execution summary"
+        properties:
+          ci_status:
+            type: "string"
+            enum: ["passing", "failing", "unstable"]
+            description: "CI pipeline status"
+          last_run:
+            type: "string"
+            format: "date-time"
+            description: "Last automated test run"
+          duration:
+            type: "string"
+            description: "Test execution duration"
+      manual_tests:
+        type: "object"
+        description: "Manual testing results"
+        properties:
+          scenarios_tested:
+            type: "integer"
+            description: "Number of manual test scenarios"
+          scenarios_passed:
+            type: "integer"
+            description: "Number of manual scenarios passed"
+          tester:
+            type: "string"
+            description: "Person who performed manual testing"
+          test_date:
+            type: "string"
+            format: "date"
+            description: "Manual testing date"
+            
+  known_issues:
+    type: "array"
+    description: "Known issues and workarounds"
+    items:
+      type: "object"
+      required: ["issue", "severity"]
+      properties:
+        issue:
+          type: "string"
+          description: "Description of the issue"
+        severity:
+          type: "string"
+          enum: ["critical", "high", "medium", "low"]
+          description: "Issue severity level"
+        workaround:
+          type: "string"
+          description: "Workaround or mitigation"
+        tracking_url:
+          type: "string"
+          format: "uri"
+          description: "URL to issue tracker"
+        expected_fix:
+          type: "string"
+          description: "Expected fix version"
+          
+  regression_notes:
+    type: "array"
+    description: "Regression test results and notes"
+    items:
+      type: "object"
+      required: ["test", "status"]
+      properties:
+        test:
+          type: "string"
+          description: "Regression test description"
+        status:
+          type: "string"
+          enum: ["passed", "failed", "skipped", "new"]
+          description: "Test status"
+        previous_status:
+          type: "string"
+          description: "Status in previous release"
+        notes:
+          type: "string"
+          description: "Additional notes"
+          
+  metadata:
+    type: "object"
+    description: "Card metadata"
+    properties:
+      generated_at:
+        type: "string"
+        format: "date-time"
+        description: "When this card was generated"
+      generated_by:
+        type: "string"
+        description: "Tool/person that generated this card"
+      schema_version:
+        type: "string"
+        description: "Schema version used"
+      card_format_version:
+        type: "string"
+        description: "Release card format version"
+
+definitions:
+  test_category:
+    type: "object"
+    properties:
+      total:
+        type: "integer"
+        description: "Total tests in category"
+      passed:
+        type: "integer"
+        description: "Passed tests in category"
+      failed:
+        type: "integer"
+        description: "Failed tests in category"
+      coverage:
+        type: "string"
+        description: "Coverage percentage for category"

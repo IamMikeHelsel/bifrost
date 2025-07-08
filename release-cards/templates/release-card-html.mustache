@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bifrost Release Card - {{version}}</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .release-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .badge-alpha { background-color: #fef3c7; color: #92400e; }
+        .badge-beta { background-color: #dbeafe; color: #1e40af; }
+        .badge-rc { background-color: #fed7d7; color: #b91c1c; }
+        .badge-stable { background-color: #d1fae5; color: #065f46; }
+
+        .section {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .section h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .status-stable { border-left: 4px solid var(--success-color); }
+        .status-beta { border-left: 4px solid var(--warning-color); }
+        .status-experimental { border-left: 4px solid #6366f1; }
+        .status-deprecated { border-left: 4px solid var(--error-color); }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .test-results {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s ease;
+        }
+
+        .issue-list {
+            list-style: none;
+        }
+
+        .issue-item {
+            padding: 1rem;
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+            background: #f8fafc;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .issue-critical { border-left-color: var(--error-color); }
+        .issue-high { border-left-color: #f59e0b; }
+        .issue-medium { border-left-color: var(--warning-color); }
+        .issue-low { border-left-color: #6b7280; }
+
+        .device-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .device-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+        }
+
+        .device-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .status-passed { background: #d1fae5; color: #065f46; }
+        .status-failed { background: #fee2e2; color: #991b1b; }
+        .status-partial { background: #fef3c7; color: #92400e; }
+        .status-untested { background: #f3f4f6; color: #374151; }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .release-info {
+                gap: 1rem;
+            }
+            
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🌉 Bifrost Release Card</h1>
+            <h2>{{version}}</h2>
+            <div class="release-info">
+                <div class="badge badge-{{release_type}}">{{release_type|uppercase}}</div>
+                <div class="badge badge-stable">{{release_date}}</div>
+                {{#metadata.generated_at}}
+                <div class="badge badge-stable">Generated: {{.}}</div>
+                {{/metadata.generated_at}}
+            </div>
+        </header>
+
+        {{#major_features}}
+        <section class="section">
+            <h2>🚀 Major Features</h2>
+            <ul>
+                {{#this}}
+                <li>{{.}}</li>
+                {{/this}}
+            </ul>
+        </section>
+        {{/major_features}}
+
+        {{#breaking_changes}}
+        <section class="section">
+            <h2>⚠️ Breaking Changes</h2>
+            {{#this}}
+            <div class="card">
+                <h4>{{change}}</h4>
+                <p><strong>Migration:</strong> {{migration_guide}}</p>
+            </div>
+            {{/this}}
+        </section>
+        {{/breaking_changes}}
+
+        <section class="section">
+            <h2>📡 Protocol Support Matrix</h2>
+            <div class="grid grid-2">
+                {{#protocols}}
+                {{#this}}
+                <div class="card status-{{status}}">
+                    <h3>{{@../key}} - {{@key}}</h3>
+                    <p><strong>Status:</strong> {{status}}</p>
+                    {{#version}}<p><strong>Version:</strong> {{.}}</p>{{/version}}
+                    
+                    {{#performance}}
+                    <h4>Performance</h4>
+                    <div class="metric-grid">
+                        {{#throughput}}
+                        <div class="metric">
+                            <div class="metric-value">{{.}}</div>
+                            <div class="metric-label">Throughput</div>
+                        </div>
+                        {{/throughput}}
+                        {{#latency}}
+                        <div class="metric">
+                            <div class="metric-value">{{.}}</div>
+                            <div class="metric-label">Latency</div>
+                        </div>
+                        {{/latency}}
+                        {{#concurrent_connections}}
+                        <div class="metric">
+                            <div class="metric-value">{{.}}</div>
+                            <div class="metric-label">Max Connections</div>
+                        </div>
+                        {{/concurrent_connections}}
+                    </div>
+                    {{/performance}}
+
+                    {{#tested_devices}}
+                    <h4>Tested Devices</h4>
+                    {{#virtual}}
+                    <p><strong>Virtual:</strong> {{.}}</p>
+                    {{/virtual}}
+                    {{#real}}
+                    <p><strong>Real:</strong> {{device}} ({{vendor}})</p>
+                    {{/real}}
+                    {{/tested_devices}}
+
+                    {{#limitations}}
+                    <h4>Limitations</h4>
+                    <ul>
+                        {{#this}}
+                        <li>{{.}}</li>
+                        {{/this}}
+                    </ul>
+                    {{/limitations}}
+                </div>
+                {{/this}}
+                {{/protocols}}
+            </div>
+        </section>
+
+        {{#device_registry}}
+        <section class="section">
+            <h2>🔧 Device Compatibility</h2>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-value">{{total_devices_tested}}</div>
+                    <div class="metric-label">Total Devices</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">{{virtual_devices}}</div>
+                    <div class="metric-label">Virtual Devices</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">{{real_devices}}</div>
+                    <div class="metric-label">Real Hardware</div>
+                </div>
+            </div>
+
+            {{#device_categories}}
+            <h3>{{@key}}</h3>
+            <div class="device-list">
+                {{#this}}
+                <div class="device-item">
+                    <strong>{{name}}</strong>
+                    {{#vendor}}<br><small>{{.}}</small>{{/vendor}}
+                    <span class="device-status status-{{status}}">{{status}}</span>
+                    {{#protocols_supported}}
+                    <br><small>Protocols: {{#this}}{{.}}{{#unless @last}}, {{/unless}}{{/this}}</small>
+                    {{/protocols_supported}}
+                </div>
+                {{/this}}
+            </div>
+            {{/device_categories}}
+        </section>
+        {{/device_registry}}
+
+        {{#performance_metrics}}
+        <section class="section">
+            <h2>⚡ Performance Metrics</h2>
+            
+            {{#benchmark_environment}}
+            <div class="card">
+                <h3>Test Environment</h3>
+                <p><strong>CPU:</strong> {{cpu}}</p>
+                <p><strong>Memory:</strong> {{memory}}</p>
+                <p><strong>OS:</strong> {{os}}</p>
+                <p><strong>Go Version:</strong> {{go_version}}</p>
+            </div>
+            {{/benchmark_environment}}
+
+            {{#overall_performance}}
+            <h3>Overall Performance</h3>
+            <div class="metric-grid">
+                {{#max_throughput}}
+                <div class="metric">
+                    <div class="metric-value">{{.}}</div>
+                    <div class="metric-label">Max Throughput</div>
+                </div>
+                {{/max_throughput}}
+                {{#avg_latency}}
+                <div class="metric">
+                    <div class="metric-value">{{.}}</div>
+                    <div class="metric-label">Avg Latency</div>
+                </div>
+                {{/avg_latency}}
+                {{#memory_footprint}}
+                <div class="metric">
+                    <div class="metric-value">{{.}}</div>
+                    <div class="metric-label">Memory Footprint</div>
+                </div>
+                {{/memory_footprint}}
+                {{#binary_size}}
+                <div class="metric">
+                    <div class="metric-value">{{.}}</div>
+                    <div class="metric-label">Binary Size</div>
+                </div>
+                {{/binary_size}}
+            </div>
+            {{/overall_performance}}
+
+            {{#protocol_benchmarks}}
+            <h3>Protocol Benchmarks</h3>
+            <div class="grid grid-3">
+                {{#this}}
+                <div class="card">
+                    <h4>{{@key}}</h4>
+                    <div class="metric-grid">
+                        {{#operations_per_second}}
+                        <div class="metric">
+                            <div class="metric-value">{{.}}</div>
+                            <div class="metric-label">Ops/sec</div>
+                        </div>
+                        {{/operations_per_second}}
+                        {{#latency_p95}}
+                        <div class="metric">
+                            <div class="metric-value">{{.}}</div>
+                            <div class="metric-label">P95 Latency</div>
+                        </div>
+                        {{/latency_p95}}
+                    </div>
+                </div>
+                {{/this}}
+            </div>
+            {{/protocol_benchmarks}}
+        </section>
+        {{/performance_metrics}}
+
+        {{#testing_summary}}
+        <section class="section">
+            <h2>🧪 Testing Summary</h2>
+            
+            <div class="test-results">
+                <div class="metric">
+                    <div class="metric-value">{{passed}}/{{total_tests}}</div>
+                    <div class="metric-label">Tests Passed</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{#calculate_percentage}}{{passed}} {{total_tests}}{{/calculate_percentage}}%"></div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">{{coverage_percentage}}</div>
+                    <div class="metric-label">Coverage</div>
+                </div>
+            </div>
+
+            {{#test_categories}}
+            <h3>Test Categories</h3>
+            <div class="grid grid-2">
+                {{#unit_tests}}
+                <div class="card">
+                    <h4>Unit Tests</h4>
+                    <p>{{passed}}/{{total}} passed ({{coverage}} coverage)</p>
+                </div>
+                {{/unit_tests}}
+                {{#integration_tests}}
+                <div class="card">
+                    <h4>Integration Tests</h4>
+                    <p>{{passed}}/{{total}} passed ({{coverage}} coverage)</p>
+                </div>
+                {{/integration_tests}}
+                {{#performance_tests}}
+                <div class="card">
+                    <h4>Performance Tests</h4>
+                    <p>{{passed}}/{{total}} passed ({{coverage}} coverage)</p>
+                </div>
+                {{/performance_tests}}
+                {{#security_tests}}
+                <div class="card">
+                    <h4>Security Tests</h4>
+                    <p>{{passed}}/{{total}} passed ({{coverage}} coverage)</p>
+                </div>
+                {{/security_tests}}
+            </div>
+            {{/test_categories}}
+        </section>
+        {{/testing_summary}}
+
+        {{#known_issues}}
+        <section class="section">
+            <h2>⚠️ Known Issues</h2>
+            <ul class="issue-list">
+                {{#this}}
+                <li class="issue-item issue-{{severity}}">
+                    <h4>{{severity|uppercase}}: {{issue}}</h4>
+                    {{#workaround}}<p><strong>Workaround:</strong> {{.}}</p>{{/workaround}}
+                    {{#expected_fix}}<p><strong>Expected Fix:</strong> {{.}}</p>{{/expected_fix}}
+                </li>
+                {{/this}}
+            </ul>
+        </section>
+        {{/known_issues}}
+
+        <footer class="footer">
+            {{#metadata}}
+            <p>Generated {{generated_at}} by {{generated_by}}</p>
+            <p>Schema Version: {{schema_version}} | Card Format: {{card_format_version}}</p>
+            {{/metadata}}
+            <p>For more information, visit the <a href="https://github.com/IamMikeHelsel/bifrost">Bifrost GitHub repository</a></p>
+        </footer>
+    </div>
+</body>
+</html>
