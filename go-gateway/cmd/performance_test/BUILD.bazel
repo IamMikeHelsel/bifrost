@@ -1,20 +1,20 @@
-# Gateway main package BUILD file
+# Performance test package BUILD file
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "github.com/bifrost/go-gateway/cmd/gateway",
+    importpath = "github.com/bifrost/go-gateway/cmd/performance_test",
     visibility = ["//visibility:private"],
     deps = [
         "//go-gateway/internal/gateway:go_default_library",
         "//go-gateway/internal/protocols:go_default_library",
-        # "//go-gateway/pkg/api",  # Empty for now
+        "//go-gateway/internal/performance:go_default_library",
     ],
 )
 
 go_binary(
-    name = "gateway",
+    name = "performance_test",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )

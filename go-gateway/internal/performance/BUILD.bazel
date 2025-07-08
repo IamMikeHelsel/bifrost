@@ -1,0 +1,27 @@
+# Performance package BUILD file
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "batch_processor.go",
+        "benchmark_suite.go",
+        "connection_pool.go",
+        "edge_optimizer.go",
+        "memory_optimizer.go",
+        "monitoring.go",
+        "optimized_gateway.go",
+        "profiler.go",
+    ],
+    importpath = "github.com/bifrost/go-gateway/internal/performance",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go-gateway/internal/protocols:go_default_library",
+    ],
+)
+
+alias(
+    name = "performance",
+    actual = ":go_default_library",
+    visibility = ["//visibility:public"],
+)

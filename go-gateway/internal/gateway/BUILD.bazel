@@ -1,0 +1,21 @@
+# Gateway package BUILD file
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "server.go",
+    ],
+    importpath = "github.com/bifrost/go-gateway/internal/gateway",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go-gateway/internal/protocols:go_default_library",
+        "//go-gateway/internal/performance:go_default_library",
+    ],
+)
+
+alias(
+    name = "gateway",
+    actual = ":go_default_library",
+    visibility = ["//visibility:public"],
+)

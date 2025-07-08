@@ -1,0 +1,20 @@
+# API package BUILD file
+# This directory is currently empty - commented out until API files are added
+
+# load("@rules_go//go:def.bzl", "go_library")
+
+# go_library(
+#     name = "go_default_library",
+#     srcs = glob(["*.go"]),
+#     importpath = "github.com/bifrost/go-gateway/pkg/api",
+#     visibility = ["//visibility:public"],
+#     deps = [
+#         "//internal/protocols",
+#     ],
+# )
+
+# alias(
+#     name = "api",
+#     actual = ":go_default_library",
+#     visibility = ["//visibility:public"],
+# )

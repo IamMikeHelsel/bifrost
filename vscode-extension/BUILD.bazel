@@ -1,0 +1,42 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+ts_project(
+    name = "vscode_extension",
+    srcs = glob([
+        "src/**/*.ts",
+    ]),
+    declaration = True,
+    tsconfig = "//:vscode-extension/tsconfig.json",
+    deps = [
+        ":node_modules/@types/node",
+        ":node_modules/@types/vscode",
+        ":node_modules/chart.js",
+        ":node_modules/date-fns",
+    ],
+)
+
+js_library(
+    name = "extension",
+    srcs = [":vscode_extension"],
+    visibility = ["//visibility:public"],
+)
+
+# Package the extension
+genrule(
+    name = "package_extension",
+    srcs = [
+        ":extension",
+        "package.json",
+        "media/bifrost-icon.svg",
+        "media/monitor.css",
+        "media/monitor.js",
+    ],
+    outs = ["bifrost-extension.vsix"],
+    cmd = "$(location @nodejs_toolchains//:resolved_toolchain)/bin/npx vsce package --out $@",
+    tools = ["@nodejs_toolchains//:resolved_toolchain"],
+    visibility = ["//visibility:public"],
+)
