@@ -167,14 +167,12 @@ func (p *Profiler) initialize() {
 func (p *Profiler) startHTTPServer() {
 	mux := http.NewServeMux()
 
-	// Add pprof endpoints
-	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(pprof.Index))
-	mux.HandleFunc("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
-	mux.HandleFunc("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
-
-
-	mux.HandleFunc("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
-	mux.HandleFunc("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+	// Add pprof endpoints - the net/http/pprof package automatically registers these
+	mux.Handle("/debug/pprof/", http.DefaultServeMux)
+	mux.Handle("/debug/pprof/cmdline", http.DefaultServeMux)
+	mux.Handle("/debug/pprof/profile", http.DefaultServeMux)
+	mux.Handle("/debug/pprof/symbol", http.DefaultServeMux)
+	mux.Handle("/debug/pprof/trace", http.DefaultServeMux)
 
 	// Add custom endpoints
 	mux.HandleFunc("/debug/pprof/heap", p.handleHeapProfile)

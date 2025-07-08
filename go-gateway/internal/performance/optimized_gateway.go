@@ -359,19 +359,16 @@ func (og *OptimizedGateway) collectDataConcurrent(ctx context.Context) {
 
 // collectProtocolBatch collects data from a batch of devices using the same protocol
 func (og *OptimizedGateway) collectProtocolBatch(ctx context.Context, protocol string, devices []*OptimizedDevice) {
-	handler, exists := og.protocols[protocol]
+	_, exists := og.protocols[protocol]
 	if !exists {
 		og.logger.Error("Unknown protocol for batch collection", zap.String("protocol", protocol))
 		return
 	}
 
 	// Prepare batch requests
-	// var batchRequests []*BatchRequest // Declared and not used
-
 	for _, device := range devices {
-		for _, tag := range device.Tags {
-			// request := og.memoryOptimizer.AcquireRequest() // Declared and not used
-			// request.ID = fmt.Sprintf("%s_%s", device.ID, tag.ID)
+		for _, _ = range device.Tags {
+			// TODO: Implement batch request optimization
 			// request.DeviceID = device.ID
 			// request.Operation = "read"
 			// request.Address = tag.Address

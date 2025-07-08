@@ -1,6 +1,6 @@
-# 🌉 Bifrost - High-Performance Industrial IoT Gateway
+# 🌉 Bifrost - Automation Software Engineering Suite
 
-**Bifrost** is a high-performance industrial gateway built in Go that bridges OT (Operational Technology) equipment with modern IT infrastructure. Break down the walls between operational technology and information technology - make it as easy to work with a PLC as it is to work with a REST API.
+**Bifrost** is a comprehensive automation software engineering suite that bridges operational technology (OT) with information technology (IT), providing developers with modern tools to build, deploy, and maintain industrial automation solutions. Build automation solutions with the same ease as web applications.
 
 [![Go Version](https://img.shields.io/badge/Go-1.22+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -9,15 +9,15 @@
 
 ## 🏆 Core Features
 
-- **High-Performance Go Gateway**: Achieves 18,879 ops/sec with 53µs latency.
+- **High-Performance Protocol Engine**: Achieves 18,879 ops/sec with 53µs latency.
 - **Protocol Support**: Native Modbus TCP/RTU, with OPC UA and others in development.
-- **Modern IT Integration**: RESTful APIs, WebSocket streaming, and Prometheus metrics.
+- **Modern Development Platform**: RESTful APIs, WebSocket streaming, and integrated development environment.
 - **Cross-Platform**: Single binary deployment for Windows, Linux, and macOS.
-- **VS Code Extension**: Enhances development with real-time monitoring and debugging.
+- **Integrated Development Environment**: VS Code extension for automation engineering with real-time monitoring.
 
 ## 💡 Architecture
 
-The architecture separates concerns between the high-performance Go gateway and the rich TypeScript-based VS Code extension, ensuring optimal performance while providing excellent developer experience.
+The architecture separates concerns between the high-performance protocol engine and the integrated development environment, ensuring optimal performance while providing excellent developer experience for automation engineering.
 
 ```mermaid
 graph TD
@@ -27,9 +27,9 @@ graph TD
         C[Web Dashboard]
     end
 
-    subgraph "Bifrost Gateway (Go)"
+    subgraph "Bifrost Protocol Engine (Go)"
         D[API Server<br/>REST/gRPC/WebSocket]
-        E[Protocol Engine<br/>Modbus/OPC UA/EtherNet IP]
+        E[Protocol Handlers<br/>Modbus/OPC UA/EtherNet IP]
         F[Data Bus<br/>Pub/Sub/MQTT]
         G[Discovery Service<br/>Auto-detect devices]
     end

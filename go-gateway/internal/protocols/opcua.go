@@ -9,18 +9,23 @@ import (
 
 // OPCUAHandler handles OPC-UA communication.
 type OPCUAHandler struct {
-	logger *zap.Logger
+	logger    *zap.Logger
+	connected map[string]bool
 }
 
 // NewOPCUAHandler creates a new OPC-UA handler.
 func NewOPCUAHandler(logger *zap.Logger) *OPCUAHandler {
-	return &OPCUAHandler{logger: logger}
+	return &OPCUAHandler{
+		logger:    logger,
+		connected: make(map[string]bool),
+	}
 }
 
 // Connect establishes a connection to an OPC-UA server.
 func (h *OPCUAHandler) Connect(device *Device) error {
 	h.logger.Info("Connecting to OPC-UA server", zap.String("address", device.Address))
 	// TODO: Implement connection logic.
+	h.connected[device.ID] = true
 	return nil
 }
 
@@ -28,7 +33,13 @@ func (h *OPCUAHandler) Connect(device *Device) error {
 func (h *OPCUAHandler) Disconnect(device *Device) error {
 	h.logger.Info("Disconnecting from OPC-UA server", zap.String("address", device.Address))
 	// TODO: Implement disconnect logic.
+	h.connected[device.ID] = false
 	return nil
+}
+
+// IsConnected checks if the device is connected.
+func (h *OPCUAHandler) IsConnected(device *Device) bool {
+	return h.connected[device.ID]
 }
 
 // ReadTag reads a single tag from an OPC-UA device.
@@ -72,4 +83,28 @@ func (h *OPCUAHandler) GetDiagnostics(device *Device) (*Diagnostics, error) {
 func (h *OPCUAHandler) GetSupportedDataTypes() []string {
 	// TODO: Return actual supported data types.
 	return []string{"bool", "int16", "int32", "float32", "string"}
+}
+
+// ValidateTagAddress validates an OPC-UA tag address.
+func (h *OPCUAHandler) ValidateTagAddress(address string) error {
+	// TODO: Implement OPC-UA address validation
+	return nil
+}
+
+// Ping checks if the OPC-UA device is reachable.
+func (h *OPCUAHandler) Ping(device *Device) error {
+	h.logger.Info("Pinging OPC-UA device", zap.String("device_id", device.ID))
+	// TODO: Implement ping logic
+	return nil
+}
+
+// ReadMultipleTags reads multiple tags from an OPC-UA device.
+func (h *OPCUAHandler) ReadMultipleTags(device *Device, tags []*Tag) (map[string]interface{}, error) {
+	h.logger.Info("Reading multiple tags from OPC-UA device", zap.String("device_id", device.ID), zap.Int("tag_count", len(tags)))
+	// TODO: Implement batch read logic
+	result := make(map[string]interface{})
+	for _, tag := range tags {
+		result[tag.Address] = "dummy-data"
+	}
+	return result, nil
 }
