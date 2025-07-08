@@ -1,0 +1,90 @@
+version: 0.1.1
+release_date: '2025-07-08'
+release_type: beta
+protocols:
+  modbus:
+    tcp:
+      status: beta
+      version: 1.0.0
+      performance:
+        throughput: N/A
+        latency: N/A
+        concurrent_limit: 1
+        memory_usage: N/A
+      tested_devices:
+        virtual:
+        - modbus-tcp-sim
+        real: []
+      limitations: []
+      known_issues: []
+  opcua:
+    client:
+      status: beta
+      version: 1.0.0
+      performance:
+        throughput: N/A
+        latency: N/A
+        concurrent_limit: 1
+        memory_usage: N/A
+      tested_devices:
+        virtual:
+        - opcua-sim
+        real: []
+      limitations: []
+      known_issues: []
+device_registry:
+  virtual_devices:
+  - name: modbus-tcp-sim
+    protocol: modbus_tcp
+    version: 1.0.0
+    test_coverage: N/A
+    status: passing
+    last_tested: '2025-07-08'
+  - name: opcua-sim
+    protocol: opcua
+    version: 1.0.0
+    test_coverage: N/A
+    status: passing
+    last_tested: '2025-07-08'
+  real_devices: []
+performance_benchmarks:
+  results: []
+  test_environment:
+    os: Linux
+    cpu: Unknown
+    memory: Unknown
+    network: Unknown
+    load_conditions: Automated testing environment
+testing_summary:
+  automated_tests:
+    total: 0
+    passed: 0
+    failed: 0
+    skipped: 0
+    coverage: N/A
+metadata:
+  generated_by: release-data-collector
+  generated_at: '2025-07-08T14:14:34.305570Z'
+  schema_version: 1.0.0
+release_notes: Automated release 0.1.1 with collected test and performance data.
+quality_metrics:
+  code_coverage: N/A
+  security_score: N/A
+  performance_score: N/A
+  reliability_score: N/A
+  documentation_score: N/A
+dependencies:
+  python_version: '>=3.11'
+  os_requirements:
+  - Linux
+  - Windows
+  - macOS
+  hardware_requirements:
+    minimum:
+      cpu: Dual-core x86_64
+      memory: 4GB RAM
+      storage: 1GB
+    recommended:
+      cpu: Quad-core x86_64
+      memory: 8GB RAM
+      storage: 5GB
