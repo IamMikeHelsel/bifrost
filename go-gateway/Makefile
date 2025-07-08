@@ -92,6 +92,38 @@ perf-test:
 	@echo "Running performance tests..."
 	go test -v -bench=BenchmarkModbus -benchtime=10s ./internal/protocols/
 
+# Protocol matrix commands
+matrix-build:
+	@echo "Building protocol matrix CLI..."
+	cd protocol-matrix && go build -o ../bin/matrix ./cmd/matrix/
+
+matrix-status:
+	@echo "Checking protocol matrix status..."
+	@$(MAKE) matrix-build
+	./bin/matrix -command=status -verbose
+
+matrix-analyze:
+	@echo "Analyzing protocol matrix..."
+	@$(MAKE) matrix-build
+	./bin/matrix -command=analyze
+
+matrix-validate:
+	@echo "Validating protocol matrix configuration..."
+	@$(MAKE) matrix-build
+	./bin/matrix -command=validate
+
+matrix-report:
+	@echo "Generating protocol matrix reports..."
+	@$(MAKE) matrix-build
+	./bin/matrix -command=report
+
+matrix-test:
+	@echo "Running protocol matrix tests..."
+	cd protocol-matrix && go test -v ./...
+
+# All matrix operations
+matrix: matrix-validate matrix-analyze matrix-status matrix-report
+
 # Help
 help:
 	@echo "Available targets:"
@@ -110,4 +142,11 @@ help:
 	@echo "  docker-build - Build Docker image"
 	@echo "  docker-run  - Run Docker container"
 	@echo "  perf-test   - Run performance tests"
+	@echo "  matrix-build - Build protocol matrix CLI"
+	@echo "  matrix-status - Show protocol matrix status"
+	@echo "  matrix-analyze - Analyze protocol matrix"
+	@echo "  matrix-validate - Validate matrix configuration"
+	@echo "  matrix-report - Generate matrix reports"
+	@echo "  matrix-test - Run matrix tests"
+	@echo "  matrix      - Run all matrix operations"
 	@echo "  help        - Show this help message"

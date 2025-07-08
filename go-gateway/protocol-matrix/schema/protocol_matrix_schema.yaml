@@ -1,0 +1,192 @@
+# Protocol Testing Matrix Schema
+# This defines the structure for protocol testing matrices
+# Used for validation and automated test tracking
+
+protocol_matrix:
+  # Version of the schema
+  schema_version: "1.0"
+  
+  # Timestamp of last update
+  last_updated: ""
+  
+  # Supported protocols and their testing matrices
+  protocols:
+    
+    # Modbus Protocol Testing Matrix
+    modbus:
+      implementations:
+        tcp:
+          test_coverage:
+            function_codes: [1, 2, 3, 4, 5, 6, 15, 16, 23]
+            exception_codes: [1, 2, 3, 4]
+            performance_tests: true
+            concurrent_connections: 100
+            data_types: ["bool", "int16", "int32", "float32", "string"]
+          virtual_devices:
+            - "modbus_tcp_simulator"
+            - "multi_slave_simulator"
+          real_devices: []
+          test_results:
+            last_run: ""
+            status: "not_run"
+            passed: 0
+            failed: 0
+            coverage_percentage: 0.0
+            
+        rtu:
+          test_coverage:
+            function_codes: [1, 2, 3, 4, 5, 6, 15, 16]
+            exception_codes: [1, 2, 3, 4]
+            performance_tests: true
+            serial_configs: ["9600,8,N,1", "19200,8,E,1"]
+            data_types: ["bool", "int16", "int32", "float32"]
+          virtual_devices:
+            - "modbus_rtu_simulator"
+          real_devices: []
+          test_results:
+            last_run: ""
+            status: "not_run"
+            passed: 0
+            failed: 0
+            coverage_percentage: 0.0
+    
+    # OPC UA Protocol Testing Matrix
+    opcua:
+      test_coverage:
+        security_policies:
+          - "None"
+          - "Basic128Rsa15"
+          - "Basic256"
+          - "Basic256Sha256"
+        authentication_modes:
+          - "Anonymous"
+          - "Username"
+          - "Certificate"
+        operations:
+          - "Browse"
+          - "Read"
+          - "Write"
+          - "Subscribe"
+          - "HistoryRead"
+        data_types: ["Boolean", "Int16", "Int32", "Float", "Double", "String", "DateTime"]
+      virtual_devices:
+        - "opcua_server_simulator"
+        - "vendor_specific_simulator"
+      real_devices: []
+      vendor_compatibility:
+        - "Schneider Electric"
+        - "Siemens"
+        - "Rockwell"
+        - "ABB"
+      test_results:
+        last_run: ""
+        status: "not_run"
+        passed: 0
+        failed: 0
+        coverage_percentage: 0.0
+    
+    # Ethernet/IP Protocol Testing Matrix  
+    ethernetip:
+      test_coverage:
+        messaging_types:
+          - "Explicit"
+          - "Implicit"
+        connection_types:
+          - "Class1"
+          - "Class3"
+        services:
+          - "Get_Attribute_Single"
+          - "Set_Attribute_Single"
+          - "Get_Attribute_List"
+          - "Forward_Open"
+          - "Forward_Close"
+        data_types: ["BOOL", "SINT", "INT", "DINT", "REAL", "STRING"]
+        device_profiles:
+          - "Generic Device"
+          - "I/O Device"
+          - "Drive Device"
+      virtual_devices:
+        - "ethernetip_adapter_simulator"
+        - "ab_plc_simulator"
+      real_devices: []
+      vendor_compatibility:
+        - "Allen-Bradley"
+        - "Schneider Electric"
+        - "Omron"
+      test_results:
+        last_run: ""
+        status: "not_run"
+        passed: 0
+        failed: 0
+        coverage_percentage: 0.0
+    
+    # S7 Protocol Testing Matrix
+    s7:
+      test_coverage:
+        cpu_families:
+          - "S7-300"
+          - "S7-400"
+          - "S7-1200"
+          - "S7-1500"
+        operations:
+          - "Read_DB"
+          - "Write_DB"
+          - "Read_Memory"
+          - "Write_Memory"
+          - "Get_CPU_Info"
+        data_types: ["BOOL", "BYTE", "WORD", "DWORD", "INT", "DINT", "REAL", "STRING"]
+        memory_areas:
+          - "DB" # Data Blocks
+          - "M"  # Memory
+          - "I"  # Inputs  
+          - "Q"  # Outputs
+          - "T"  # Timers
+          - "C"  # Counters
+      virtual_devices:
+        - "s7_plc_simulator"
+        - "simatic_simulator"
+      real_devices: []
+      vendor_compatibility:
+        - "Siemens"
+      test_results:
+        last_run: ""
+        status: "not_run"
+        passed: 0
+        failed: 0
+        coverage_percentage: 0.0
+
+# Test execution configuration
+test_execution:
+  # Maximum time for test suite execution
+  timeout: "30m"
+  
+  # Parallel execution settings
+  parallel_tests: true
+  max_workers: 4
+  
+  # Retry configuration
+  retry_failed_tests: true
+  max_retries: 3
+  
+  # Reporting configuration
+  generate_html_report: true
+  generate_json_report: true
+  
+# Performance targets
+performance_targets:
+  modbus_tcp:
+    throughput_ops_per_sec: 10000
+    latency_p95_ms: 10
+    concurrent_connections: 100
+  opcua:
+    throughput_ops_per_sec: 5000
+    latency_p95_ms: 20
+    concurrent_connections: 50
+  ethernetip:
+    throughput_ops_per_sec: 3000
+    latency_p95_ms: 15
+    concurrent_connections: 25
+  s7:
+    throughput_ops_per_sec: 2000
+    latency_p95_ms: 25
+    concurrent_connections: 20
