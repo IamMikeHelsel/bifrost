@@ -117,11 +117,47 @@ bench:
     uv run pytest packages/*/tests/benchmarks -v --benchmark-only
     @echo "📊 Benchmark results saved"
 
+# Run virtual device tests
+test-virtual-devices:
+    @echo "🖥️ Running virtual device tests..."
+    cd virtual-devices && python -m pytest tests/ -v
+    cd go-gateway && go test -v ./internal/protocols/... -tags=virtual
+    @echo "✅ Virtual device tests completed"
+
+# Run all benchmarks for release cards
+benchmark-all:
+    @echo "⚡ Running comprehensive benchmarks..."
+    @echo "🐍 Python benchmarks..."
+    uv run pytest packages/*/tests/benchmarks -v --benchmark-only --benchmark-json=test-results/python-benchmarks.json
+    @echo "🚀 Go performance tests..."
+    cd go-gateway && go run cmd/performance_test/main.go --test-type comprehensive --output test-results/go-benchmarks.json
+    @echo "📊 All benchmarks completed"
+
 # Generate documentation
 docs:
     @echo "📚 Generating documentation..."
     uv run sphinx-build docs docs/_build/html
     @echo "📖 Documentation generated in docs/_build/html"
+
+# Generate release card
+release-card version="v0.1.0":
+    @echo "🚀 Generating release card for {{version}}..."
+    python tools/generate-release-card.py --version {{version}} --test-results test-results --verbose
+
+# Deploy documentation and release cards
+deploy-docs:
+    @echo "🌐 Deploying documentation..."
+    python tools/deploy-docs.py --verbose
+
+# Create mock test results for testing
+mock-test-results:
+    @echo "🧪 Creating mock test results..."
+    ./scripts/create-mock-test-results.sh
+
+# Test release card integration
+test-release-cards:
+    @echo "🧪 Testing release card CI/CD integration..."
+    ./scripts/test-release-card-integration.sh
 
 # Serve documentation locally
 docs-serve: docs

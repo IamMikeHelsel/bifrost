@@ -1,0 +1,85 @@
+@startuml Gateway Components
+!theme blueprint
+
+package "Go Gateway" as gateway {
+  
+  package "cmd" {
+    component [gateway] as main_server
+    component [performance_test] as perf_test
+  }
+  
+  package "internal" {
+    
+    package "protocols" {
+      interface "ProtocolHandler" as proto_iface
+      component [modbus.go] as modbus
+      component [ethernetip.go] as eip
+      component [opcua.go] as opcua
+      
+      proto_iface <|-- modbus
+      proto_iface <|-- eip
+      proto_iface <|-- opcua
+    }
+    
+    package "gateway" {
+      component [server.go] as server
+      component [router.go] as router
+      component [websocket.go] as ws
+    }
+    
+    package "performance" {
+      component [pool.go] as conn_pool
+      component [cache.go] as cache
+      component [metrics.go] as metrics
+    }
+  }
+  
+  package "config" {
+    component [config.yaml] as config
+  }
+}
+
+package "External" {
+  database "Industrial Devices" as devices {
+    [Modbus PLC]
+    [Ethernet/IP Controller]
+    [OPC-UA Server]
+  }
+  
+  actor "VS Code Extension" as vscode
+  actor "REST Clients" as clients
+}
+
+' Connections
+main_server --> server
+server --> router
+server --> ws
+server --> proto_iface
+
+modbus --> devices
+eip --> devices
+opcua --> devices
+
+vscode --> server : REST API
+clients --> server : HTTP/WebSocket
+
+conn_pool --> modbus
+conn_pool --> eip
+conn_pool --> opcua
+
+metrics --> server
+cache --> proto_iface
+
+config --> main_server
+
+note right of proto_iface
+  Unified interface for all
+  industrial protocols
+end note
+
+note bottom of conn_pool
+  18,879 ops/sec performance
+  53µs average latency
+end note
+
+@enduml

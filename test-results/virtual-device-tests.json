@@ -1,0 +1,11 @@
+{
+  "total": 25,
+  "passed": 22,
+  "failed": 3,
+  "protocols": ["modbus", "opcua", "ethernetip"],
+  "coverage": {
+    "modbus": 85,
+    "opcua": 60,
+    "ethernetip": 40
+  }
+}

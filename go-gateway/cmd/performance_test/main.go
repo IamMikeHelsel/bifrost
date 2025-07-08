@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -524,7 +525,7 @@ func runComprehensiveTest(ctx context.Context, suite *performance.BenchmarkSuite
 
 func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 	logger.Info("🏁 PERFORMANCE TEST RESULTS 🏁")
-	logger.Info("=" * 80)
+	logger.Info(strings.Repeat("=", 80))
 
 	// Overall summary
 	logger.Info("📊 OVERALL PERFORMANCE SUMMARY",
@@ -648,7 +649,7 @@ func displayResults(results *performance.BenchmarkResults, logger *zap.Logger) {
 		}
 	}
 
-	logger.Info("=" * 80)
+	logger.Info(strings.Repeat("=", 80))
 }
 
 func saveResults(results *performance.BenchmarkResults, filename string) error {

@@ -1,0 +1,85 @@
+{
+  "version": "v0.1.0-test",
+  "release_date": "2025-07-08T14:15:22.886660",
+  "release_type": "alpha",
+  "protocols": {
+    "modbus": {
+      "status": "stable",
+      "version": "1.1b3",
+      "limitations": [
+        "No RTU over TCP support"
+      ],
+      "tested_devices": {
+        "virtual": [],
+        "real": []
+      }
+    },
+    "opcua": {
+      "status": "experimental",
+      "version": "0.1.0",
+      "limitations": [
+        "Limited security features"
+      ],
+      "tested_devices": {
+        "virtual": [],
+        "real": []
+      }
+    },
+    "ethernetip": {
+      "status": "experimental",
+      "version": "0.1.0",
+      "limitations": [
+        "Basic read/write only"
+      ],
+      "tested_devices": {
+        "virtual": [],
+        "real": []
+      }
+    }
+  },
+  "performance": {
+    "throughput": {
+      "ops_per_second": 18500,
+      "target_achieved": true
+    },
+    "latency": {
+      "average_ms": 0.65,
+      "p95_ms": 1.2,
+      "target_achieved": true
+    },
+    "memory": {
+      "peak_mb": 42,
+      "target_achieved": true
+    },
+    "overall_score": 88
+  },
+  "testing": {
+    "virtual_devices": {
+      "total_tests": 25,
+      "passed": 22,
+      "failed": 3,
+      "protocols_tested": [
+        "modbus",
+        "opcua",
+        "ethernetip"
+      ],
+      "coverage": {
+        "modbus": 85,
+        "opcua": 60,
+        "ethernetip": 40
+      }
+    },
+    "go_gateway": {
+      "total_tests": 45,
+      "passed": 42,
+      "failed": 3,
+      "coverage_percent": 78
+    }
+  },
+  "quality_gates": {
+    "test_coverage": true,
+    "performance_targets": true,
+    "documentation_complete": true,
+    "approved_for_release": true
+  }
+}
