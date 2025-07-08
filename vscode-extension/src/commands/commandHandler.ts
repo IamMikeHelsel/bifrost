@@ -3,6 +3,7 @@ import { DeviceManager } from '../services/deviceManager';
 import { DeviceTreeProvider } from '../providers/deviceTreeProvider';
 import { DataPointProvider } from '../providers/dataPointProvider';
 import { MonitorPanel } from '../panels/monitorPanel';
+import { LadderLogicPanel } from '../panels/ladderLogicPanel';
 import { spawn } from 'child_process';
 
 export class CommandHandler {
@@ -119,6 +120,41 @@ export class CommandHandler {
         }
         
         MonitorPanel.createOrShow(this.context.extensionUri, device);
+    }
+    
+    async openLadderLogic(item: any): Promise<void> {
+        const device = item?.device;
+        if (!device) {
+            // Show connected devices or allow opening without device for sample
+            const devices = this.deviceManager.getConnectedDevices();
+            const options = [
+                { label: 'Sample Ladder Logic', description: 'View sample ladder logic diagram', device: null },
+                ...devices.map(d => ({
+                    label: d.name,
+                    description: `${d.protocol} - ${d.address}:${d.port} (Load from PLC)`,
+                    device: d
+                }))
+            ];
+            
+            if (options.length === 1) {
+                // Only sample option available
+                LadderLogicPanel.createOrShow(this.context.extensionUri);
+                return;
+            }
+            
+            const selected = await vscode.window.showQuickPick(options, {
+                placeHolder: 'Select ladder logic source'
+            });
+            
+            if (!selected) {
+                return;
+            }
+            
+            LadderLogicPanel.createOrShow(this.context.extensionUri, selected.device);
+            return;
+        }
+        
+        LadderLogicPanel.createOrShow(this.context.extensionUri, device);
     }
     
     async refreshDevices(): Promise<void> {

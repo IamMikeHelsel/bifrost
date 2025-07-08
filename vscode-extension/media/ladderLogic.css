@@ -1,0 +1,337 @@
+/* Base styles for VS Code webview */
+@import url('./reset.css');
+@import url('./vscode.css');
+
+.ladder-logic-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    font-family: var(--vscode-font-family);
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: var(--vscode-editorGroupHeader-tabsBackground);
+    border-bottom: 1px solid var(--vscode-editorGroup-border);
+    flex-shrink: 0;
+}
+
+.button-primary {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+}
+
+.button-primary:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.button-secondary {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: 1px solid var(--vscode-button-border);
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+}
+
+.button-secondary:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.device-info {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.ladder-diagram-container {
+    flex: 1;
+    overflow: auto;
+    background-color: var(--vscode-editor-background);
+    position: relative;
+}
+
+.ladder-diagram {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    position: relative;
+}
+
+/* Ladder Logic Elements */
+.ladder-rung {
+    margin: 20px;
+    min-height: 80px;
+    position: relative;
+    border-left: 2px solid var(--vscode-editor-foreground);
+    border-right: 2px solid var(--vscode-editor-foreground);
+}
+
+.ladder-element {
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ladder-element:hover {
+    transform: scale(1.05);
+}
+
+/* Contact Elements */
+.contact {
+    width: 40px;
+    height: 20px;
+    border: 2px solid var(--vscode-editor-foreground);
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+.contact.energized {
+    background-color: var(--vscode-charts-green);
+    color: var(--vscode-editor-background);
+    box-shadow: 0 0 5px var(--vscode-charts-green);
+}
+
+.contact.de-energized {
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+}
+
+.contact.normally-closed::before {
+    content: '/';
+    position: absolute;
+    color: var(--vscode-editor-foreground);
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Coil Elements */
+.coil {
+    width: 40px;
+    height: 20px;
+    border: 2px solid var(--vscode-editor-foreground);
+    border-radius: 50%;
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.coil.energized {
+    background-color: var(--vscode-charts-red);
+    color: var(--vscode-editor-background);
+    box-shadow: 0 0 5px var(--vscode-charts-red);
+}
+
+.coil.de-energized {
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+}
+
+/* Timer Elements */
+.timer {
+    width: 80px;
+    height: 40px;
+    border: 2px solid var(--vscode-editor-foreground);
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    position: relative;
+}
+
+.timer.timing {
+    background-color: var(--vscode-charts-yellow);
+    color: var(--vscode-editor-background);
+}
+
+.timer-label {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.timer-values {
+    font-size: 8px;
+    text-align: center;
+}
+
+/* Connection Lines */
+.connection-line {
+    stroke: var(--vscode-editor-foreground);
+    stroke-width: 2;
+    fill: none;
+}
+
+.connection-line.energized {
+    stroke: var(--vscode-charts-green);
+    stroke-width: 3;
+}
+
+/* Element Labels */
+.element-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    white-space: nowrap;
+    background-color: var(--vscode-editor-background);
+    padding: 1px 3px;
+    border-radius: 2px;
+}
+
+/* Status Bar */
+.status-bar {
+    display: flex;
+    gap: 20px;
+    padding: 8px 10px;
+    background-color: var(--vscode-statusBar-background);
+    color: var(--vscode-statusBar-foreground);
+    border-top: 1px solid var(--vscode-editorGroup-border);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-item span {
+    font-weight: bold;
+}
+
+/* Rung Numbers */
+.rung-number {
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Real-time Status Indicators */
+.realtime-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--vscode-charts-green);
+    animation: pulse 1s infinite;
+}
+
+.realtime-indicator.error {
+    background-color: var(--vscode-charts-red);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Scrollbars */
+.ladder-diagram-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.ladder-diagram-container::-webkit-scrollbar-track {
+    background: var(--vscode-scrollbarSlider-background);
+}
+
+.ladder-diagram-container::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbarSlider-hoverBackground);
+    border-radius: 4px;
+}
+
+.ladder-diagram-container::-webkit-scrollbar-thumb:hover {
+    background: var(--vscode-scrollbarSlider-activeBackground);
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1000;
+}
+
+.zoom-button {
+    width: 30px;
+    height: 30px;
+    background-color: var(--vscode-button-secondaryBackground);
+    border: 1px solid var(--vscode-button-border);
+    border-radius: 4px;
+    color: var(--vscode-button-secondaryForeground);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.zoom-button:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--vscode-descriptionForeground);
+    font-size: 16px;
+}
+
+.loading::after {
+    content: '';
+    margin-left: 10px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--vscode-progressBar-background);
+    border-top: 2px solid var(--vscode-button-background);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
