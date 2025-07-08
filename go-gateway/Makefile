@@ -92,6 +92,16 @@ perf-test:
 	@echo "Running performance tests..."
 	go test -v -bench=BenchmarkModbus -benchtime=10s ./internal/protocols/
 
+# Release card generation
+release-card:
+	@echo "Generating release card..."
+	go run cmd/release_card/main.go -version $(VERSION) -commit $(COMMIT) -env $(ENV)
+
+# Release card with custom parameters
+release-card-custom:
+	@echo "Generating release card with custom parameters..."
+	go run cmd/release_card/main.go -version "$(VERSION)" -commit "$(COMMIT)" -env "$(ENV)" -output "$(OUTPUT)" -formats "$(FORMATS)"
+
 # Help
 help:
 	@echo "Available targets:"
@@ -110,4 +120,6 @@ help:
 	@echo "  docker-build - Build Docker image"
 	@echo "  docker-run  - Run Docker container"
 	@echo "  perf-test   - Run performance tests"
+	@echo "  release-card - Generate release card (requires VERSION, COMMIT, ENV vars)"
+	@echo "  release-card-custom - Generate release card with custom parameters"
 	@echo "  help        - Show this help message"
