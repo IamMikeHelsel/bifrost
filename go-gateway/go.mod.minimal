@@ -1,0 +1,19 @@
+module bifrost-gateway
+
+go 1.22
+
+require (
+	github.com/goburrow/modbus v0.1.0
+	github.com/gorilla/websocket v1.5.1
+	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	github.com/goburrow/serial v0.1.0 // indirect
+	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+)
+
+// Conditional dependencies for specific build tags
+// Use: go build -tags "prometheus,zap,testify" to include these
+// Default build excludes these dependencies
