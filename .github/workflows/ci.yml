@@ -85,7 +85,7 @@ jobs:
           go test -bench=. -benchmem ./internal/performance/... || true
           
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bifrost-gateway-linux
           path: ./go-gateway/bifrost-gateway
@@ -133,7 +133,7 @@ jobs:
           vsce package --allow-missing-repository
           
       - name: Upload extension artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bifrost-vscode-extension
           path: ./vscode-extension/*.vsix
@@ -288,7 +288,7 @@ jobs:
           curl -f http://localhost:8080/api/devices || exit 1
           
       - name: Upload integration test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-results
           path: test-results/
