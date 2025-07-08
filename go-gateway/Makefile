@@ -92,6 +92,24 @@ perf-test:
 	@echo "Running performance tests..."
 	go test -v -bench=BenchmarkModbus -benchtime=10s ./internal/protocols/
 
+# Hardware testing framework
+hardware-test-build:
+	@echo "Building hardware test framework..."
+	@mkdir -p $(BINARY_DIR)
+	go build $(GO_FLAGS) -o $(BINARY_DIR)/hardware_test ./cmd/hardware_test/
+
+hardware-test-run: hardware-test-build
+	@echo "Running hardware test framework..."
+	@./$(BINARY_DIR)/hardware_test -cmd list-devices
+
+hardware-test-daemon: hardware-test-build
+	@echo "Starting hardware test framework in daemon mode..."
+	@./$(BINARY_DIR)/hardware_test -cmd run -daemon
+
+hardware-test-status: hardware-test-build
+	@echo "Checking hardware test framework status..."
+	@./$(BINARY_DIR)/hardware_test -cmd status
+
 # Help
 help:
 	@echo "Available targets:"
@@ -110,4 +128,8 @@ help:
 	@echo "  docker-build - Build Docker image"
 	@echo "  docker-run  - Run Docker container"
 	@echo "  perf-test   - Run performance tests"
+	@echo "  hardware-test-build  - Build hardware test framework"
+	@echo "  hardware-test-run    - Run hardware test framework"
+	@echo "  hardware-test-daemon - Run hardware testing daemon"
+	@echo "  hardware-test-status - Check hardware test status"
 	@echo "  help        - Show this help message"
