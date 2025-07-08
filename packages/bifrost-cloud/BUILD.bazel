@@ -1,0 +1,91 @@
+# BUILD.bazel for bifrost-cloud (Python-only, simpler)
+# Cloud integrations and IoT platform connectors
+
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@rules_python//python:packaging.bzl", "py_wheel")
+
+# Note: This package is not yet implemented
+# This BUILD file serves as a template for Python-only cloud package
+
+# Future: Main library target (Python-only)
+# py_library(
+#     name = "bifrost_cloud",
+#     srcs = glob(["src/bifrost_cloud/**/*.py"]),
+#     imports = ["src"],
+#     deps = [
+#         "//packages/bifrost-core:bifrost_core",
+#         "@pypi//httpx",
+#         "@pypi//boto3",
+#         "@pypi//azure_iot_device",
+#         "@pypi//google_cloud_iot",
+#         "@pypi//paho_mqtt",
+#     ],
+#     visibility = ["//visibility:public"],
+# )
+
+# Future: Wheel distribution target
+# py_wheel(
+#     name = "wheel",
+#     distribution = "bifrost-cloud",
+#     version = "0.1.0",
+#     deps = [":bifrost_cloud"],
+#     wheel_metadata = {
+#         "Author": "Bifrost Contributors",
+#         "Author-email": "hello@bifrost.dev",
+#         "Description-Content-Type": "text/markdown",
+#         "License": "MIT",
+#         "Summary": "Cloud platform integrations for Bifrost",
+#     },
+# )
+
+# Future: Test targets
+# py_test(
+#     name = "test_aws",
+#     srcs = ["tests/test_aws.py"],
+#     deps = [
+#         ":bifrost_cloud",
+#         "@pypi//pytest",
+#         "@pypi//pytest_asyncio",
+#         "@pypi//moto",  # AWS mocking
+#     ],
+#     tags = ["cloud", "aws"],
+# )
+
+# py_test(
+#     name = "test_azure",
+#     srcs = ["tests/test_azure.py"],
+#     deps = [
+#         ":bifrost_cloud",
+#         "@pypi//pytest",
+#         "@pypi//pytest_asyncio",
+#     ],
+#     tags = ["cloud", "azure"],
+# )
+
+# py_test(
+#     name = "test_gcp",
+#     srcs = ["tests/test_gcp.py"],
+#     deps = [
+#         ":bifrost_cloud",
+#         "@pypi//pytest",
+#         "@pypi//pytest_asyncio",
+#     ],
+#     tags = ["cloud", "gcp"],
+# )
+
+# Future: Test suite for all cloud tests
+# test_suite(
+#     name = "tests",
+#     tests = [
+#         ":test_aws",
+#         ":test_azure",
+#         ":test_gcp",
+#     ],
+# )
+
+# Placeholder target to prevent Bazel errors
+filegroup(
+    name = "placeholder",
+    srcs = [],
+    visibility = ["//visibility:public"],
+)

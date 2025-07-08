@@ -1,7 +1,7 @@
 # Root BUILD.bazel file for Bifrost
 # This serves as the workspace root marker and contains top-level build rules
 
-# Alias targets for convenience
+# Alias targets for convenience - current packages
 alias(
     name = "bifrost-core",
     actual = "//packages/bifrost-core:bifrost_core",
@@ -20,17 +20,64 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-# Build all packages
+alias(
+    name = "bifrost-all",
+    actual = "//packages/bifrost-all:bifrost_all",
+    visibility = ["//visibility:public"],
+)
+
+# Future package aliases (commented out until implemented)
+# alias(
+#     name = "bifrost-opcua",
+#     actual = "//packages/bifrost-opcua:bifrost_opcua",
+#     visibility = ["//visibility:public"],
+# )
+
+# alias(
+#     name = "bifrost-analytics",
+#     actual = "//packages/bifrost-analytics:bifrost_analytics",
+#     visibility = ["//visibility:public"],
+# )
+
+# alias(
+#     name = "bifrost-cloud",
+#     actual = "//packages/bifrost-cloud:bifrost_cloud",
+#     visibility = ["//visibility:public"],
+# )
+
+# alias(
+#     name = "bifrost-protocols",
+#     actual = "//packages/bifrost-protocols:bifrost_protocols",
+#     visibility = ["//visibility:public"],
+# )
+
+# Build all current packages
 filegroup(
     name = "all_packages",
     srcs = [
         "//packages/bifrost-core:wheel",
         "//packages/bifrost:wheel",
+        "//packages/bifrost-all:wheel",
     ],
     visibility = ["//visibility:public"],
 )
 
-# Test all packages
+# Future: Build all packages (when implemented)
+# filegroup(
+#     name = "all_packages_future",
+#     srcs = [
+#         "//packages/bifrost-core:wheel",
+#         "//packages/bifrost:wheel",
+#         "//packages/bifrost-opcua:wheel",
+#         "//packages/bifrost-analytics:wheel",
+#         "//packages/bifrost-cloud:wheel",
+#         "//packages/bifrost-protocols:wheel",
+#         "//packages/bifrost-all:wheel",
+#     ],
+#     visibility = ["//visibility:public"],
+# )
+
+# Test all current packages
 test_suite(
     name = "all_tests",
     tests = [
@@ -38,3 +85,16 @@ test_suite(
         "//packages/bifrost:tests",
     ],
 )
+
+# Future: Test all packages (when implemented)
+# test_suite(
+#     name = "all_tests_future",
+#     tests = [
+#         "//packages/bifrost-core:tests",
+#         "//packages/bifrost:tests",
+#         "//packages/bifrost-opcua:tests",
+#         "//packages/bifrost-analytics:tests",
+#         "//packages/bifrost-cloud:tests",
+#         "//packages/bifrost-protocols:tests",
+#     ],
+# )

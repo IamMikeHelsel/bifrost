@@ -27,5 +27,10 @@ use_repo(rust, "rust_toolchains")
 
 # Crate universe for Cargo dependencies (for future Rust packages)
 crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
-# Note: Cargo.toml will be added when we have Rust packages
+crate.from_cargo(
+    name = "crate_index",
+    cargo_lockfile = "//:Cargo.lock",  # Will be generated when Rust components are added
+    manifests = ["//:Cargo.toml"],
+)
+# Note: Cargo.lock will be generated when we add actual Rust packages
 use_repo(crate, "crate_index")

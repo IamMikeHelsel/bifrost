@@ -1,0 +1,42 @@
+# Cargo.toml for Bifrost Rust components
+# This will be used by Bazel's crate_universe when Rust packages are implemented
+
+[workspace]
+resolver = "2"
+members = [
+    # Future Rust components will be added here:
+    # "packages/bifrost/native",
+    # "packages/bifrost-opcua/native", 
+    # "packages/bifrost-analytics/native",
+    # "packages/bifrost-protocols/native",
+]
+
+[workspace.dependencies]
+# Common dependencies for all Rust components
+pyo3 = { version = "0.20", features = ["extension-module", "abi3-py312"] }
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rayon = "1.7"
+byteorder = "1.4"
+
+# Protocol-specific dependencies
+# opcua = "0.12"  # For OPC UA native components
+# snap7-sys = "0.1"  # For Siemens S7 bindings (future)
+
+# Analytics dependencies  
+# arrow = "50.0"  # For high-performance data processing
+# polars = "0.35"  # For Python-compatible dataframes
+# pyo3-polars = "0.9"  # For Polars-Python integration
+
+[profile.release]
+# Optimize for size and performance in industrial environments
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+# Fast compilation for development
+opt-level = 0
+debug = true

@@ -6,3 +6,7 @@
 .venv/
 dist/
 UNKNOWN.egg-info/
+
+# Temporarily ignore Cargo files until Rust components are implemented
+Cargo.toml
+Cargo.lock

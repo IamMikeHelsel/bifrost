@@ -307,3 +307,22 @@ bazel-dev:
     just build-bazel
     just test-bazel
     @echo "✅ Bazel development cycle complete!"
+
+# Build all future packages (when implemented)
+build-all-future:
+    @echo "🔨 Building all packages (including future ones)..."
+    bazel build //packages/...
+    @echo "✅ All packages built!"
+
+# Test all future packages (when implemented)  
+test-all-future:
+    @echo "🧪 Testing all packages (including future ones)..."
+    bazel test //packages/...
+    @echo "✅ All packages tested!"
+
+# Generate Cargo.lock for Rust dependencies (when Rust components are added)
+cargo-lock:
+    @echo "📦 Generating Cargo.lock for Rust dependencies..."
+    # This will be uncommented when we have actual Rust components
+    # cargo generate-lockfile
+    @echo "⚠️  Cargo.lock generation skipped - no Rust components yet"

@@ -1,0 +1,47 @@
+# BUILD.bazel for snap7 (Siemens S7 library)
+# Native C++ library for Siemens S7 protocol implementation
+
+# Note: This is a placeholder for the snap7 library
+# When implemented, this will contain rules to build the snap7 C++ library
+
+# Future: C++ library target
+# cc_library(
+#     name = "snap7",
+#     srcs = glob([
+#         "src/**/*.cpp",
+#         "src/**/*.h",
+#     ]),
+#     hdrs = glob(["include/**/*.h"]),
+#     includes = ["include"],
+#     copts = select({
+#         "@platforms//os:linux": ["-fPIC", "-pthread"],
+#         "@platforms//os:macos": ["-fPIC", "-pthread"],
+#         "@platforms//os:windows": ["/MT"],
+#     }),
+#     linkopts = select({
+#         "@platforms//os:linux": ["-lpthread"],
+#         "@platforms//os:macos": ["-lpthread"],
+#         "@platforms//os:windows": ["-lws2_32"],
+#     }),
+#     visibility = ["//visibility:public"],
+# )
+
+# Future: Static library variant for embedding
+# cc_library(
+#     name = "snap7_static",
+#     srcs = glob([
+#         "src/**/*.cpp",
+#         "src/**/*.h",
+#     ]),
+#     hdrs = glob(["include/**/*.h"]),
+#     includes = ["include"],
+#     linkstatic = True,
+#     visibility = ["//visibility:public"],
+# )
+
+# Placeholder target to prevent Bazel errors
+filegroup(
+    name = "placeholder",
+    srcs = [],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,70 @@
+# BUILD.bazel for bifrost-all (Meta-package)
+# Convenience package that includes all Bifrost components
+
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:packaging.bzl", "py_wheel")
+
+# Future: Meta-library that depends on all components
+# py_library(
+#     name = "bifrost_all",
+#     deps = [
+#         "//packages/bifrost-core:bifrost_core",
+#         "//packages/bifrost:bifrost",
+#         "//packages/bifrost-opcua:bifrost_opcua",
+#         "//packages/bifrost-analytics:bifrost_analytics",
+#         "//packages/bifrost-cloud:bifrost_cloud",
+#         "//packages/bifrost-protocols:bifrost_protocols",
+#     ],
+#     visibility = ["//visibility:public"],
+# )
+
+# Future: Meta-wheel that includes all components
+# py_wheel(
+#     name = "wheel",
+#     distribution = "bifrost-all",
+#     version = "0.1.0",
+#     deps = [":bifrost_all"],
+#     wheel_metadata = {
+#         "Author": "Bifrost Contributors",
+#         "Author-email": "hello@bifrost.dev",
+#         "Description-Content-Type": "text/markdown",
+#         "License": "MIT",
+#         "Summary": "Complete Bifrost industrial IoT framework",
+#     },
+# )
+
+# Current: Available packages only
+py_library(
+    name = "bifrost_all",
+    deps = [
+        "//packages/bifrost-core:bifrost_core",
+        "//packages/bifrost:bifrost",
+        # Future packages will be added here as they are implemented
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Current: Meta-wheel with available packages
+py_wheel(
+    name = "wheel",
+    distribution = "bifrost-all",
+    version = "0.1.0",
+    deps = [":bifrost_all"],
+    wheel_metadata = {
+        "Author": "Bifrost Contributors",
+        "Author-email": "hello@bifrost.dev",
+        "Description-Content-Type": "text/markdown",
+        "License": "MIT",
+        "Summary": "Complete Bifrost industrial IoT framework",
+    },
+)
+
+# Test suite for all packages
+test_suite(
+    name = "all_tests",
+    tests = [
+        "//packages/bifrost-core:tests",
+        "//packages/bifrost:tests",
+        # Future package tests will be added here
+    ],
+)

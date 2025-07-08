@@ -18,9 +18,19 @@ build --color=yes
 test --test_output=errors
 test --test_summary=detailed
 
-# Remote caching preparation (for future CI/CD)
+# CI/CD optimizations
+build:ci --loading_phase_threads=1
+build:ci --jobs=4
+build:ci --local_ram_resources=2048
+build:ci --local_cpu_resources=4
+build:ci --verbose_failures
+build:ci --test_output=all
+
+# Remote caching configuration (for future CI/CD)
 # build --remote_cache=...
 # build --remote_timeout=60
+# build --remote_upload_local_results=true
+# build --remote_local_fallback=true
 
 # Platform-specific configurations
 build:linux --action_env=CC=clang
@@ -29,3 +39,12 @@ build:windows --action_env=CC=cl.exe
 
 # Rust configuration for future use
 build --@rules_rust//rust/toolchain/channel=stable
+
+# Memory optimization for large builds
+build --experimental_repository_cache_hardlinks
+build --experimental_guard_against_concurrent_changes
+
+# Cross-platform build support
+build:cross-linux --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+build:cross-macos --platforms=@io_bazel_rules_go//go/toolchain:darwin_amd64
+build:cross-windows --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64
