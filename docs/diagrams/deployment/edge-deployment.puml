@@ -1,0 +1,141 @@
+@startuml Edge Deployment
+!theme blueprint
+
+title Edge Deployment - Industrial Gateway Setup
+
+' Industrial edge environment
+node "Industrial Edge Gateway" as edgegateway {
+  component [Bifrost Gateway] as gateway
+  component [Protocol Stack] as protocols
+  component [Data Processor] as processor
+  component [Local Storage] as storage
+  component [Health Monitor] as health
+  component [Security Manager] as security
+}
+
+' Local infrastructure
+node "Edge Infrastructure" as infra {
+  component [Local Network] as network
+  component [Firewall] as firewall
+  component [UPS System] as ups
+  component [Environmental Monitor] as envmon
+}
+
+' Industrial devices
+node "Factory Floor Network" as factory {
+  component [Production Line PLCs] as prodplcs
+  component [Quality Control Systems] as qc
+  component [Material Handling] as material
+  component [Energy Management] as energy
+  component [Environmental Controls] as hvac
+}
+
+node "Process Control Network" as process {
+  component [Process Controllers] as controllers
+  component [Safety Instrumented Systems] as sis
+  component [Analytical Instruments] as analytics
+  component [Control Valves] as valves
+  component [Flow Meters] as flow
+}
+
+' Remote connectivity
+cloud "Remote Connectivity" as remote {
+  component [VPN Gateway] as vpn
+  component [Cloud Bridge] as cloudbridge
+  component [Remote Monitoring] as monitoring
+  component [Mobile Access] as mobile
+}
+
+' Connections within edge gateway
+gateway <--> protocols : Internal API
+protocols <--> processor : Data Pipeline
+processor <--> storage : Local Cache
+gateway <--> health : System Health
+gateway <--> security : Security Policies
+
+' Edge infrastructure connections
+gateway <--> network : Network Interface
+network <--> firewall : Traffic Control
+edgegateway <--> ups : Power Management
+edgegateway <--> envmon : Environmental Data
+
+' Industrial network connections
+protocols <--> prodplcs : Modbus TCP
+protocols <--> qc : Ethernet/IP
+protocols <--> material : Profinet
+protocols <--> energy : Modbus RTU
+protocols <--> hvac : BACnet
+
+protocols <--> controllers : OPC UA
+protocols <--> sis : Safety over EtherNet/IP
+protocols <--> analytics : RS-485/Modbus
+protocols <--> valves : HART Protocol
+protocols <--> flow : 4-20mA + Digital
+
+' Remote access
+firewall <--> vpn : Secure Tunnel
+gateway <--> cloudbridge : Data Upload
+monitoring <--> gateway : Remote Diagnostics
+mobile <--> vpn : Mobile App Access
+
+' Edge computing capabilities
+note right of processor
+  **Edge Processing**
+  - Real-time data processing
+  - Local analytics
+  - Alarm processing
+  - Data aggregation
+  - Protocol conversion
+  
+  **Performance**
+  - 18,879 ops/sec throughput
+  - 53µs latency
+  - 99.9% uptime
+  - Fault tolerance
+end note
+
+note left of storage
+  **Local Storage**
+  - Time-series database
+  - Configuration backup
+  - Historical data buffer
+  - Alarm log storage
+  - Diagnostic data
+  
+  **Capacity**
+  - 30 days data retention
+  - Automatic archival
+  - Compression enabled
+  - RAID redundancy
+end note
+
+' Deployment specifications
+note top of edgegateway
+  **Hardware Requirements**
+  - Industrial PC (fanless)
+  - 8GB RAM minimum
+  - 256GB SSD storage
+  - Multiple Ethernet ports
+  - Serial/USB interfaces
+  - Temperature: -20°C to +60°C
+  - Vibration resistant
+end note
+
+note bottom of factory
+  **Network Architecture**
+  - Segmented VLANs
+  - Redundant switches
+  - Ring topology
+  - Network monitoring
+  - Quality of Service (QoS)
+  - Protocol prioritization
+end note
+
+' Footer
+center footer
+  **Edge Deployment Architecture**
+  **Environment**: Industrial edge with local processing and remote connectivity
+  **Last Updated**: July 2025
+end footer
+
+@enduml

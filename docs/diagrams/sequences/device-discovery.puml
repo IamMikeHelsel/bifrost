@@ -1,0 +1,121 @@
+@startuml Device Discovery Sequence
+!theme blueprint
+
+title Device Discovery - Automatic Network Scanning
+
+' Define participants
+actor "User/System" as user
+participant "Discovery Service" as discovery
+participant "Network Scanner" as scanner
+participant "Protocol Handlers" as protocols
+participant "Device Registry" as registry
+database "Configuration DB" as configdb
+
+' Discovery initiation
+user -> discovery : Start Discovery
+activate discovery
+discovery -> scanner : Scan Network Range
+activate scanner
+
+' Network scanning phase
+scanner -> scanner : IP Range Scan
+note right of scanner
+  **Scanning Strategy**
+  - Parallel IP scanning
+  - Port discovery (502, 4840, 44818)
+  - Protocol detection
+  - Timeout handling
+end note
+
+loop For each IP in range
+    scanner -> protocols : Test Protocol Connection
+    activate protocols
+    
+    group Modbus Discovery
+        protocols -> protocols : Try Modbus TCP (port 502)
+        protocols -> protocols : Device Identification
+        protocols -> protocols : Register Map Discovery
+    end
+    
+    group OPC UA Discovery
+        protocols -> protocols : Try OPC UA (port 4840)
+        protocols -> protocols : Server Discovery
+        protocols -> protocols : Address Space Browse
+    end
+    
+    group Ethernet/IP Discovery
+        protocols -> protocols : Try EtherNet/IP (port 44818)
+        protocols -> protocols : Identity Request
+        protocols -> protocols : Service Discovery
+    end
+    
+    alt Device Found
+        protocols -> discovery : Device Information
+        discovery -> registry : Register Device
+        activate registry
+        registry -> configdb : Store Configuration
+        activate configdb
+        deactivate configdb
+        deactivate registry
+    else No Response
+        protocols -> discovery : No Device Found
+    end
+    
+    deactivate protocols
+end
+
+' Discovery completion
+scanner -> discovery : Scan Complete
+deactivate scanner
+
+discovery -> registry : Get Discovered Devices
+activate registry
+registry -> discovery : Device List
+deactivate registry
+
+discovery -> user : Discovery Results
+deactivate discovery
+
+' Continuous discovery (optional)
+group Continuous Discovery
+    note over discovery
+      **Background Discovery**
+      - Periodic rescans (configurable)
+      - Device health monitoring
+      - New device detection
+      - Configuration changes
+    end note
+    
+    loop Every N minutes
+        discovery -> scanner : Incremental Scan
+        scanner -> protocols : Quick Health Check
+        protocols -> registry : Update Status
+    end
+end
+
+' Performance annotations
+note right of discovery
+  **Discovery Performance**
+  - 1000 IPs in < 30 seconds
+  - Parallel scanning (50 threads)
+  - Smart port detection
+  - Protocol fingerprinting
+  - Cache previous results
+end note
+
+note left of protocols
+  **Protocol Detection**
+  - Modbus: Function code test
+  - OPC UA: Discovery endpoint
+  - EtherNet/IP: Identity request
+  - Custom: Configurable patterns
+end note
+
+' Footer
+center footer
+  **Device Discovery Sequence**
+  **Strategy**: Multi-protocol parallel scanning with intelligent caching
+  **Last Updated**: July 2025
+end footer
+
+@enduml

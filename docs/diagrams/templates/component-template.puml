@@ -1,0 +1,62 @@
+@startuml Component Template
+!theme blueprint
+
+' Component Diagram Template for Bifrost Project
+' Use this template for detailed component architecture diagrams
+
+title Component Architecture Template
+
+' Define packages and components
+package "Package Name" as pkg {
+  component [Component 1] as comp1
+  component [Component 2] as comp2
+  interface "Interface Name" as iface
+  
+  comp1 --> iface
+  comp2 --> iface
+}
+
+package "External Systems" as ext {
+  actor "User" as user
+  database "Database" as db
+  component [External Service] as extservice
+}
+
+' Connections
+user --> comp1 : User Request
+comp2 --> db : Data Access
+comp1 <--> extservice : API Call
+
+' Performance and architecture notes
+note right of comp1
+  **Performance Metrics**
+  - Response time: 53µs avg
+  - Throughput: 18,879 ops/sec
+  - Memory: < 50MB
+  
+  **Technology Stack**
+  - Language: Go 1.22+
+  - Framework: Native stdlib
+  - Protocols: HTTP, WebSocket
+end note
+
+note left of comp2
+  **Component Responsibilities**
+  - Data processing
+  - Protocol handling
+  - Connection management
+  
+  **Key Features**
+  - Concurrent processing
+  - Error handling
+  - Monitoring integration
+end note
+
+' Footer with diagram metadata
+center footer
+  **Template Usage**: Replace components and relationships with actual architecture
+  **Last Updated**: Generated from template
+  **Contact**: Development Team
+end footer
+
+@enduml

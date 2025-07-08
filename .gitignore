@@ -302,3 +302,9 @@ requirements_lock.txt
 
 # Third-party dependencies (large external libraries)
 third_party/open62541/
+
+# Diagram exports (keep SVG, ignore binary formats)
+docs/diagrams/exports/png/
+docs/diagrams/exports/pdf/
+# Keep SVG files for documentation
+!docs/diagrams/exports/svg/

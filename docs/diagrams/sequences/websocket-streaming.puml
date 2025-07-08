@@ -1,0 +1,98 @@
+@startuml WebSocket Streaming Sequence
+!theme blueprint
+
+title WebSocket Streaming - Real-time Data Flow
+
+' Define participants
+actor "Frontend Client" as client
+participant "WebSocket Server" as ws
+participant "Data Bus" as databus
+participant "Protocol Handler" as protocol
+participant "PLC Device" as plc
+database "Time Series DB" as tsdb
+
+' WebSocket connection setup
+client -> ws : Connect WebSocket
+activate ws
+ws -> client : Connection Established
+ws -> databus : Register Stream
+activate databus
+
+' Subscription setup
+client -> ws : Subscribe to Tags
+ws -> databus : Create Subscription
+databus -> protocol : Register Tag Updates
+activate protocol
+
+' Real-time data flow
+loop Real-time Data Streaming
+    protocol -> plc : Poll Data
+    activate plc
+    plc -> protocol : Tag Values
+    deactivate plc
+    
+    protocol -> databus : Publish Updates
+    databus -> tsdb : Store Values
+    activate tsdb
+    deactivate tsdb
+    
+    databus -> ws : Stream Data
+    ws -> client : Real-time Updates
+    
+    note right of client
+      **Update Frequency**
+      - 1-100ms intervals
+      - Configurable per tag
+      - Adaptive based on change rate
+    end note
+end
+
+' Error handling
+group Error Handling
+    protocol -> plc : Connection Lost
+    protocol -> databus : Connection Error
+    databus -> ws : Error Event
+    ws -> client : Error Notification
+    
+    protocol -> protocol : Reconnect Logic
+    protocol -> plc : Reconnect
+    protocol -> databus : Connection Restored
+    databus -> ws : Status Update
+    ws -> client : Connection Restored
+end
+
+' Client disconnect
+client -> ws : Disconnect
+ws -> databus : Unregister Stream
+databus -> protocol : Remove Subscription
+deactivate protocol
+deactivate databus
+deactivate ws
+
+' Performance annotations
+note right of ws
+  **WebSocket Performance**
+  - < 10ms update latency
+  - 1000+ concurrent connections
+  - Binary protocol support
+  - Automatic compression
+  - Heartbeat monitoring
+end note
+
+note left of databus
+  **Data Bus Features**
+  - Pub/Sub architecture
+  - Message buffering
+  - Rate limiting
+  - Data transformation
+  - Historical playback
+end note
+
+' Footer
+center footer
+  **WebSocket Streaming Architecture**
+  **Protocol**: WebSocket with JSON/Binary payloads
+  **Last Updated**: July 2025
+end footer
+
+@enduml
