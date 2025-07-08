@@ -7,6 +7,35 @@ gateway:
   enable_metrics: true
   log_level: info
 
+security:
+  enabled: true
+  tls:
+    enabled: false  # Set to true when certificates are available
+    cert_file: "./security/certificates/server/server-cert.pem"
+    key_file: "./security/certificates/server/server-key.pem"
+    ca_file: "./security/certificates/ca/ca-cert.pem"
+    min_version: "TLS1.3"
+    cipher_suites:
+      - "TLS_AES_256_GCM_SHA384"
+      - "TLS_AES_128_GCM_SHA256"
+      - "TLS_CHACHA20_POLY1305_SHA256"
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+    key_file: "./security/encryption.key"
+  authentication:
+    enabled: false  # Set to true to require authentication
+    method: "jwt"
+    secret_key: ""  # Will be generated automatically
+    token_expiry: "24h"
+    require_https: false  # Set to true in production with TLS
+  audit:
+    enabled: true
+    log_file: "./logs/security-audit.log"
+    log_level: "info"
+    max_size: 100    # MB
+    max_backups: 10
+
 protocols:
   modbus:
     default_timeout: 5s
@@ -16,3 +45,12 @@ protocols:
     read_timeout: 5s
     write_timeout: 5s
     enable_keep_alive: true
+    security:
+      enable_tls: false
+      require_auth: false
+      encrypt_data: false
+  opcua:
+    security_policy: "Basic256Sha256"
+    message_security: "SignAndEncrypt"
+    certificate_file: "./security/certificates/opcua/opcua-cert.pem"
+    private_key_file: "./security/certificates/opcua/opcua-key.pem"
