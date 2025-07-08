@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
 	"bifrost-gateway/internal/protocols"
+	"bifrost-gateway/internal/metrics"
 )
 
 // IndustrialGateway is the main server handling multiple industrial protocols
@@ -21,12 +20,15 @@ type IndustrialGateway struct {
 	devices   sync.Map // map[string]*Device
 	protocols map[string]protocols.ProtocolHandler
 
-	// Performance metrics
+	// Custom metrics (default)
+	customMetrics *metrics.GatewayMetrics
+
+	// Legacy Prometheus metrics (when prometheus build tag is used)
 	metrics struct {
-		connectionsTotal    prometheus.Counter
-		dataPointsProcessed prometheus.Counter
-		errorRate           prometheus.Counter
-		responseTime        prometheus.Histogram
+		connectionsTotal    interface{} // prometheus.Counter or nil
+		dataPointsProcessed interface{} // prometheus.Counter or nil
+		errorRate           interface{} // prometheus.Counter or nil
+		responseTime        interface{} // prometheus.Histogram or nil
 	}
 
 	// WebSocket connections for real-time data
@@ -106,37 +108,6 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 	return gateway
 }
 
-func (g *IndustrialGateway) initMetrics() {
-	g.metrics.connectionsTotal = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bifrost_connections_total",
-		Help: "Total number of device connections",
-	})
-
-	g.metrics.dataPointsProcessed = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bifrost_data_points_processed_total",
-		Help: "Total number of data points processed",
-	})
-
-	g.metrics.errorRate = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bifrost_errors_total",
-		Help: "Total number of errors",
-	})
-
-	g.metrics.responseTime = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Name:    "bifrost_response_time_seconds",
-		Help:    "Response time for device operations",
-		Buckets: prometheus.DefBuckets,
-	})
-
-	// Register metrics
-	prometheus.MustRegister(
-		g.metrics.connectionsTotal,
-		g.metrics.dataPointsProcessed,
-		g.metrics.errorRate,
-		g.metrics.responseTime,
-	)
-}
-
 func (g *IndustrialGateway) registerProtocols() {
 	// Register Modbus TCP/RTU handler
 	modbusHandler := protocols.NewModbusHandler(g.logger)
@@ -198,7 +169,11 @@ func (g *IndustrialGateway) startHTTPServer(ctx context.Context) {
 
 	// Metrics endpoint
 	if g.config.EnableMetrics {
-		mux.Handle("/metrics", promhttp.Handler())
+		if g.customMetrics != nil {
+			// Use custom metrics endpoint
+			mux.Handle("/metrics", g.customMetrics)
+		}
+		// Note: Prometheus metrics will be handled in prometheus build tag version
 	}
 
 	server := &http.Server{
@@ -264,7 +239,7 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 	start := time.Now()
 	defer func() {
 		duration := time.Since(start)
-		g.metrics.responseTime.Observe(duration.Seconds())
+		g.recordResponseTime(duration)
 	}()
 
 	handler, exists := g.protocols[device.Protocol]
@@ -302,7 +277,7 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 
 			value, err := handler.ReadTag(protocolDevice, protocolTag)
 			if err != nil {
-				g.metrics.errorRate.Inc()
+				g.recordError()
 				device.Stats.RequestsFailed++
 				g.logger.Error("Failed to read tag",
 					zap.String("device", device.ID),
@@ -318,7 +293,7 @@ func (g *IndustrialGateway) collectDeviceData(ctx context.Context, device *Devic
 			tag.Quality = "GOOD"
 
 			device.Stats.RequestsSuccessful++
-			g.metrics.dataPointsProcessed.Inc()
+			g.recordDataPoint()
 
 			// Broadcast to WebSocket clients
 			g.broadcastTagUpdate(device, tag)
@@ -348,13 +323,13 @@ func (g *IndustrialGateway) ConnectDevice(ctx context.Context, device *Device) e
 
 	// Attempt connection
 	if err := handler.Connect(protocolDevice); err != nil {
-		g.metrics.errorRate.Inc()
+		g.recordError()
 		return fmt.Errorf("failed to connect to device %s: %w", device.ID, err)
 	}
 
 	device.Connected = true
 	device.LastSeen = time.Now()
-	g.metrics.connectionsTotal.Inc()
+	g.recordConnection()
 
 	// Store device
 	g.devices.Store(device.ID, device)

@@ -1,0 +1,29 @@
+# .slsa-goreleaser.yml
+# SLSA provenance configuration for GoReleaser
+
+version: 1
+
+env:
+  - VERSION
+
+builds:
+  - id: bifrost-gateway
+    binary: bifrost-gateway
+    main: ./cmd/gateway
+    dir: ./go-gateway
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Env.VERSION}}
+      - -X main.commit={{.FullCommit}}
+      - -X main.date={{.Date}}
+    env:
+      - CGO_ENABLED=0
