@@ -3,29 +3,7 @@ module(
     version = "0.1.0"
 )
 
-bazel_dep(name = "rules_rust", version = "0.62.0")
 bazel_dep(name = "rules_python", version = "0.40.0")
-
-# Rust toolchain configuration
-rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(
-    edition = "2021",
-    versions = ["1.80.1"]
-)
-use_repo(rust, "rust_toolchains")
-register_toolchains("@rust_toolchains//:all")
-
-# Crate universe configuration
-crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
-
-# Use the Cargo.toml from the native package
-crate.from_cargo(
-    name = "crates",
-    cargo_lockfile = "//packages/bifrost/native:Cargo.lock",
-    manifests = ["//packages/bifrost/native:Cargo.toml"]
-)
-
-use_repo(crate, "crates")
 
 # Python toolchain configuration
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")

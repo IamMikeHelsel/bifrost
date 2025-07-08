@@ -27,11 +27,3 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
 
-  # Rust formatting (when you add Rust code)
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
-    hooks:
-      - id: fmt
-        args: ['--manifest-path', 'packages/*/Cargo.toml']
-      - id: clippy
-        args: ['--manifest-path', 'packages/*/Cargo.toml', '--', '-D', 'warnings']

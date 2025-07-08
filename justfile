@@ -34,8 +34,6 @@ dev-install: dev-setup
 fmt:
     @echo "🎨 Formatting Python code (Google style)..."
     uv run ruff format --line-length 80 .
-    @echo "🎨 Formatting Rust code..."
-    find . -name "*.rs" -exec rustfmt {} \; 2>/dev/null || true
     @echo "📝 Formatting markdown..."
     mdformat .
     @echo "✅ All code formatted!"
@@ -63,8 +61,6 @@ watch-md:
 lint:
     @echo "🔍 Linting Python code..."
     uv run ruff check . --fix
-    @echo "🔍 Linting Rust code..."
-    find packages -name Cargo.toml -execdir cargo clippy -- -D warnings \;
     @echo "✅ All code linted!"
 
 # Type check Python code
@@ -77,8 +73,6 @@ typecheck:
 test:
     @echo "🧪 Running Python tests..."
     uv run pytest packages/*/tests -v
-    @echo "🧪 Running Rust tests..."
-    find packages -name Cargo.toml -execdir cargo test \;
     @echo "✅ All tests passed!"
 
 # Run tests with coverage
@@ -93,11 +87,6 @@ build:
     uv run python tools/build-all.py
     @echo "✅ All packages built!"
 
-# Build Rust components only
-build-rust:
-    @echo "🦀 Building Rust components..."
-    find packages -name Cargo.toml -execdir maturin build --release \;
-    @echo "✅ Rust components built!"
 
 # Clean all build artifacts
 clean:
@@ -106,7 +95,6 @@ clean:
     find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
     find . -type d -name "build" -exec rm -rf {} + 2>/dev/null || true
     find . -type d -name "dist" -exec rm -rf {} + 2>/dev/null || true
-    find . -type d -name "target" -exec rm -rf {} + 2>/dev/null || true
     find . -name "*.pyc" -delete 2>/dev/null || true
     find . -name "*.pyo" -delete 2>/dev/null || true
     @echo "✅ Build artifacts cleaned!"
@@ -115,15 +103,12 @@ clean:
 audit:
     @echo "🔒 Running security audit..."
     uv run pip-audit
-    find packages -name Cargo.toml -execdir cargo audit \;
     @echo "✅ Security audit complete!"
 
 # Update all dependencies
 update:
     @echo "📦 Updating Python dependencies..."
     uv sync --upgrade
-    @echo "📦 Updating Rust dependencies..."
-    find packages -name Cargo.toml -execdir cargo update \;
     @echo "✅ Dependencies updated!"
 
 # Benchmark performance
@@ -210,7 +195,7 @@ help:
     @echo "  install-hooks Install pre-commit hooks"
     @echo ""
     @echo "Development:"
-    @echo "  fmt           Format all code (Python, Rust, Markdown)"
+    @echo "  fmt           Format all code (Python, Markdown)"
     @echo "  fmt-all       Run pre-commit on all files"
     @echo "  watch-md      Watch and auto-format markdown files"
     @echo "  lint          Lint all code with auto-fix"
@@ -223,7 +208,6 @@ help:
     @echo ""
     @echo "Build:"
     @echo "  build         Build all packages"
-    @echo "  build-rust    Build Rust components only"
     @echo "  clean         Clean build artifacts"
     @echo ""
     @echo "Quality:"

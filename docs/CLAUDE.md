@@ -200,10 +200,11 @@ GET /health                         # Health checks
 ### Core Technologies
 
 - **Go**: 1.22+ for high-performance gateway backend
-- **TypeScript-Go**: 10x faster compilation for VS Code extension
+- **Python**: 3.12+ for protocol implementations and CLI tools
+- **TypeScript**: VS Code extension development
 - **Task Runner**: just (cross-platform) + Makefile for Go builds
-- **Build System**: Go modules with cross-platform binary generation
-- **Testing**: Go testing framework + comprehensive benchmarks
+- **Build System**: Go modules and Python packages with cross-platform binary generation
+- **Testing**: Go testing framework + pytest for Python + comprehensive benchmarks
 - **Documentation**: Comprehensive README and API documentation
 
 ### Gateway Performance
@@ -216,7 +217,7 @@ GET /health                         # Health checks
 
 ### Frontend Stack
 
-- **TypeScript-Go**: Microsoft's experimental Go-based compiler
+- **TypeScript**: Standard TypeScript for VS Code extension development
 - **VS Code APIs**: Native VS Code extension development
 - **WebSocket**: Real-time communication with Go gateway
 - **REST Client**: Efficient HTTP client for API communication
