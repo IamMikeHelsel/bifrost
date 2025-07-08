@@ -91,6 +91,7 @@ gantt
 ### 1. Install and Run the Gateway
 
 #### Option A: Pre-built Binary
+
 ```bash
 # Download latest release
 curl -L https://github.com/your-org/bifrost/releases/latest/download/bifrost-linux-amd64.tar.gz | tar xz
@@ -98,6 +99,7 @@ curl -L https://github.com/your-org/bifrost/releases/latest/download/bifrost-lin
 ```
 
 #### Option B: Build from Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/your-org/bifrost.git
@@ -108,6 +110,7 @@ go run ./cmd/gateway
 ```
 
 #### Option C: Docker
+
 ```bash
 # Run with Docker
 docker run -p 8080:8080 -p 502:502 bifrost/gateway:latest
@@ -119,12 +122,14 @@ docker-compose up -d
 ### 2. Install the VS Code Extension
 
 #### From VS Code Marketplace
+
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X)
 3. Search for "Bifrost Industrial IoT"
 4. Click "Install"
 
 #### From VSIX File
+
 ```bash
 # Build the extension
 npm run build:extension
@@ -134,6 +139,7 @@ code --install-extension bifrost-*.vsix
 ### 3. Connect to Your First Device
 
 1. **Start a Modbus Simulator** (for testing):
+
    ```bash
    # Python simulator (included)
    python virtual-devices/modbus-tcp-sim/modbus_server.py
@@ -142,6 +148,7 @@ code --install-extension bifrost-*.vsix
    ```
 
 2. **Use the CLI for Quick Discovery**:
+
    ```bash
    # Discover devices on your network
    ./bifrost-cli discover --network 192.168.1.0/24
@@ -178,6 +185,7 @@ just check-all    # or make check-all
 ```
 
 **Example Output:**
+
 ```
 🌉 Bifrost Quick Quality Check
 ==============================
@@ -482,6 +490,7 @@ choco install golang nodejs python3 docker-desktop just bazel
 ### IDE Configuration
 
 #### VS Code (Recommended)
+
 ```bash
 # Install recommended extensions
 code --install-extension golang.go
@@ -494,6 +503,7 @@ code bifrost.code-workspace
 ```
 
 #### GoLand/PyCharm
+
 ```bash
 # Import project settings
 cp .idea/recommended-settings/* .idea/
