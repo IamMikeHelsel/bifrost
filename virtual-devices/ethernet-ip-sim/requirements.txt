@@ -1,1 +1,2 @@
-cpppo==4.1.7
+# Simple EtherNet/IP simulation without cpppo dependency
+asyncio

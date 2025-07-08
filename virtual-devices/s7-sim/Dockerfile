@@ -3,12 +3,9 @@ FROM python:3.13-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies including certificates and snap7 dependencies
+# Install system dependencies including certificates
 RUN apt-get update && apt-get install -y \
     ca-certificates \
-    libsnap7-1 \
-    libsnap7-dev \
-    build-essential \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 

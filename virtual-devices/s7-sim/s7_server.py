@@ -2,14 +2,15 @@
 """
 Siemens S7 PLC Simulator for Bifrost Virtual Device Testing
 
-This simulator provides a realistic S7 PLC implementation for testing
-device discovery and communication protocols.
+This simulator provides a simplified S7 PLC implementation for testing
+device discovery and communication protocols. It simulates S7 protocol
+responses without requiring the full snap7 library.
 
 Features:
-- S7 communication protocol
-- Memory areas (DB, M, I, Q)
-- Realistic PLC behavior
+- S7 communication protocol simulation
+- Basic TCP connectivity on port 102
 - Device identification responses
+- Simulated memory areas
 """
 
 import argparse
@@ -18,19 +19,11 @@ import logging
 import signal
 import sys
 import time
-import threading
+import struct
 from typing import Dict, Any, Optional
 
-try:
-    import snap7
-    from snap7 import util
-except ImportError:
-    print("Error: snap7 library not found. Install with: pip install python-snap7")
-    sys.exit(1)
-
-
 class BifrostS7Server:
-    """Bifrost S7 PLC simulator."""
+    """Bifrost S7 PLC simulator (simplified implementation)."""
 
     def __init__(
         self,
@@ -49,6 +42,7 @@ class BifrostS7Server:
         self.running = False
         self.server = None
         self.stats = {
+            "connections_total": 0,
             "requests_total": 0,
             "requests_successful": 0,
             "requests_failed": 0,
@@ -63,8 +57,15 @@ class BifrostS7Server:
         )
         self.logger = logging.getLogger(__name__)
 
-        # Initialize memory areas
-        self._init_memory_areas()
+        # Initialize simulated memory areas
+        self.memory = {
+            "db1": bytearray(200),  # Data block 1 (100 words)
+            "markers": bytearray(100),  # Marker area 
+            "inputs": bytearray(50),    # Input area
+            "outputs": bytearray(50),   # Output area
+        }
+        
+        self._init_memory_data()
 
         # Setup signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -74,42 +75,101 @@ class BifrostS7Server:
         """Handle shutdown signals gracefully."""
         self.logger.info(f"Received signal {signum}, shutting down...")
         self.running = False
-        if self.server:
-            self.server.stop()
 
-    def _init_memory_areas(self):
-        """Initialize S7 memory areas with realistic data."""
+    def _init_memory_data(self):
+        """Initialize memory areas with realistic data."""
+        # DB1: Process data
+        struct.pack_into('>H', self.memory["db1"], 0, 1234)  # Production counter
+        struct.pack_into('>f', self.memory["db1"], 4, 25.5)  # Temperature
+        struct.pack_into('>f', self.memory["db1"], 8, 1.2)   # Pressure
+        
+        # Marker area
+        self.memory["markers"][0] = 0x55  # Status bits
+        
+        # Input/Output areas
+        self.memory["inputs"][0] = 0xFF   # All inputs on
+        self.memory["outputs"][0] = 0xAA  # Alternating pattern
+
+    async def handle_client(self, reader, writer):
+        """Handle S7 client connection."""
+        client_addr = writer.get_extra_info('peername')
+        self.logger.info(f"S7 client connected from {client_addr}")
+        self.stats["connections_total"] += 1
+        
         try:
-            self.server = snap7.server.Server()
+            while self.running:
+                # Read S7 protocol data (simplified)
+                data = await asyncio.wait_for(reader.read(1024), timeout=30.0)
+                if not data:
+                    break
+                
+                self.stats["requests_total"] += 1
+                self.logger.debug(f"Received {len(data)} bytes from {client_addr}")
+                
+                # Simple S7 protocol response simulation
+                response = await self._process_s7_request(data)
+                if response:
+                    writer.write(response)
+                    await writer.drain()
+                    self.stats["requests_successful"] += 1
+                else:
+                    self.stats["requests_failed"] += 1
+                    
+        except asyncio.TimeoutError:
+            self.logger.debug(f"Client {client_addr} timeout")
+        except Exception as e:
+            self.logger.error(f"Error handling client {client_addr}: {e}")
+            self.stats["requests_failed"] += 1
+        finally:
+            self.logger.info(f"S7 client {client_addr} disconnected")
+            writer.close()
+            await writer.wait_closed()
+
+    async def _process_s7_request(self, data: bytes) -> Optional[bytes]:
+        """Process S7 protocol request and return response."""
+        try:
+            # This is a simplified S7 protocol handler
+            # In a real implementation, this would parse S7 PDUs
             
-            # Create memory areas
-            # DB1: Process data (100 words)
-            db1_data = bytearray(200)  # 100 words = 200 bytes
-            util.set_int(db1_data, 0, 1234)  # Production counter
-            util.set_real(db1_data, 4, 25.5)  # Temperature
-            util.set_real(db1_data, 8, 1.2)   # Pressure
-            self.server.register_area(snap7.types.srvAreaDB, 1, db1_data)
+            if len(data) < 4:
+                return None
             
-            # Marker area (M): 100 bytes
-            marker_data = bytearray(100)
-            marker_data[0] = 0x55  # Some status bits
-            self.server.register_area(snap7.types.srvAreaMK, 0, marker_data)
+            # Simple response for any S7 request
+            # S7 protocol uses COTP and S7 communication
+            # This is a minimal response to keep connections alive
             
-            # Input area (I): 50 bytes  
-            input_data = bytearray(50)
-            input_data[0] = 0xFF  # All inputs on
-            self.server.register_area(snap7.types.srvAreaPE, 0, input_data)
+            # Check if it looks like an S7 communication setup
+            if len(data) >= 22 and data[5:7] == b'\xd0\x01':  # COTP connection request
+                # COTP connection confirm
+                response = bytearray([
+                    0x03, 0x00, 0x00, 0x16,  # TPKT header (length 22)
+                    0x11, 0xd0, 0x00, 0x01,  # COTP connection confirm  
+                    0x00, 0x00, 0x00, 0x00,  # Parameters
+                    0x00, 0x00, 0xc1, 0x02,  # Source TSAP
+                    0x01, 0x00, 0xc2, 0x02,  # Dest TSAP  
+                    0x02, 0x00                # Additional params
+                ])
+                return bytes(response)
             
-            # Output area (Q): 50 bytes
-            output_data = bytearray(50)
-            output_data[0] = 0xAA  # Alternating pattern
-            self.server.register_area(snap7.types.srvAreaPA, 0, output_data)
+            elif len(data) >= 19 and data[7] == 0x32:  # S7 communication
+                # S7 communication response
+                response = bytearray([
+                    0x03, 0x00, 0x00, 0x1b,  # TPKT header
+                    0x02, 0xf0, 0x80,        # COTP data
+                    0x32, 0x03, 0x00, 0x00,  # S7 header
+                    0x00, 0x00, 0x08, 0x00,  # S7 parameters
+                    0x00, 0xf0, 0x00, 0x00,  # S7 data
+                    0x01, 0x00, 0x01, 0xff,  # Result
+                    0x04, 0x00, 0x08         # Data
+                ])
+                return bytes(response)
             
-            self.logger.info("Initialized S7 memory areas")
+            # Default response for other requests
+            return b'\x03\x00\x00\x07\x02\xf0\x80'  # Minimal COTP data
             
         except Exception as e:
-            self.logger.error(f"Failed to initialize memory areas: {e}")
-            raise
+            self.logger.error(f"Error processing S7 request: {e}")
+            return None
 
     async def start_server(self):
         """Start the S7 server."""
@@ -118,37 +178,33 @@ class BifrostS7Server:
         self.logger.info(f"Device: {self.device_name}, Rack={self.rack}, Slot={self.slot}")
         
         try:
-            # Start the server
-            result = self.server.start(tcp_port=self.port)
-            if result == 0:
-                self.logger.info(f"S7 server started on {self.host}:{self.port}")
-                self.running = True
-                
-                # Run server loop
-                await self._run_server_loop()
-                
-            else:
-                self.logger.error(f"Failed to start S7 server. Error code: {result}")
-                raise RuntimeError(f"S7 server start failed with code {result}")
+            self.server = await asyncio.start_server(
+                self.handle_client,
+                self.host,
+                self.port
+            )
+            
+            self.logger.info(f"S7 server started on {self.host}:{self.port}")
+            self.running = True
+            
+            # Start data update task
+            asyncio.create_task(self._update_loop())
+            
+            # Serve until stopped
+            async with self.server:
+                await self.server.serve_forever()
                 
         except Exception as e:
             self.logger.error(f"Failed to start S7 server: {e}")
             raise
 
-    async def _run_server_loop(self):
-        """Main server loop."""
+    async def _update_loop(self):
+        """Periodically update simulated data."""
         last_stats_time = time.time()
         
         while self.running:
             try:
-                # Check server status
-                if self.server.get_status() != snap7.types.SrvStatusStopped:
-                    self.stats["requests_successful"] += 1
-                else:
-                    self.logger.warning("Server status indicates stopped")
-                    break
-                
-                # Update simulated data periodically
+                # Update simulated process data
                 await self._update_simulated_data()
                 
                 # Log stats every 60 seconds
@@ -157,41 +213,33 @@ class BifrostS7Server:
                     self._log_stats()
                     last_stats_time = current_time
                 
-                # Sleep to prevent busy waiting
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)  # Update every 5 seconds
                 
             except Exception as e:
-                self.logger.error(f"Server loop error: {e}")
-                self.stats["requests_failed"] += 1
-                await asyncio.sleep(5)
+                self.logger.error(f"Error in update loop: {e}")
+                await asyncio.sleep(10)
 
     async def _update_simulated_data(self):
         """Update simulated process data."""
         try:
-            # Get current time for simulation
             current_time = time.time()
             elapsed = current_time - self.stats["start_time"]
             
-            # Update DB1 with simulated process values
-            db1_data = self.server.pick_area(snap7.types.srvAreaDB, 1)
-            if db1_data:
-                # Increment production counter
-                counter = util.get_int(db1_data, 0) + 1
-                if counter > 9999:
-                    counter = 0
-                util.set_int(db1_data, 0, counter)
-                
-                # Simulate temperature variation (20-30°C)
-                import math
-                temp = 25.0 + 3.0 * math.sin(elapsed / 60.0) + (elapsed % 10) * 0.1
-                util.set_real(db1_data, 4, temp)
-                
-                # Simulate pressure variation (1.0-1.5 bar)
-                pressure = 1.25 + 0.25 * math.cos(elapsed / 45.0)
-                util.set_real(db1_data, 8, pressure)
-                
-                self.stats["requests_total"] += 1
-                
+            # Update production counter
+            counter = struct.unpack('>H', self.memory["db1"][0:2])[0] + 1
+            if counter > 9999:
+                counter = 0
+            struct.pack_into('>H', self.memory["db1"], 0, counter)
+            
+            # Simulate temperature variation (20-30°C)
+            import math
+            temp = 25.0 + 3.0 * math.sin(elapsed / 60.0) + (elapsed % 10) * 0.1
+            struct.pack_into('>f', self.memory["db1"], 4, temp)
+            
+            # Simulate pressure variation (1.0-1.5 bar)
+            pressure = 1.25 + 0.25 * math.cos(elapsed / 45.0)
+            struct.pack_into('>f', self.memory["db1"], 8, pressure)
+            
         except Exception as e:
             self.logger.error(f"Error updating simulated data: {e}")
 
@@ -200,6 +248,7 @@ class BifrostS7Server:
         uptime = time.time() - self.stats["start_time"]
         self.logger.info(
             f"Stats - Uptime: {uptime:.1f}s, "
+            f"Connections: {self.stats['connections_total']}, "
             f"Requests: {self.stats['requests_total']}, "
             f"Success: {self.stats['requests_successful']}, "
             f"Failed: {self.stats['requests_failed']}"
@@ -221,7 +270,8 @@ class BifrostS7Server:
         self.logger.info("Stopping S7 server...")
         self.running = False
         if self.server:
-            self.server.stop()
+            self.server.close()
+            await self.server.wait_closed()
 
 
 def main():

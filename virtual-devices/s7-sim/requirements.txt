@@ -1,1 +1,2 @@
-python-snap7==1.3
+# Simple S7 protocol simulation without snap7 dependency
+asyncio
