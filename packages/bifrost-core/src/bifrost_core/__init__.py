@@ -20,4 +20,10 @@ from .device_registry import (
 from .events import BaseEvent, EventBus
 from .features import Feature, FeatureRegistry, HasFeatures
 from .pooling import ConnectionPool
+from .test_integration import (
+    DeviceTestTracker,
+    TestResult,
+    TestSession,
+    TestStatus,
+)
 from .typing import DataType, JsonDict, Tag, Timestamp, Value
