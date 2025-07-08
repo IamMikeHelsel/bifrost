@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   modbus-tcp-sim:
     build: ./modbus-tcp-sim
@@ -16,6 +14,38 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    networks:
+      - industrial-net
+
+  modbus-rtu-sim:
+    build: ./modbus-rtu-sim
+    container_name: bifrost-modbus-rtu-sim
+    ports:
+      - "503:503"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "modbus_rtu_server.py", "--host", "0.0.0.0", "--port", "503", "--device-type", "energy_meter", "--log-level", "INFO"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 503)); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - industrial-net
+
+  modbus-rtu-sim-temp:
+    build: ./modbus-rtu-sim
+    container_name: bifrost-modbus-rtu-temp
+    ports:
+      - "504:503"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "modbus_rtu_server.py", "--host", "0.0.0.0", "--port", "503", "--device-type", "temperature_controller", "--slave-id", "2", "--log-level", "INFO"]
+    restart: unless-stopped
+    profiles:
+      - extended
     networks:
       - industrial-net
 
@@ -37,12 +67,63 @@ services:
     networks:
       - industrial-net
 
+  opcua-sim-process:
+    build: ./opcua-sim
+    container_name: bifrost-opcua-process
+    ports:
+      - "4841:4840"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "opcua_server.py", "--endpoint", "opc.tcp://0.0.0.0:4840", "--log-level", "INFO"]
+    restart: unless-stopped
+    profiles:
+      - extended
+    networks:
+      - industrial-net
+
+  ethernet-ip-sim:
+    build: ./ethernet-ip-sim
+    container_name: bifrost-ethernet-ip-sim
+    ports:
+      - "44818:44818/udp"
+      - "2222:2222"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "ethernet_ip_server.py", "--host", "0.0.0.0", "--port", "44818", "--device-name", "Bifrost_EIP_Scanner", "--log-level", "INFO"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(1); s.bind(('', 0)); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - industrial-net
+
+  s7-sim:
+    build: ./s7-sim
+    container_name: bifrost-s7-sim
+    ports:
+      - "102:102"
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "s7_server.py", "--host", "0.0.0.0", "--port", "102", "--device-name", "Bifrost_S7_PLC", "--log-level", "INFO"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 102)); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - industrial-net
+
   # Error simulation variants for testing resilience
   modbus-tcp-sim-faulty:
     build: ./modbus-tcp-sim
     container_name: bifrost-modbus-sim-faulty
     ports:
-      - "503:502"
+      - "505:502"
     environment:
       - LOG_LEVEL=INFO
     command: ["python", "modbus_server.py", "--host", "0.0.0.0", "--port", "502", "--error-rate", "0.1", "--response-delay", "0.1", "--log-level", "INFO"]
