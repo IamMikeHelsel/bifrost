@@ -182,7 +182,6 @@ class TestEndToEndModbusWorkflow:
 
                 # Perform operations within context
 
-
             # Connection should be automatically disconnected
             assert not connection.is_connected
 
@@ -317,8 +316,6 @@ class TestCLIIntegration:
         mock_discover_devices.assert_called_once()
 
 
-
-
 class TestConnectionPoolingIntegration:
     """Test connection pooling integration."""
 
@@ -391,8 +388,6 @@ class TestConnectionPoolingIntegration:
                         ].value
                         == 42
                     )
-
-
 
 
 class TestEventSystemIntegration:

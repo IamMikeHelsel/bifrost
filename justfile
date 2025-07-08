@@ -168,6 +168,19 @@ alias d := dev
 check: fmt lint typecheck
 alias c := check
 
+# Super quick check (essential checks only)
+quick:
+    @./scripts/quick-check.sh
+alias q := quick
+
+# Comprehensive quality check with detailed report
+check-all:
+    @echo "🌉 Running comprehensive Bifrost quality check..."
+    @./scripts/check-all.sh
+
+# Alias for the comprehensive check
+alias qa := check-all
+
 # Google Style Guide specific commands
 google-check:
     @echo "📏 Checking Google Python Style Guide compliance..."
@@ -204,6 +217,8 @@ help:
     @echo "  typecheck     Run type checking"
     @echo "  test          Run all tests"
     @echo "  check         Quick format + lint + typecheck"
+    @echo "  quick         Super quick essential checks (30s)"
+    @echo "  check-all     Comprehensive quality check with detailed report"
     @echo "  dev           Full development cycle"
     @echo ""
     @echo "Build:"

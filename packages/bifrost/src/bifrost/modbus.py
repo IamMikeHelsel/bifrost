@@ -24,6 +24,7 @@ class ModbusFunctionCode(IntEnum):
     WRITE_MULTIPLE_COILS = 15
     WRITE_MULTIPLE_REGISTERS = 16
 
+
 from bifrost_core.base import Reading
 from bifrost_core.typing import JsonDict, Tag, Timestamp, Value
 
@@ -92,19 +93,25 @@ class ModbusDevice(PLC):
                         address=address, count=count, slave=1
                     )
                     value = result.bits
-                elif function_code == ModbusFunctionCode.READ_DISCRETE_INPUTS:  # Read Discrete Inputs
+                elif (
+                    function_code == ModbusFunctionCode.READ_DISCRETE_INPUTS
+                ):  # Read Discrete Inputs
                     result = await self.connection.client.read_discrete_inputs(
                         address=address, count=count, slave=1
                     )
                     value = result.bits
-                elif function_code == ModbusFunctionCode.READ_HOLDING_REGISTERS:  # Read Holding Registers
+                elif (
+                    function_code == ModbusFunctionCode.READ_HOLDING_REGISTERS
+                ):  # Read Holding Registers
                     result = (
                         await self.connection.client.read_holding_registers(
                             address=address, count=count, slave=1
                         )
                     )
                     value = result.registers
-                elif function_code == ModbusFunctionCode.READ_INPUT_REGISTERS:  # Read Input Registers
+                elif (
+                    function_code == ModbusFunctionCode.READ_INPUT_REGISTERS
+                ):  # Read Input Registers
                     result = await self.connection.client.read_input_registers(
                         address=address, count=count, slave=1
                     )
@@ -145,7 +152,9 @@ class ModbusDevice(PLC):
             try:
                 function_code, address, _ = self._parse_address(tag.address)
 
-                if function_code == ModbusFunctionCode.WRITE_SINGLE_COIL:  # Write Coils
+                if (
+                    function_code == ModbusFunctionCode.WRITE_SINGLE_COIL
+                ):  # Write Coils
                     if isinstance(value, bool):
                         await self.connection.client.write_coil(
                             address=address, value=value, slave=1
@@ -160,7 +169,9 @@ class ModbusDevice(PLC):
                         raise ValueError(
                             "Coil write value must be a boolean or a list of booleans"
                         )
-                elif function_code == ModbusFunctionCode.WRITE_SINGLE_REGISTER:  # Write Holding Registers
+                elif (
+                    function_code == ModbusFunctionCode.WRITE_SINGLE_REGISTER
+                ):  # Write Holding Registers
                     if isinstance(value, int):
                         await self.connection.client.write_register(
                             address=address, value=value, slave=1

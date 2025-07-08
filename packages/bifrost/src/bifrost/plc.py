@@ -57,7 +57,12 @@ class PLC(BaseDevice[Value], ABC):
 
     def _convert_to_python(self, value: Any, data_type: DataType) -> Any:
         """Convert a value from the PLC to a Python type."""
-        if data_type in {DataType.INT16, DataType.UINT16, DataType.INT32, DataType.UINT32}:
+        if data_type in {
+            DataType.INT16,
+            DataType.UINT16,
+            DataType.INT32,
+            DataType.UINT32,
+        }:
             return int(value)
         if data_type in {DataType.FLOAT32, DataType.FLOAT64}:
             return float(value)
