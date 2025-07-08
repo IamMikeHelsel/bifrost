@@ -1,0 +1,11 @@
+# Rust formatting configuration
+# Using only stable rustfmt features
+
+# Edition and basic formatting
+edition = "2021"
+max_width = 80
+hard_tabs = false
+tab_spaces = 4
+
+# Only stable formatting options
+use_small_heuristics = "Default"

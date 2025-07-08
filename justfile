@@ -23,6 +23,9 @@ dev-install: dev-setup
     @echo "📦 Installing all packages in development mode..."
     uv pip install -e packages/bifrost-core
     uv pip install -e packages/bifrost
+    @echo "🦀 Building Rust extensions..."
+    cd packages/bifrost-core && uv run maturin develop
+    cd packages/bifrost && uv run maturin develop
     # TODO: Add these packages as they are created:
     # uv pip install -e packages/bifrost-opcua
     # uv pip install -e packages/bifrost-analytics
@@ -34,6 +37,8 @@ dev-install: dev-setup
 fmt:
     @echo "🎨 Formatting Python code (Google style)..."
     uv run ruff format --line-length 80 .
+    @echo "🦀 Formatting Rust code..."
+    cargo fmt
     @echo "📝 Formatting markdown..."
     mdformat .
     @echo "✅ All code formatted!"
@@ -61,6 +66,8 @@ watch-md:
 lint:
     @echo "🔍 Linting Python code..."
     uv run ruff check . --fix
+    @echo "🔍 Linting Rust code..."
+    cargo clippy -- -D warnings
     @echo "✅ All code linted!"
 
 # Type check Python code
@@ -129,7 +136,7 @@ docs-serve: docs
     uv run python -m http.server 8000 -d docs/_build/html
 
 # Run full CI pipeline locally
-ci: fmt lint typecheck test audit
+ci: fmt lint typecheck test rust-test audit
     @echo "🚀 CI pipeline completed successfully!"
 
 # Prepare for release
@@ -146,8 +153,52 @@ release: release-prep
     @echo "🎉 Release published!"
 
 # Development shortcuts
-dev: dev-install fmt lint test
+dev: dev-install fmt lint test rust-test
 alias d := dev
+
+# Rust-specific commands
+
+# Format Rust code
+rust-fmt:
+    @echo "🎨 Formatting Rust code..."
+    cargo fmt
+    @echo "✅ Rust code formatted!"
+
+# Lint Rust code with clippy
+rust-lint:
+    @echo "🔍 Linting Rust code with clippy..."
+    cargo clippy -- -D warnings
+    @echo "✅ Rust code linted!"
+
+# Run Rust tests
+rust-test:
+    @echo "🧪 Running Rust tests..."
+    cargo test
+    @echo "✅ Rust tests passed!"
+
+# Build Rust extensions for development
+rust-build:
+    @echo "🔨 Building Rust extensions..."
+    cd packages/bifrost-core && uv run maturin develop
+    cd packages/bifrost && uv run maturin develop
+    @echo "✅ Rust extensions built!"
+
+# Build Rust extensions for release
+rust-build-release:
+    @echo "🔨 Building Rust extensions for release..."
+    cd packages/bifrost-core && uv run maturin build --release
+    cd packages/bifrost && uv run maturin build --release
+    @echo "✅ Rust release builds completed!"
+
+# Run Rust benchmarks
+rust-bench:
+    @echo "⚡ Running Rust benchmarks..."
+    cargo bench
+    @echo "📊 Rust benchmarks completed!"
+
+# Combined Rust workflow
+rust-all: rust-fmt rust-lint rust-test rust-build
+    @echo "🦀 All Rust tasks completed!"
 
 # Quick check (fast feedback)
 check: fmt lint typecheck
@@ -195,7 +246,7 @@ help:
     @echo "  install-hooks Install pre-commit hooks"
     @echo ""
     @echo "Development:"
-    @echo "  fmt           Format all code (Python, Markdown)"
+    @echo "  fmt           Format all code (Python, Rust, Markdown)"
     @echo "  fmt-all       Run pre-commit on all files"
     @echo "  watch-md      Watch and auto-format markdown files"
     @echo "  lint          Lint all code with auto-fix"
@@ -209,6 +260,15 @@ help:
     @echo "Build:"
     @echo "  build         Build all packages"
     @echo "  clean         Clean build artifacts"
+    @echo ""
+    @echo "Rust Development:"
+    @echo "  rust-fmt      Format Rust code"
+    @echo "  rust-lint     Lint Rust code with clippy"
+    @echo "  rust-test     Run Rust tests"
+    @echo "  rust-build    Build Rust extensions for development"
+    @echo "  rust-build-release Build Rust extensions for release"
+    @echo "  rust-bench    Run Rust benchmarks"
+    @echo "  rust-all      Complete Rust workflow"
     @echo ""
     @echo "Quality:"
     @echo "  audit         Run security audit"

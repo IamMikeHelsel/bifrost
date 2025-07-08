@@ -57,9 +57,24 @@
     "editor.formatOnSave": true
   },
   
-  // Rust settings (for future Rust code)
+  // Rust settings
+  "rust-analyzer.workspace.discoverConfig": "with-sysroot",
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.check.extraArgs": ["--", "-D", "warnings"],
+  "rust-analyzer.rustfmt.rangeFormatting.enable": true,
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.hover.actions.enable": true,
+  "rust-analyzer.inlayHints.enable": true,
+  "rust-analyzer.lens.enable": true,
+  "rust-analyzer.diagnostics.enable": true,
+  "rust-analyzer.completion.autoimport.enable": true,
+  "rust-analyzer.imports.granularity.group": "crate",
+  "rust-analyzer.imports.granularity.enforce": true,
   "[rust]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.inlayHints.enabled": "onUnlessPressed"
   },
   
   // File associations
