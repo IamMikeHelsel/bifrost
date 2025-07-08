@@ -1,9 +1,31 @@
-# Enable Bzlmod
+# Bifrost Bazel Configuration
+# Enable Bzlmod for modern dependency management
 common --enable_bzlmod
 
-# PyO3 compatibility for Python 3.13
+# Python 3.13 compatibility and PyO3 settings
 build --action_env=PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
+build --action_env=PYTHON_VERSION=3.13
 
-# Common build configurations
+# Performance optimizations
 build --show_result=1
 build --symlink_prefix=bazel-
+build --jobs=auto
+build --local_ram_resources=HOST_RAM*.75
+build --local_cpu_resources=HOST_CPUS
+
+# Developer experience improvements
+build --color=yes
+test --test_output=errors
+test --test_summary=detailed
+
+# Remote caching preparation (for future CI/CD)
+# build --remote_cache=...
+# build --remote_timeout=60
+
+# Platform-specific configurations
+build:linux --action_env=CC=clang
+build:macos --action_env=CC=clang
+build:windows --action_env=CC=cl.exe
+
+# Rust configuration for future use
+build --@rules_rust//rust/toolchain/channel=stable

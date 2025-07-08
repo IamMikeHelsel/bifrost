@@ -1,0 +1,11 @@
+# This file defines the Rust toolchain and configurations for future use.
+
+load("@rules_rust//rust:toolchains.bzl", "rust_register_toolchains")
+
+# Rust toolchain configuration will be handled by MODULE.bazel
+# This file can be used for Rust-specific build configurations
+
+# Future: PyO3 integration rules
+# load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+
+# Future: Custom Rust configurations for industrial IoT protocols

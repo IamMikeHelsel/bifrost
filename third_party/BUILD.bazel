@@ -1,2 +1,8 @@
-# This is the BUILD.bazel file for the third_party directory.
-# It will contain rules for external dependencies like open62541 and snap7.
+# Third-party dependencies for Bifrost
+# This directory contains external libraries and their BUILD configurations
+
+# Future: OPC UA library (open62541)
+# Future: Siemens S7 library (snap7)
+# Future: Other industrial protocol libraries
+
+# Placeholder for external dependencies that will be added as packages grow

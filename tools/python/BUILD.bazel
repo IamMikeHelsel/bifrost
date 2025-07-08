@@ -3,18 +3,15 @@
 
 load("@rules_python//python:pip.bzl", "pip_parse")
 
-pip_parse(
-    name = "pypi",
-    requirements_lock = "//:requirements_lock.txt",
-    python_version = "3.13",
-)
+# pip_parse is configured in MODULE.bazel, but we can reference it here
+# The actual pip_parse configuration is done via the MODULE.bazel extensions
 
 # Define a Python toolchain for Bazel to use
 load("@rules_python//python:toolchains.bzl", "py_runtime_pair")
 
 py_runtime_pair(
     name = "python_3_13_runtime",
-    python3_runtime = "@pypi//:", # This points to the pip_parse generated runtime
+    python3_runtime = "@pypi//:python",  # Updated to match MODULE.bazel
 )
 
 toolchain(
@@ -22,7 +19,7 @@ toolchain(
     toolchain_type = "@rules_python//python:toolchain_type",
     exec_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//os:macos",
+        "@platforms//os:macos", 
         "@platforms//os:windows",
     ],
     target_compatible_with = [

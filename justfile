@@ -75,6 +75,12 @@ test:
     uv run pytest packages/*/tests -v
     @echo "✅ All tests passed!"
 
+# Run tests with Bazel
+test-bazel:
+    @echo "🧪 Running tests with Bazel..."
+    bazel test //packages/...
+    @echo "✅ All tests passed with Bazel!"
+
 # Run tests with coverage
 test-cov:
     @echo "🧪 Running tests with coverage..."
@@ -87,6 +93,18 @@ build:
     uv run python tools/build-all.py
     @echo "✅ All packages built!"
 
+# Build all packages with Bazel
+build-bazel:
+    @echo "🔨 Building all packages with Bazel..."
+    bazel build //packages/...
+    @echo "✅ All packages built with Bazel!"
+
+# Build wheels with Bazel
+build-wheels:
+    @echo "📦 Building distribution wheels with Bazel..."
+    bazel build //packages/...:wheel
+    @echo "✅ Wheels built with Bazel!"
+
 
 # Clean all build artifacts
 clean:
@@ -98,6 +116,18 @@ clean:
     find . -name "*.pyc" -delete 2>/dev/null || true
     find . -name "*.pyo" -delete 2>/dev/null || true
     @echo "✅ Build artifacts cleaned!"
+
+# Clean Bazel build cache
+clean-bazel:
+    @echo "🧹 Cleaning Bazel build cache..."
+    bazel clean
+    @echo "✅ Bazel cache cleaned!"
+
+# Clean all Bazel artifacts (including analysis cache)
+clean-bazel-all:
+    @echo "🧹 Cleaning all Bazel artifacts..."
+    bazel clean --expunge
+    @echo "✅ All Bazel artifacts cleaned!"
 
 # Run security audit
 audit:
@@ -200,15 +230,19 @@ help:
     @echo "  watch-md      Watch and auto-format markdown files"
     @echo "  lint          Lint all code with auto-fix"
     @echo "  typecheck     Run type checking"
-    @echo "  test          Run all tests"
+    @echo "  test          Run all tests (legacy)"
+    @echo "  test-bazel    Run all tests with Bazel"
     @echo "  check         Quick format + lint + typecheck"
     @echo "  quick         Super quick essential checks (30s)"
     @echo "  check-all     Comprehensive quality check with detailed report"
     @echo "  dev           Full development cycle"
     @echo ""
     @echo "Build:"
-    @echo "  build         Build all packages"
+    @echo "  build         Build all packages (legacy)"
+    @echo "  build-bazel   Build all packages with Bazel"
+    @echo "  build-wheels  Build distribution wheels with Bazel"
     @echo "  clean         Clean build artifacts"
+    @echo "  clean-bazel   Clean Bazel build cache"
     @echo ""
     @echo "Quality:"
     @echo "  audit         Run security audit"
@@ -223,7 +257,53 @@ help:
     @echo "  release-prep  Prepare for release"
     @echo "  release       Publish to PyPI"
     @echo ""
+    @echo "Bazel Commands:"
+    @echo "  bazel-dev     Bazel development cycle (build + test)"
+    @echo "  deps TARGET   Show dependencies for a target"
+    @echo "  rdeps TARGET  Show reverse dependencies for a target"
+    @echo "  cache-stats   Show Bazel cache statistics"
+    @echo "  run TARGET    Run a specific Bazel target"
+    @echo ""
     @echo "Use 'just <command>' to run any command"
 
 # Default command shows help
 default: help
+
+# === Bazel-specific commands ===
+
+# Query dependencies for a target
+deps TARGET:
+    @echo "🔍 Analyzing dependencies for {{TARGET}}..."
+    bazel query "deps({{TARGET}})"
+
+# Query reverse dependencies for a target  
+rdeps TARGET:
+    @echo "🔍 Analyzing reverse dependencies for {{TARGET}}..."
+    bazel query "rdeps(//..., {{TARGET}})"
+
+# Show Bazel cache statistics
+cache-stats:
+    @echo "📊 Bazel cache statistics..."
+    bazel info
+
+# Run a specific Bazel target
+run TARGET:
+    @echo "🚀 Running Bazel target {{TARGET}}..."
+    bazel run {{TARGET}}
+
+# Build specific package
+build-package PACKAGE:
+    @echo "🔨 Building package {{PACKAGE}} with Bazel..."
+    bazel build //packages/{{PACKAGE}}:{{PACKAGE}}
+
+# Test specific package
+test-package PACKAGE:
+    @echo "🧪 Testing package {{PACKAGE}} with Bazel..."
+    bazel test //packages/{{PACKAGE}}:tests
+
+# Bazel development workflow (build + test)
+bazel-dev:
+    @echo "🔄 Running Bazel development cycle..."
+    just build-bazel
+    just test-bazel
+    @echo "✅ Bazel development cycle complete!"

@@ -1,0 +1,170 @@
+# BUILD.bazel for bifrost package (Python + future Rust)
+# Main Bifrost package with protocol implementations and CLI
+
+load("@rules_python//python:defs.bzl", "py_library", "py_test", "py_binary")
+load("@rules_python//python:packaging.bzl", "py_wheel")
+
+# Main library target
+py_library(
+    name = "bifrost",
+    srcs = glob(["src/bifrost/**/*.py"]),
+    imports = ["src"],
+    deps = [
+        "//packages/bifrost-core:bifrost_core",
+        "@pypi//pymodbus",
+        "@pypi//rich",
+        "@pypi//typer",
+        "@pypi//uvloop",
+        "@pypi//orjson",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# CLI binary target
+py_binary(
+    name = "cli",
+    srcs = ["src/bifrost/cli.py"],
+    main = "src/bifrost/cli.py",
+    deps = [":bifrost"],
+    visibility = ["//visibility:public"],
+)
+
+# Future: Rust shared library for high-performance protocol codecs
+# This will be added when we implement Rust components
+# rust_shared_library(
+#     name = "modbus_native",
+#     srcs = glob(["native/src/**/*.rs"]),
+#     crate_root = "native/src/lib.rs",
+#     deps = [
+#         "@crate_index//:pyo3",
+#         "@crate_index//:tokio",
+#     ],
+#     crate_features = ["pyo3/extension-module"],
+# )
+
+# Wheel distribution target
+py_wheel(
+    name = "wheel",
+    distribution = "bifrost",
+    version = "0.1.0",
+    deps = [":bifrost"],
+    wheel_metadata = {
+        "Author": "Bifrost Contributors",
+        "Author-email": "hello@bifrost.dev",
+        "Description-Content-Type": "text/markdown",
+        "License": "MIT",
+        "Summary": "Industrial IoT framework for bridging OT and IT systems",
+    },
+    # Future: Platform-specific wheels for Rust components
+    # platform = select({
+    #     "@platforms//os:linux": "linux_x86_64",
+    #     "@platforms//os:macos": "macosx_11_0_arm64",
+    #     "@platforms//os:windows": "win_amd64",
+    # }),
+)
+
+# Test targets
+py_test(
+    name = "test_cli",
+    srcs = ["tests/test_cli.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "test_cli_simple",
+    srcs = ["tests/test_cli_simple.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "test_discovery",
+    srcs = ["tests/test_discovery.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "test_discovery_new",
+    srcs = ["tests/test_discovery_new.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "test_init",
+    srcs = ["tests/test_init.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "test_integration",
+    srcs = ["tests/test_integration.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+py_test(
+    name = "test_modbus",
+    srcs = ["tests/test_modbus.py"],
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+)
+
+# Benchmark tests
+py_test(
+    name = "benchmarks",
+    srcs = glob(["tests/benchmarks/**/*.py"]),
+    deps = [
+        ":bifrost",
+        "@pypi//pytest",
+        "@pypi//pytest_asyncio",
+    ],
+    tags = ["benchmark"],
+)
+
+# Convenience target to run all tests
+test_suite(
+    name = "tests",
+    tests = [
+        ":test_cli",
+        ":test_cli_simple",
+        ":test_discovery",
+        ":test_discovery_new",
+        ":test_init",
+        ":test_integration",
+        ":test_modbus",
+    ],
+)
+
+# Convenience target to run all tests including benchmarks
+test_suite(
+    name = "all_tests",
+    tests = [
+        ":tests",
+        ":benchmarks",
+    ],
+)

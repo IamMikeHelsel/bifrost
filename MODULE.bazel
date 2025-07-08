@@ -3,17 +3,29 @@ module(
     version = "0.1.0"
 )
 
+# Core dependencies
 bazel_dep(name = "rules_python", version = "0.40.0")
+bazel_dep(name = "rules_rust", version = "0.50.1")
 
-# Python toolchain configuration
+# Python toolchain configuration for Python 3.13
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-python.toolchain(python_version = "3.12") # Consider matching this with your project's Python version if different
+python.toolchain(python_version = "3.13")
 use_repo(python, "python_versions")
 
 # Setup pip to parse requirements_lock.txt
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse_requirements(
-    name = "pip_deps", # This creates a repository named @pip_deps
+    name = "pypi",  # Using "pypi" for consistency with tools/python/BUILD.bazel
     requirements_lock = "//:requirements_lock.txt",
 )
-use_repo(pip, "pip_deps")
+use_repo(pip, "pypi")
+
+# Rust toolchain configuration for future use
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(edition = "2021")
+use_repo(rust, "rust_toolchains")
+
+# Crate universe for Cargo dependencies (for future Rust packages)
+crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+# Note: Cargo.toml will be added when we have Rust packages
+use_repo(crate, "crate_index")

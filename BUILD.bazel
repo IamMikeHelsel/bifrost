@@ -1,2 +1,40 @@
-# This is the root BUILD.bazel file.
-# It can contain top-level build rules or simply serve as a marker for the workspace root.
+# Root BUILD.bazel file for Bifrost
+# This serves as the workspace root marker and contains top-level build rules
+
+# Alias targets for convenience
+alias(
+    name = "bifrost-core",
+    actual = "//packages/bifrost-core:bifrost_core",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "bifrost",
+    actual = "//packages/bifrost:bifrost",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "bifrost-cli",
+    actual = "//packages/bifrost:cli",
+    visibility = ["//visibility:public"],
+)
+
+# Build all packages
+filegroup(
+    name = "all_packages",
+    srcs = [
+        "//packages/bifrost-core:wheel",
+        "//packages/bifrost:wheel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Test all packages
+test_suite(
+    name = "all_tests",
+    tests = [
+        "//packages/bifrost-core:tests",
+        "//packages/bifrost:tests",
+    ],
+)
