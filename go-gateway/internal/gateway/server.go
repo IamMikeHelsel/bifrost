@@ -12,7 +12,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
+	"bifrost-gateway/internal/messaging"
 	"bifrost-gateway/internal/protocols"
+	"bifrost-gateway/internal/security"
 )
 
 // IndustrialGateway is the main server handling multiple industrial protocols
@@ -33,6 +35,12 @@ type IndustrialGateway struct {
 	wsUpgrader websocket.Upgrader
 	wsClients  sync.Map // map[*websocket.Conn]bool
 
+	// Messaging layer
+	messaging messaging.MessagingLayer
+
+	// Security layer
+	security *security.SecurityLayer
+
 	// Configuration
 	config *Config
 }
@@ -45,6 +53,15 @@ type Config struct {
 	UpdateInterval time.Duration `yaml:"update_interval"`
 	EnableMetrics  bool          `yaml:"enable_metrics"`
 	LogLevel       string        `yaml:"log_level"`
+	
+	// Security configuration
+	Security *security.SecurityConfig `yaml:"security,omitempty"`
+	
+	// Messaging configuration
+	Messaging struct {
+		MQTT *messaging.MQTTConfig `yaml:"mqtt,omitempty"`
+		NATS *messaging.NATSConfig `yaml:"nats,omitempty"`
+	} `yaml:"messaging,omitempty"`
 }
 
 type Device struct {
@@ -95,6 +112,36 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 				return true // Allow all origins for development
 			},
 		},
+	}
+
+	// Initialize security layer if configured
+	if config.Security != nil {
+		securityLayer, err := security.NewSecurityLayer(config.Security)
+		if err != nil {
+			logger.Error("Failed to initialize security layer", zap.Error(err))
+		} else {
+			gateway.security = securityLayer
+			logger.Info("Security layer initialized")
+		}
+	}
+
+	// Initialize messaging layer if configured
+	if config.Messaging.MQTT != nil && config.Messaging.MQTT.Enabled {
+		mqttMessaging, err := messaging.NewMQTTMessaging(config.Messaging.MQTT, logger)
+		if err != nil {
+			logger.Error("Failed to initialize MQTT messaging", zap.Error(err))
+		} else {
+			gateway.messaging = mqttMessaging
+			logger.Info("MQTT messaging initialized")
+		}
+	} else if config.Messaging.NATS != nil && config.Messaging.NATS.Enabled {
+		natsMessaging, err := messaging.NewNATSMessaging(config.Messaging.NATS, logger)
+		if err != nil {
+			logger.Error("Failed to initialize NATS messaging", zap.Error(err))
+		} else {
+			gateway.messaging = natsMessaging
+			logger.Info("NATS messaging initialized")
+		}
 	}
 
 	// Initialize metrics
