@@ -10,6 +10,9 @@ ts_project(
         "src/**/*.ts",
     ]),
     declaration = True,
+    out_dir = "out",
+    root_dir = "src",
+    source_map = True,
     tsconfig = "tsconfig.json",
     transpiler = "tsc",
     deps = [
