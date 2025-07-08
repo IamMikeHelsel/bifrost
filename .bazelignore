@@ -4,5 +4,13 @@
 .pytest_cache/
 .ruff_cache/
 .venv/
+.vscode/
+.claude/
 dist/
-UNKNOWN.egg-info/
+build/
+*.egg-info/
+__pycache__/
+node_modules/
+htmlcov/
+*.log
+build-profile.json

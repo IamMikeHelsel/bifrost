@@ -167,6 +167,48 @@ code --install-extension bifrost-*.vsix
 
 This project uses multiple build systems to support different components and deployment scenarios.
 
+### 🏗️ Bazel Build System (Recommended for Python packages)
+
+Bifrost uses Bazel for efficient, incremental builds of Python packages:
+
+```bash
+# Build all Python packages
+just build
+
+# Build specific package
+just build-pkg bifrost-core
+just build-pkg bifrost
+
+# Build distribution wheels
+just build-wheels
+
+# Run all tests
+just test
+
+# Run tests for specific package
+just test-pkg bifrost
+
+# Clean Bazel cache
+just clean-bazel
+
+# Query dependencies
+just deps //packages/bifrost:bifrost
+just rdeps //packages/bifrost-core:bifrost_core
+
+# Build performance analysis
+just profile
+```
+
+**Direct Bazel commands:**
+```bash
+bazel build //packages/...           # Build all packages
+bazel test //packages/...            # Run all tests
+bazel build //packages/...:wheel     # Build distribution wheels
+bazel query "deps(//packages/...)"   # Analyze dependencies
+```
+
+See [docs/bazel-build-system.md](docs/bazel-build-system.md) for complete documentation.
+
 ### ⚡ Quick Quality Checks
 
 For rapid feedback during development:

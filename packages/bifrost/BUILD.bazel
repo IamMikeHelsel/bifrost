@@ -1,0 +1,164 @@
+# BUILD.bazel for bifrost package
+# Main package with Modbus and industrial IoT functionality
+
+load("@rules_python//python:defs.bzl", "py_library", "py_test", "py_binary")
+load("@rules_python//python:packaging.bzl", "py_wheel")
+
+py_library(
+    name = "bifrost",
+    srcs = glob([
+        "src/bifrost/**/*.py",
+    ]),
+    imports = ["src"],
+    deps = [
+        "//packages/bifrost-core:bifrost_core",
+        "@pip_deps//pymodbus",
+        "@pip_deps//rich",
+        "@pip_deps//typer",
+        "@pip_deps//uvloop",
+        "@pip_deps//orjson",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# CLI binary target
+py_binary(
+    name = "bifrost_cli",
+    srcs = ["src/bifrost/cli.py"],
+    main = "src/bifrost/cli.py",
+    deps = [":bifrost"],
+    visibility = ["//visibility:public"],
+)
+
+# Individual test targets
+py_test(
+    name = "test_cli",
+    srcs = ["tests/test_cli.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_cli.py",
+)
+
+py_test(
+    name = "test_cli_simple",
+    srcs = ["tests/test_cli_simple.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_cli_simple.py",
+)
+
+py_test(
+    name = "test_discovery",
+    srcs = ["tests/test_discovery.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_discovery.py",
+)
+
+py_test(
+    name = "test_discovery_new",
+    srcs = ["tests/test_discovery_new.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_discovery_new.py",
+)
+
+py_test(
+    name = "test_init",
+    srcs = ["tests/test_init.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_init.py",
+)
+
+py_test(
+    name = "test_integration",
+    srcs = ["tests/test_integration.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_integration.py",
+)
+
+py_test(
+    name = "test_modbus",
+    srcs = ["tests/test_modbus.py"],
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_modbus.py",
+)
+
+# Benchmark tests
+py_test(
+    name = "benchmarks",
+    srcs = glob(["tests/benchmarks/**/*.py"]),
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+        "@pip_deps//pytest-benchmark",
+    ],
+    main = "tests/benchmarks",
+    tags = ["benchmark"],
+)
+
+# Test suite target
+py_test(
+    name = "tests",
+    srcs = glob([
+        "tests/test_*.py",
+        "tests/benchmarks/**/*.py",
+    ]),
+    deps = [
+        ":bifrost",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+        "@pip_deps//pytest-benchmark",
+    ],
+    main = "tests/test_init.py",
+)
+
+# Package wheel for distribution
+py_wheel(
+    name = "wheel",
+    distribution = "bifrost",
+    version = "0.1.0",
+    deps = [":bifrost"],
+    summary = "Industrial IoT framework for bridging OT and IT systems",
+    author = "Bifrost Contributors",
+    author_email = "hello@bifrost.dev",
+    license = "MIT",
+    entry_points = {
+        "console_scripts": [
+            "bifrost = bifrost.cli:main",
+        ],
+    },
+    requires = [
+        "bifrost-core",
+        "pymodbus>=3.5",
+        "rich>=13.7",
+        "typer>=0.12",
+        "uvloop>=0.19",
+        "orjson>=3.9",
+    ],
+)

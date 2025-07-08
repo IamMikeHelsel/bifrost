@@ -1,4 +1,4 @@
-# Enable Bzlmod
+# Enable Bzlmod for modern Bazel
 common --enable_bzlmod
 
 # PyO3 compatibility for Python 3.13
@@ -7,3 +7,16 @@ build --action_env=PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
 # Common build configurations
 build --show_result=1
 build --symlink_prefix=bazel-
+
+# Performance optimizations
+build --local_cpu_resources=HOST_CPUS-1
+build --local_ram_resources=HOST_RAM*0.75
+
+# Development-friendly settings
+build --verbose_failures
+build --color=yes
+test --test_output=errors
+
+# Keep test environment clean
+test --test_env=PATH
+test --test_env=HOME

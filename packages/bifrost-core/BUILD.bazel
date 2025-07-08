@@ -1,0 +1,102 @@
+# BUILD.bazel for bifrost-core package
+# Python-only package with core abstractions
+
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@rules_python//python:packaging.bzl", "py_wheel")
+
+py_library(
+    name = "bifrost_core",
+    srcs = glob([
+        "src/bifrost_core/**/*.py",
+    ]),
+    imports = ["src"],
+    deps = [
+        "@pip_deps//pydantic",
+        "@pip_deps//typing-extensions",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Individual test targets
+py_test(
+    name = "test_base",
+    srcs = ["tests/test_base.py"],
+    deps = [
+        ":bifrost_core",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_base.py",
+)
+
+py_test(
+    name = "test_events",
+    srcs = ["tests/test_events.py"],
+    deps = [
+        ":bifrost_core",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_events.py",
+)
+
+py_test(
+    name = "test_features",
+    srcs = ["tests/test_features.py"],
+    deps = [
+        ":bifrost_core",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_features.py",
+)
+
+py_test(
+    name = "test_pooling",
+    srcs = ["tests/test_pooling.py"],
+    deps = [
+        ":bifrost_core",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_pooling.py",
+)
+
+py_test(
+    name = "test_typing",
+    srcs = ["tests/test_typing.py"],
+    deps = [
+        ":bifrost_core",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_typing.py",
+)
+
+# Test suite target
+py_test(
+    name = "tests",
+    srcs = glob(["tests/test_*.py"]),
+    deps = [
+        ":bifrost_core",
+        "@pip_deps//pytest",
+        "@pip_deps//pytest-asyncio",
+    ],
+    main = "tests/test_base.py",
+)
+
+# Package wheel for distribution
+py_wheel(
+    name = "wheel",
+    distribution = "bifrost-core",
+    version = "0.1.0",
+    deps = [":bifrost_core"],
+    summary = "Core abstractions for Bifrost industrial IoT framework",
+    author = "Bifrost Contributors",
+    author_email = "hello@bifrost.dev",
+    license = "MIT",
+    requires = [
+        "pydantic>=2.5",
+        "typing-extensions>=4.8",
+    ],
+)

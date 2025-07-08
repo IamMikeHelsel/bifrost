@@ -71,7 +71,18 @@ typecheck:
 
 # Run all tests
 test:
-    @echo "🧪 Running Python tests..."
+    @echo "🧪 Running Python tests with Bazel..."
+    bazel test //packages/...:tests
+    @echo "✅ All tests passed!"
+
+# Run tests for specific package
+test-pkg PKG:
+    @echo "🧪 Running tests for {{PKG}}..."
+    bazel test //packages/{{PKG}}:tests
+
+# Legacy test using pytest (fallback)
+test-legacy:
+    @echo "🧪 Running Python tests (legacy)..."
     uv run pytest packages/*/tests -v
     @echo "✅ All tests passed!"
 
@@ -83,7 +94,24 @@ test-cov:
 
 # Build all packages
 build:
-    @echo "🔨 Building all packages..."
+    @echo "🔨 Building all packages with Bazel..."
+    bazel build //packages/...
+    @echo "✅ All packages built!"
+
+# Build specific package
+build-pkg PKG:
+    @echo "🔨 Building {{PKG}} package..."
+    bazel build //packages/{{PKG}}:{{PKG}}
+
+# Build wheels for distribution
+build-wheels:
+    @echo "📦 Building distribution wheels..."
+    bazel build //packages/...:wheel
+    @echo "✅ All wheels built!"
+
+# Legacy build using Python tools (fallback)
+build-legacy:
+    @echo "🔨 Building all packages (legacy)..."
     uv run python tools/build-all.py
     @echo "✅ All packages built!"
 
@@ -98,6 +126,18 @@ clean:
     find . -name "*.pyc" -delete 2>/dev/null || true
     find . -name "*.pyo" -delete 2>/dev/null || true
     @echo "✅ Build artifacts cleaned!"
+
+# Clean Bazel build cache
+clean-bazel:
+    @echo "🧹 Cleaning Bazel build cache..."
+    bazel clean
+    @echo "✅ Bazel cache cleaned!"
+
+# Clean all Bazel artifacts (complete reset)
+clean-all:
+    @echo "🧹 Cleaning all Bazel artifacts..."
+    bazel clean --expunge
+    @echo "✅ All Bazel artifacts cleaned!"
 
 # Run security audit
 audit:
@@ -166,6 +206,33 @@ check-all:
 # Alias for the comprehensive check
 alias qa := check-all
 
+# Bazel-specific commands
+# Show Bazel build cache statistics
+bazel-info:
+    @echo "📊 Bazel build information..."
+    bazel info
+
+# Query package dependencies
+deps TARGET:
+    @echo "🔍 Analyzing dependencies for {{TARGET}}..."
+    bazel query "deps({{TARGET}})"
+
+# Query reverse dependencies
+rdeps TARGET:
+    @echo "🔍 Analyzing reverse dependencies for {{TARGET}}..."
+    bazel query "rdeps(//..., {{TARGET}})"
+
+# Show build graph for packages
+graph:
+    @echo "📊 Generating dependency graph..."
+    bazel query "//packages/..." --output graph
+
+# Bazel build performance analysis
+profile:
+    @echo "⚡ Running build with profiling..."
+    bazel build //packages/... --profile=build-profile.json
+    @echo "📊 Profile saved to build-profile.json"
+
 # Google Style Guide specific commands
 google-check:
     @echo "📏 Checking Google Python Style Guide compliance..."
@@ -207,13 +274,25 @@ help:
     @echo "  dev           Full development cycle"
     @echo ""
     @echo "Build:"
-    @echo "  build         Build all packages"
-    @echo "  clean         Clean build artifacts"
+    @echo "  build         Build all packages with Bazel"
+    @echo "  build-pkg PKG Build specific package"
+    @echo "  build-wheels  Build distribution wheels"
+    @echo "  build-legacy  Build with legacy Python tools"
+    @echo "  clean         Clean Python build artifacts"
+    @echo "  clean-bazel   Clean Bazel build cache"
+    @echo "  clean-all     Clean all Bazel artifacts"
     @echo ""
     @echo "Quality:"
     @echo "  audit         Run security audit"
     @echo "  bench         Run performance benchmarks"
     @echo "  ci            Full CI pipeline"
+    @echo ""
+    @echo "Bazel:"
+    @echo "  bazel-info    Show Bazel build information"
+    @echo "  deps TARGET   Analyze dependencies for target"
+    @echo "  rdeps TARGET  Analyze reverse dependencies for target"
+    @echo "  graph         Generate dependency graph"
+    @echo "  profile       Build with performance profiling"
     @echo ""
     @echo "Documentation:"
     @echo "  docs          Generate documentation"

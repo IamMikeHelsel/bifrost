@@ -7,6 +7,7 @@ uvloop>=0.19
 orjson>=3.9
 pytest>=8.0
 pytest-asyncio>=0.23
+pytest-benchmark>=4.0
 mypy>=1.8
 ruff>=0.1.9
 fastapi>=0.100

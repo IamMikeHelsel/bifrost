@@ -5,12 +5,12 @@ module(
 
 bazel_dep(name = "rules_python", version = "0.40.0")
 
-# Python toolchain configuration
+# Python toolchain configuration - using Python 3.13 for advanced features
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-python.toolchain(python_version = "3.12") # Consider matching this with your project's Python version if different
+python.toolchain(python_version = "3.13")
 use_repo(python, "python_versions")
 
-# Setup pip to parse requirements_lock.txt
+# Setup pip to parse requirements_lock.txt for all Python dependencies
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse_requirements(
     name = "pip_deps", # This creates a repository named @pip_deps
