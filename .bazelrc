@@ -12,7 +12,7 @@ build --symlink_prefix=bazel-
 # build --@rules_go//go/config:race
 
 # TypeScript/JavaScript settings
-# build --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@aspect_rules_ts//ts:skipLibCheck=always
 # build --@aspect_rules_js//js:node_options=--max_old_space_size=4096
 
 # Performance optimizations
