@@ -1,0 +1,67 @@
+name: SLSA Build and Provenance
+
+on:
+  push:
+    tags: ['v*']
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  # Build with SLSA provenance
+  build:
+    name: Build with SLSA Provenance
+    permissions:
+      id-token: write # For signing
+      contents: read
+      actions: read
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.9.0
+    with:
+      go-version: "1.22"
+      config-file: .slsa-goreleaser.yml
+      evaluated-envs: "VERSION:${{ github.ref_name }}"
+      upload-assets: true
+      upload-tag-name: "slsa-build"
+
+  # Verify the provenance
+  verify:
+    name: Verify SLSA Provenance
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+    steps:
+      - name: Install SLSA verifier
+        uses: slsa-framework/slsa-verifier/actions/installer@v2.4.1
+
+      - name: Download assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh -R "$GITHUB_REPOSITORY" release download "${{ github.ref_name }}" -p "*.intoto.jsonl"
+          gh -R "$GITHUB_REPOSITORY" release download "${{ github.ref_name }}" -p "bifrost-gateway*"
+
+      - name: Verify assets
+        env:
+          BUILDER_ID: https://github.com/slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@refs/tags/v1.9.0
+        run: |
+          # Find the binary and provenance files
+          BINARY_PATH=$(find . -name "bifrost-gateway*" -type f | head -1)
+          PROVENANCE_PATH=$(find . -name "*.intoto.jsonl" -type f | head -1)
+          
+          if [ -z "$BINARY_PATH" ] || [ -z "$PROVENANCE_PATH" ]; then
+            echo "Could not find binary or provenance files"
+            exit 1
+          fi
+          
+          echo "Verifying $BINARY_PATH against $PROVENANCE_PATH"
+          slsa-verifier verify-artifact \
+            --provenance-path "$PROVENANCE_PATH" \
+            --source-uri github.com/$GITHUB_REPOSITORY \
+            --builder-id "$BUILDER_ID" \
+            "$BINARY_PATH"
+          
+          echo "✅ SLSA provenance verification successful!"

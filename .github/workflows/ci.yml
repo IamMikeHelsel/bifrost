@@ -50,17 +50,87 @@ jobs:
         working-directory: ./go-gateway
         run: go mod download
         
-      - name: Run security scan
+      - name: Run comprehensive security scanning
         working-directory: ./go-gateway
         run: |
+          # Install security tools
           go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
-          gosec -fmt sarif -out gosec.sarif ./... || true
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          
+          # Create security reports directory
+          mkdir -p security-reports
+          
+          # GoSec static analysis
+          echo "Running GoSec security analysis..."
+          gosec -fmt sarif -out security-reports/gosec.sarif ./... || true
+          gosec -fmt json -out security-reports/gosec.json ./... || true
+          
+          # Vulnerability scanning
+          echo "Running vulnerability scanning..."
+          govulncheck -json ./... > security-reports/govulncheck.json || true
+          
+          # Generate summary report
+          echo "=== Security Scan Summary ===" > security-reports/summary.txt
+          echo "Date: $(date)" >> security-reports/summary.txt
+          echo "Commit: $GITHUB_SHA" >> security-reports/summary.txt
+          echo "" >> security-reports/summary.txt
+          
+          if [ -f security-reports/gosec.json ]; then
+            HIGH_ISSUES=$(jq '.Stats.found_issues // 0' security-reports/gosec.json)
+            echo "GoSec Issues Found: $HIGH_ISSUES" >> security-reports/summary.txt
+          fi
+          
+          echo "Security scanning completed."
         continue-on-error: true
         
-      - name: Upload SARIF file
+      - name: Run protocol fuzzing tests
+        working-directory: ./go-gateway
+        run: |
+          echo "Running protocol fuzzing tests..."
+          
+          # Create fuzzing reports directory
+          mkdir -p security-reports/fuzzing
+          
+          # Modbus protocol fuzzing
+          echo "Fuzzing Modbus protocol..."
+          go test -fuzz=FuzzModbusAddressParsing -fuzztime=30s ./internal/protocols/ > security-reports/fuzzing/modbus-address.log 2>&1 || true
+          go test -fuzz=FuzzModbusDataConversion -fuzztime=30s ./internal/protocols/ > security-reports/fuzzing/modbus-data.log 2>&1 || true
+          go test -fuzz=FuzzModbusConfigParsing -fuzztime=30s ./internal/protocols/ > security-reports/fuzzing/modbus-config.log 2>&1 || true
+          
+          # OPC-UA protocol fuzzing  
+          echo "Fuzzing OPC-UA protocol..."
+          go test -fuzz=FuzzOPCUANodeIDParsing -fuzztime=30s ./internal/protocols/ > security-reports/fuzzing/opcua-nodeid.log 2>&1 || true
+          go test -fuzz=FuzzOPCUAConnectionString -fuzztime=30s ./internal/protocols/ > security-reports/fuzzing/opcua-connection.log 2>&1 || true
+          go test -fuzz=FuzzOPCUABinaryProtocol -fuzztime=30s ./internal/protocols/ > security-reports/fuzzing/opcua-binary.log 2>&1 || true
+          
+          # Gateway API fuzzing
+          echo "Fuzzing Gateway APIs..."
+          go test -fuzz=FuzzRESTAPIEndpoints -fuzztime=30s ./internal/gateway/ > security-reports/fuzzing/gateway-api.log 2>&1 || true
+          go test -fuzz=FuzzConfigurationParsing -fuzztime=30s ./internal/gateway/ > security-reports/fuzzing/gateway-config.log 2>&1 || true
+          
+          # Generate fuzzing summary
+          echo "=== Fuzzing Results ===" >> security-reports/summary.txt
+          echo "Fuzzing completed: $(date)" >> security-reports/summary.txt
+          
+          # Check for crashes/failures in fuzzing logs
+          CRASHES=$(grep -l "panic\|FAIL" security-reports/fuzzing/*.log | wc -l)
+          echo "Potential issues found in $CRASHES test suites" >> security-reports/summary.txt
+          
+          echo "Protocol fuzzing completed."
+        continue-on-error: true
+        
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: ./go-gateway/security-reports/
+        if: always()
+        continue-on-error: true
+        
+      - name: Upload SARIF files
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: ./go-gateway/gosec.sarif
+          sarif_file: ./go-gateway/security-reports/gosec.sarif
         if: always()
         continue-on-error: true
         
