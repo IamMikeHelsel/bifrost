@@ -131,7 +131,7 @@ func (s *ModbusSimulator) SimulateDevice(deviceID string, tags map[string]interf
 	}
 
 	// Initialize device registers from tags
-	for tagName, value := range tags {
+	for _, value := range tags {
 		// Simple mapping for demo - in real implementation would parse address formats
 		switch v := value.(type) {
 		case bool:

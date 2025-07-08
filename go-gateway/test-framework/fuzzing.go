@@ -208,7 +208,6 @@ func (fs *FuzzSuite) testConfigInput(input []byte) error {
 		"<script>", "javascript:", "data:text/html",
 	}
 
-	inputStr := string(input)
 	for _, pattern := range dangerousPatterns {
 		if bytes.Contains(input, []byte(pattern)) {
 			return fmt.Errorf("dangerous pattern detected: %s", pattern)
