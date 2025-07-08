@@ -14,6 +14,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"bifrost-gateway/internal/gateway"
+	"bifrost-gateway/internal/messaging"
+	"bifrost-gateway/internal/security"
 )
 
 // Config represents the gateway configuration
@@ -27,6 +29,13 @@ type Config struct {
 		EnableMetrics  bool          `yaml:"enable_metrics"`
 		LogLevel       string        `yaml:"log_level"`
 	} `yaml:"gateway"`
+
+	Security security.SecurityConfig `yaml:"security"`
+
+	Messaging struct {
+		MQTT messaging.MQTTConfig `yaml:"mqtt"`
+		NATS messaging.NATSConfig `yaml:"nats"`
+	} `yaml:"messaging"`
 
 	Protocols struct {
 		Modbus struct {
