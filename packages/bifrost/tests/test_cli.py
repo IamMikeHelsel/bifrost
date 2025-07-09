@@ -35,18 +35,22 @@ class TestDiscoverCommand:
     @pytest.fixture
     def mock_discover_devices(self):
         """Mock discover_devices function."""
-        with patch("bifrost.cli.discover_devices") as mock:
-            mock.return_value = AsyncMock(
-                return_value=[
-                    {
-                        "host": "192.168.1.100",
-                        "port": 502,
-                        "protocol": "modbus.tcp",
-                        "device_type": "PLC",
-                    }
-                ]
+        from bifrost_core.base import DeviceInfo
+        
+        async def mock_async_generator(config, protocols):
+            """Mock async generator that yields DeviceInfo objects."""
+            device = DeviceInfo(
+                device_id="PLC001",
+                host="192.168.1.100",
+                port=502,
+                protocol="modbus.tcp",
+                device_type="PLC",
+                discovery_method="modbus"
             )
-            yield mock
+            yield device
+        
+        with patch("bifrost.cli.discover_devices", side_effect=mock_async_generator):
+            yield
 
     def test_discover_default(self, runner, mock_discover_devices):
         """Test discover command with default options."""

@@ -71,6 +71,7 @@ class TestDeviceInfo:
             protocol="modbus.tcp",
             host="192.168.1.100",
             port=502,
+            discovery_method="modbus",
             name="Main PLC",
             manufacturer="Schneider Electric",
             model="M221",
@@ -90,6 +91,7 @@ class TestDeviceInfo:
             protocol="modbus.tcp",
             host="192.168.1.100",
             port=502,
+            discovery_method="modbus",
         )
 
         assert device.protocol == "modbus.tcp"
@@ -102,6 +104,7 @@ class TestDeviceInfo:
             protocol="opcua.tcp",
             host="192.168.1.100",
             port=4840,
+            discovery_method="opcua",
         )
 
         assert device.protocol == "opcua.tcp"
@@ -113,6 +116,7 @@ class TestDeviceInfo:
             protocol="modbus.tcp",
             host="192.168.1.100",
             port=502,
+            discovery_method="modbus",
         )
 
         # Name should default to device_id
