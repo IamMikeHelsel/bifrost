@@ -1,0 +1,131 @@
+@startuml Cloud Integration Deployment
+!theme blueprint
+
+title Cloud Integration - Hybrid Edge-Cloud Architecture
+
+' Cloud infrastructure
+cloud "Cloud Platform" as cloudplatform {
+  component [Load Balancer] as lb
+  component [API Gateway] as cloudapi
+  component [Bifrost Cloud Service] as cloudservice
+  component [Analytics Engine] as analytics
+  component [ML Pipeline] as ml
+  database "Cloud Time Series DB" as cloudtsdb
+  component [Alert Manager] as alerts
+  component [Dashboard Service] as dashboards
+}
+
+' Edge infrastructure
+node "Edge Gateway Cluster" as edgecluster {
+  node "Edge Node 1" as edge1 {
+    component [Bifrost Gateway] as gateway1
+    component [Local Cache] as cache1
+    database [Local TSDB] as localdb1
+  }
+  
+  node "Edge Node 2" as edge2 {
+    component [Bifrost Gateway] as gateway2
+    component [Local Cache] as cache2
+    database [Local TSDB] as localdb2
+  }
+  
+  component [Edge Coordinator] as coordinator
+}
+
+' Industrial network
+node "Industrial Network" as industrial {
+  component [PLC Farm] as plcs
+  component [SCADA Systems] as scada
+  component [Field Devices] as field
+  component [Safety Systems] as safety
+}
+
+' Cloud connections
+lb --> cloudapi : HTTPS/WSS
+cloudapi --> cloudservice : Internal API
+cloudservice --> cloudtsdb : Data Storage
+cloudservice --> analytics : Real-time Analytics
+analytics --> ml : ML Training
+cloudservice --> alerts : Alert Processing
+cloudservice --> dashboards : Visualization
+
+' Edge to cloud connections
+gateway1 <--> cloudservice : Secure Tunnel
+gateway2 <--> cloudservice : Secure Tunnel
+coordinator <--> cloudservice : Management API
+
+' Edge connections
+coordinator --> gateway1 : Orchestration
+coordinator --> gateway2 : Orchestration
+gateway1 --> cache1 : Local Caching
+gateway2 --> cache2 : Local Caching
+gateway1 --> localdb1 : Local Storage
+gateway2 --> localdb2 : Local Storage
+
+' Industrial connections
+gateway1 <--> plcs : Modbus/OPC UA
+gateway2 <--> scada : Ethernet/IP
+gateway1 <--> field : Various Protocols
+gateway2 <--> safety : Safety Protocols
+
+' Data synchronization
+gateway1 --> cloudservice : Data Upload
+gateway2 --> cloudservice : Data Upload
+cloudservice --> gateway1 : Config Sync
+cloudservice --> gateway2 : Config Sync
+
+' Performance and scaling notes
+note right of cloudservice
+  **Cloud Service Features**
+  - Multi-tenant architecture
+  - Auto-scaling (1-100 instances)
+  - Global data replication
+  - 99.9% uptime SLA
+  
+  **Data Processing**
+  - Real-time stream processing
+  - Batch analytics
+  - ML model deployment
+  - Alert correlation
+end note
+
+note left of edgecluster
+  **Edge Computing**
+  - Local data processing
+  - Offline operation capability
+  - Data aggregation
+  - Edge analytics
+  
+  **Resilience**
+  - Automatic failover
+  - Data buffering
+  - Network partition tolerance
+  - Local backup storage
+end note
+
+note bottom of industrial
+  **Network Segmentation**
+  - OT/IT network isolation
+  - Firewall protection
+  - VPN connectivity
+  - Protocol conversion
+end note
+
+' Security annotations
+note top of cloudplatform
+  **Security Measures**
+  - TLS 1.3 encryption
+  - Mutual authentication
+  - API key rotation
+  - Zero-trust networking
+  - Data sovereignty compliance
+end note
+
+' Footer
+center footer
+  **Cloud Integration Architecture**
+  **Deployment**: Hybrid edge-cloud with secure connectivity
+  **Last Updated**: July 2025
+end footer
+
+@enduml

@@ -1,0 +1,68 @@
+@startuml Sequence Template
+!theme blueprint
+
+' Sequence Diagram Template for Bifrost Project  
+' Use this template for API interactions and protocol flows
+
+title Sequence Diagram Template
+
+' Define participants
+actor "Actor" as actor
+participant "Component A" as compA
+participant "Component B" as compB
+database "Data Store" as db
+
+' Sequence flow
+actor -> compA : Request
+activate compA
+
+compA -> compB : Process
+activate compB
+
+compB -> db : Query
+activate db
+db -> compB : Result
+deactivate db
+
+compB -> compA : Response
+deactivate compB
+
+compA -> actor : Final Result
+deactivate compA
+
+' Add performance annotations
+note right of compA
+  **Performance Metrics**
+  - Latency: 53µs average
+  - Throughput: 18,879 ops/sec
+  - Success rate: 100%
+  
+  **Error Handling**
+  - Timeout: 5s
+  - Retry policy: Exponential backoff
+  - Circuit breaker: Enabled
+end note
+
+' Alternative flow for error handling
+group Error Handling
+    actor -> compA : Invalid Request
+    activate compA
+    compA -> compA : Validate Input
+    compA -> actor : Error Response
+    deactivate compA
+end
+
+' Asynchronous notification flow
+group Async Notifications
+    compB -> actor : Notification
+    note right: Real-time updates via WebSocket
+end
+
+' Footer with diagram metadata
+center footer
+  **Template Usage**: Replace participants and flows with actual API sequence
+  **Protocol**: Specify the protocol (Modbus, OPC UA, HTTP, etc.)
+  **Last Updated**: Generated from template
+end footer
+
+@enduml

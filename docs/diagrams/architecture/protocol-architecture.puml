@@ -1,0 +1,101 @@
+@startuml Protocol Architecture
+!theme blueprint
+
+title Bifrost Protocol Architecture
+
+' Define protocol layers
+package "Application Layer" as app {
+  component [REST API] as rest
+  component [WebSocket API] as ws
+  component [gRPC API] as grpc
+}
+
+package "Gateway Core" as gateway {
+  interface "Protocol Handler Interface" as phi
+  component [Connection Manager] as connmgr
+  component [Data Converter] as converter
+  component [Error Handler] as errorhandler
+  component [Performance Monitor] as perfmon
+}
+
+package "Protocol Implementations" as protocols {
+  component [Modbus Handler] as modbus
+  component [OPC UA Handler] as opcua
+  component [Ethernet/IP Handler] as eip
+  component [Custom Protocol Handler] as custom
+}
+
+package "Transport Layer" as transport {
+  component [TCP Connection Pool] as tcp
+  component [UDP Socket Manager] as udp
+  component [Serial Port Manager] as serial
+  component [TLS/SSL Handler] as tls
+}
+
+package "Device Layer" as device {
+  component [Device Registry] as registry
+  component [Device Discovery] as discovery
+  component [Health Monitor] as health
+  component [Configuration Manager] as config
+}
+
+' Protocol flow connections
+rest --> phi : Protocol Request
+ws --> phi : Real-time Stream
+grpc --> phi : Bulk Operations
+
+phi <--> connmgr : Connection Management
+phi <--> converter : Data Transformation
+phi <--> errorhandler : Error Handling
+phi <--> perfmon : Performance Metrics
+
+phi <--> modbus : Modbus Operations
+phi <--> opcua : OPC UA Operations
+phi <--> eip : Ethernet/IP Operations
+phi <--> custom : Custom Operations
+
+modbus <--> tcp : Modbus TCP
+modbus <--> serial : Modbus RTU
+opcua <--> tcp : OPC UA Binary
+opcua <--> tls : Secure Channel
+eip <--> udp : CIP over UDP
+eip <--> tcp : CIP over TCP
+
+connmgr <--> registry : Device Lookup
+connmgr <--> discovery : Auto Discovery
+connmgr <--> health : Health Checks
+connmgr <--> config : Device Config
+
+' Performance notes
+note right of phi
+  **Protocol Handler Interface**
+  - Unified API for all protocols
+  - Async/await pattern
+  - Connection pooling
+  - Automatic reconnection
+  - Performance monitoring
+  
+  **Key Methods**
+  - Connect(device) -> Connection
+  - ReadTag(tag) -> Value
+  - WriteTag(tag, value) -> Result
+  - Subscribe(tags) -> Stream
+end note
+
+note left of modbus
+  **Modbus Performance**
+  - 18,879 ops/sec throughput
+  - 53µs average latency
+  - TCP/RTU support
+  - Function codes 1-6, 15-16
+  - Error recovery
+end note
+
+' Footer
+center footer
+  **Protocol Architecture Design**
+  **Focus**: Unified interface, high performance, extensibility
+  **Last Updated**: July 2025
+end footer
+
+@enduml

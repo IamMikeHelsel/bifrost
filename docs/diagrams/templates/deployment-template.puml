@@ -1,0 +1,93 @@
+@startuml Deployment Template
+!theme blueprint
+
+' Deployment Diagram Template for Bifrost Project
+' Use this template for production environment setup
+
+title Deployment Architecture Template
+
+' Define deployment nodes
+node "Server Name" as server {
+  component "Application" as app
+  component "Container Runtime" as container
+  component "Configuration" as config
+}
+
+node "Database Server" as dbserver {
+  database "Primary DB" as primarydb
+  database "Cache" as cache
+}
+
+cloud "Cloud Platform" as cloud {
+  component [Load Balancer] as lb
+  component [API Gateway] as apigateway
+  component [Service 1] as svc1
+  component [Service 2] as svc2
+}
+
+node "Edge Gateway" as edge {
+  component "Bifrost Gateway" as gateway
+  component "Protocol Handlers" as protocols
+  component "Device Drivers" as drivers
+}
+
+' Network connections
+lb --> apigateway : HTTPS
+apigateway --> svc1 : gRPC
+apigateway --> svc2 : HTTP/REST
+svc1 --> primarydb : SQL
+svc2 --> cache : Redis
+
+' Edge connections
+gateway --> protocols : Internal API
+protocols --> drivers : Device Communication
+edge <--> cloud : Secure Tunnel
+
+' Industrial network
+node "Industrial Network" as industrial {
+  component [PLC 1] as plc1
+  component [PLC 2] as plc2
+  component [SCADA] as scada
+}
+
+drivers <--> plc1 : Modbus TCP
+drivers <--> plc2 : Ethernet/IP
+drivers <--> scada : OPC UA
+
+' Performance and scaling notes
+note right of gateway
+  **Performance Specs**
+  - 18,879 ops/sec throughput
+  - 53µs average latency
+  - 1000+ concurrent connections
+  - < 50MB memory footprint
+  
+  **Deployment Options**
+  - Single binary deployment
+  - Docker container
+  - Kubernetes pod
+  - systemd service
+end note
+
+note left of cloud
+  **Cloud Infrastructure**
+  - Auto-scaling: 1-10 instances
+  - Load balancing: Round-robin
+  - Health checks: HTTP /health
+  - Monitoring: Prometheus/Grafana
+  
+  **Security**
+  - TLS termination
+  - API authentication
+  - Network segmentation
+  - VPN connectivity
+end note
+
+' Footer with diagram metadata
+center footer
+  **Template Usage**: Replace nodes and connections with actual deployment architecture
+  **Environment**: Specify target environment (dev, staging, prod)
+  **Last Updated**: Generated from template
+end footer
+
+@enduml
