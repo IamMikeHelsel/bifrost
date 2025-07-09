@@ -1,0 +1,212 @@
+scenarios:
+  - name: "basic_io"
+    description: "Basic I/O connectivity and read/write operations"
+    protocol: "modbus_tcp"
+    timeout: "2m"
+    steps:
+      - name: "Connect to device"
+        type: "connect"
+        timeout: "30s"
+        retry_count: 3
+      - name: "Ping device"
+        type: "ping"
+        timeout: "10s"
+        retry_count: 2
+      - name: "Read holding register 1"
+        type: "read"
+        address: "40001"
+        timeout: "5s"
+        retry_count: 2
+      - name: "Read holding register 2"
+        type: "read"
+        address: "40002"
+        timeout: "5s"
+        retry_count: 2
+      - name: "Write test value"
+        type: "write"
+        address: "40010"
+        value: 12345
+        timeout: "5s"
+        retry_count: 2
+      - name: "Read back written value"
+        type: "read"
+        address: "40010"
+        expected: 12345
+        timeout: "5s"
+        retry_count: 2
+      - name: "Get device information"
+        type: "device_info"
+        timeout: "10s"
+      - name: "Disconnect from device"
+        type: "disconnect"
+        timeout: "10s"
+
+  - name: "performance"
+    description: "Performance testing for throughput and latency"
+    protocol: "modbus_tcp"
+    timeout: "5m"
+    steps:
+      - name: "Connect to device"
+        type: "connect"
+        timeout: "30s"
+      - name: "Performance read test - 10 registers"
+        type: "read"
+        address: "40001-40010"
+        timeout: "10s"
+        metadata:
+          performance_test: true
+          register_count: 10
+      - name: "Performance write test"
+        type: "write"
+        address: "40020"
+        value: 99999
+        timeout: "5s"
+        metadata:
+          performance_test: true
+      - name: "Rapid read cycle"
+        type: "read"
+        address: "40001"
+        timeout: "1s"
+        retry_count: 0
+        metadata:
+          performance_test: true
+          cycle_count: 100
+      - name: "Disconnect from device"
+        type: "disconnect"
+        timeout: "10s"
+
+  - name: "stress"
+    description: "Stress testing with concurrent connections and rapid operations"
+    protocol: "modbus_tcp"
+    timeout: "10m"
+    steps:
+      - name: "Connect to device"
+        type: "connect"
+        timeout: "30s"
+      - name: "Stress test - rapid reads"
+        type: "read"
+        address: "40001"
+        timeout: "15s"
+        metadata:
+          stress_test: true
+          duration: "5m"
+          operation_rate: "10/sec"
+      - name: "Stress test - rapid writes"
+        type: "write"
+        address: "40050"
+        value: 55555
+        timeout: "15s"
+        metadata:
+          stress_test: true
+          duration: "2m"
+          operation_rate: "5/sec"
+      - name: "Get diagnostics after stress"
+        type: "diagnostics"
+        timeout: "30s"
+      - name: "Disconnect from device"
+        type: "disconnect"
+        timeout: "10s"
+
+  - name: "compatibility"
+    description: "Compatibility testing for vendor-specific features"
+    protocol: "ethernet_ip"
+    timeout: "3m"
+    steps:
+      - name: "Connect to device"
+        type: "connect"
+        timeout: "30s"
+      - name: "Read vendor identification"
+        type: "device_info"
+        timeout: "15s"
+      - name: "Read tag by name"
+        type: "read"
+        address: "Program:MainProgram.Tag1"
+        timeout: "10s"
+      - name: "Read array element"
+        type: "read"
+        address: "Program:MainProgram.ArrayTag[0]"
+        timeout: "10s"
+      - name: "Write to tag"
+        type: "write"
+        address: "Program:MainProgram.TestTag"
+        value: 42
+        timeout: "10s"
+      - name: "Disconnect from device"
+        type: "disconnect"
+        timeout: "10s"
+
+  - name: "interoperability"
+    description: "Multi-protocol interoperability testing"
+    protocol: "modbus_tcp"
+    timeout: "4m"
+    steps:
+      - name: "Connect via Modbus TCP"
+        type: "connect"
+        timeout: "30s"
+      - name: "Read via Modbus"
+        type: "read"
+        address: "40001"
+        timeout: "10s"
+      - name: "Write via Modbus"
+        type: "write"
+        address: "40001"
+        value: 1000
+        timeout: "10s"
+      - name: "Disconnect Modbus"
+        type: "disconnect"
+        timeout: "10s"
+      - name: "Test complete - interop verification"
+        type: "ping"
+        timeout: "5s"
+
+  - name: "basic_connectivity"
+    description: "Basic connectivity test for network devices"
+    protocol: "modbus_tcp"
+    timeout: "1m"
+    steps:
+      - name: "Connect to device"
+        type: "connect"
+        timeout: "30s"
+        retry_count: 3
+      - name: "Ping device"
+        type: "ping"
+        timeout: "10s"
+        retry_count: 2
+      - name: "Get device info"
+        type: "device_info"
+        timeout: "15s"
+      - name: "Disconnect from device"
+        type: "disconnect"
+        timeout: "10s"
+
+  - name: "data_visualization"
+    description: "Data visualization and HMI testing"
+    protocol: "modbus_tcp"
+    timeout: "3m"
+    steps:
+      - name: "Connect to HMI"
+        type: "connect"
+        timeout: "30s"
+      - name: "Read display data registers"
+        type: "read"
+        address: "40100-40110"
+        timeout: "10s"
+        metadata:
+          hmi_test: true
+      - name: "Write alarm status"
+        type: "write"
+        address: "40200"
+        value: 1
+        timeout: "5s"
+      - name: "Read alarm acknowledgment"
+        type: "read"
+        address: "40201"
+        timeout: "10s"
+      - name: "Clear alarm"
+        type: "write"
+        address: "40200"
+        value: 0
+        timeout: "5s"
+      - name: "Disconnect from HMI"
+        type: "disconnect"
+        timeout: "10s"

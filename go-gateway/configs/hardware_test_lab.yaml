@@ -1,0 +1,139 @@
+config:
+  name: "Bifrost Hardware Test Lab"
+  location: "Industrial Automation Testing Facility"
+  network:
+    base_subnet: "192.168.100.0/24"
+    vlans:
+      - "test_lab_vlan_1"
+      - "test_lab_vlan_2"
+    gateway: "192.168.100.1"
+    dns_servers:
+      - "192.168.100.1"
+      - "8.8.8.8"
+  scheduling:
+    max_concurrent_tests: 5
+    default_timeout: "5m"
+    retry_attempts: 3
+    retry_delay: "10s"
+  reporting:
+    result_retention: "30d"
+    export_formats:
+      - "json"
+      - "yaml"
+      - "csv"
+    notification_url: "http://localhost:8080/webhook/test-results"
+
+devices:
+  - device_id: "ab_compactlogix_001"
+    manufacturer: "Allen-Bradley"
+    model: "CompactLogix 1769-L33ER"
+    firmware: "33.011"
+    protocols:
+      - "ethernet_ip"
+      - "modbus_tcp"
+    network:
+      ip: "192.168.100.10"
+      port: 44818
+      subnet: "test_lab_vlan_1"
+      vlan: "vlan_100"
+    test_schedule:
+      frequency: "weekly"
+      scenarios:
+        - "basic_io"
+        - "performance"
+        - "stress"
+      enabled: true
+      priority: 1
+    metadata:
+      location: "Rack A, Slot 1"
+      commissioned_date: "2024-01-15"
+      last_maintenance: "2024-06-01"
+
+  - device_id: "siemens_s7_1200_001"
+    manufacturer: "Siemens"
+    model: "S7-1200 CPU 1214C"
+    firmware: "V4.5.0"
+    protocols:
+      - "s7"
+      - "modbus_tcp"
+    network:
+      ip: "192.168.100.11"
+      port: 102
+      subnet: "test_lab_vlan_1"
+    test_schedule:
+      frequency: "weekly"
+      scenarios:
+        - "basic_io"
+        - "compatibility"
+      enabled: true
+      priority: 2
+    metadata:
+      location: "Rack A, Slot 2"
+      commissioned_date: "2024-02-01"
+
+  - device_id: "modbus_rtu_gateway_001"
+    manufacturer: "Generic"
+    model: "Modbus RTU to TCP Gateway"
+    firmware: "2.1.3"
+    protocols:
+      - "modbus_tcp"
+    network:
+      ip: "192.168.100.20"
+      port: 502
+      subnet: "test_lab_vlan_2"
+    test_schedule:
+      frequency: "daily"
+      scenarios:
+        - "basic_io"
+        - "performance"
+      enabled: true
+      priority: 3
+    metadata:
+      location: "Gateway Panel"
+      serial_ports: 2
+      baud_rate: 9600
+
+  - device_id: "schneider_m580_001"
+    manufacturer: "Schneider Electric"
+    model: "Modicon M580"
+    firmware: "3.20"
+    protocols:
+      - "modbus_tcp"
+      - "ethernet_ip"
+    network:
+      ip: "192.168.100.30"
+      port: 502
+      subnet: "test_lab_vlan_2"
+    test_schedule:
+      frequency: "weekly"
+      scenarios:
+        - "basic_io"
+        - "interoperability"
+      enabled: false
+      priority: 4
+    metadata:
+      location: "Rack B, Slot 1"
+      cpu_type: "BMEP582040"
+      memory: "4MB"
+
+  - device_id: "hmi_panel_001"
+    manufacturer: "Weintek"
+    model: "MT8102iE"
+    firmware: "20230815"
+    protocols:
+      - "modbus_tcp"
+    network:
+      ip: "192.168.100.40"
+      port: 502
+      subnet: "test_lab_vlan_1"
+    test_schedule:
+      frequency: "monthly"
+      scenarios:
+        - "basic_connectivity"
+        - "data_visualization"
+      enabled: true
+      priority: 5
+    metadata:
+      location: "Operator Station"
+      screen_size: "10.1 inch"
+      resolution: "1280x800"
