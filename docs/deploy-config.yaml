@@ -1,0 +1,14 @@
+github_pages:
+  enabled: true
+  branch: gh-pages
+  directory: _site
+
+artifacts:
+  enabled: true
+  retention_days: 90
+
+# Future S3 deployment configuration
+s3:
+  enabled: false
+  bucket: ""
+  region: us-east-1
