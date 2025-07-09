@@ -43,7 +43,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_get_new_connection(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = await pool.get()
@@ -53,7 +55,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_put_and_get_reused_connection(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn1 = await pool.get()
@@ -65,7 +69,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_max_size_enforcement(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn1 = await pool.get()
@@ -82,7 +88,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_put_disconnected_connection(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = MockConnection("localhost")
@@ -98,7 +106,9 @@ class TestConnectionPool:
     async def test_connection_factory_async(self):
         async def async_factory():
             await asyncio.sleep(0.01)
-            return MockConnection("async_host")
+            conn = MockConnection("async_host")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=async_factory, max_size=1)
         conn = await pool.get()
@@ -108,7 +118,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_release_connection(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         conn = await pool.get()
@@ -120,7 +132,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_close_pool(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=2)
         conn1 = await pool.get()
@@ -138,7 +152,9 @@ class TestConnectionPool:
         async def factory():
             # This factory will never return a connection, simulating a timeout
             await asyncio.sleep(100)
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         with pytest.raises(asyncio.TimeoutError):
@@ -147,7 +163,9 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_context_manager(self):
         async def factory():
-            return MockConnection("localhost")
+            conn = MockConnection("localhost")
+            await conn.__aenter__()  # Ensure connection is connected
+            return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
         async with pool as conn:
@@ -155,48 +173,3 @@ class TestConnectionPool:
             assert conn.is_connected
         assert not conn.is_connected  # Should be closed after exiting context
 
-    @pytest.mark.asyncio
-    async def test_release_connection(self):
-        pool = ConnectionPool(
-            connection_factory=lambda: MockConnection("localhost"), max_size=1
-        )
-        conn = await pool.get()
-        assert len(pool._used_connections) == 1
-        await pool.release(conn)
-        assert len(pool._used_connections) == 0
-        assert len(pool._pool) == 1
-
-    @pytest.mark.asyncio
-    async def test_close_pool(self):
-        pool = ConnectionPool(
-            connection_factory=lambda: MockConnection("localhost"), max_size=2
-        )
-        conn1 = await pool.get()
-        conn2 = await pool.get()
-
-        await pool.close()
-
-        assert not conn1.is_connected
-        assert not conn2.is_connected
-        assert len(pool._pool) == 0
-        assert len(pool._used_connections) == 0
-
-    @pytest.mark.asyncio
-    async def test_get_with_timeout(self):
-        pool = ConnectionPool(
-            connection_factory=lambda: MockConnection("localhost"),
-            max_size=0,  # No connections available
-        )
-        with pytest.raises(asyncio.TimeoutError):
-            await asyncio.wait_for(pool.get(), timeout=0.01)
-
-    @pytest.mark.asyncio
-    async def test_context_manager(self):
-        async def factory():
-            return MockConnection("localhost")
-
-        pool = ConnectionPool(connection_factory=factory, max_size=1)
-        async with pool as conn:
-            assert isinstance(conn, MockConnection)
-            assert conn.is_connected
-        assert not conn.is_connected  # Should be closed after exiting context

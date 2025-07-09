@@ -113,8 +113,29 @@
     "**/build": true
   },
   "python.testing.pytestArgs": [
-    "."
+    "packages/*/tests",
+    "-v",
+    "--tb=short"
   ],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  
+  // Go testing settings
+  "go.testFlags": ["-v", "-cover"],
+  "go.coverOnSave": false,
+  "go.coverOnSingleTest": true,
+  "go.coverOnTestPackage": true,
+  "go.testTimeout": "30s",
+  
+  // TypeScript/Jest testing settings
+  "jest.jestCommandLine": "npm test",
+  "jest.autoRun": "off",
+  "jest.showCoverageOnLoad": true,
+  
+  // Test Explorer settings
+  "testing.openTesting": "neverOpen",
+  "testExplorer.useNativeTesting": true,
+  "testExplorer.showCollapseButton": true,
+  "testExplorer.showOnRun": true,
+  "testing.automaticallyOpenTestResults": "neverOpen"
 }
