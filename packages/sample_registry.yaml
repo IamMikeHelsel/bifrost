@@ -1,0 +1,102 @@
+device_registry:
+  virtual_devices:
+    - id: modbus_tcp_sim_v1.0
+      type: simulator
+      protocol: modbus_tcp
+      configuration:
+        registers: 1000
+        functions:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 15
+          - 16
+        performance:
+          max_throughput: 1500 regs/sec
+          latency: 0.5ms
+      test_scenarios:
+        - factory_floor_modbus
+        - performance_benchmark
+      version: '1.0'
+      created_date: null
+    - id: opcua_sim_v2.0
+      type: simulator
+      protocol: opcua
+      configuration:
+        nodes: 500
+        namespaces: 3
+        performance:
+          max_connections: 100
+          latency: 1ms
+      test_scenarios:
+        - industrial_iot
+        - data_historian
+      version: '2.0'
+      created_date: null
+  real_devices:
+    - id: schneider_m221
+      manufacturer: Schneider Electric
+      model: Modicon M221
+      firmware: 1.7.2.0
+      protocols:
+        modbus_tcp:
+          status: validated
+          performance:
+            throughput: 800 regs/sec
+            latency: 2ms
+          limitations:
+            - No holding register write
+          configuration: null
+          test_date: null
+      test_date: null
+      test_notes: Requires specific timeout settings
+      serial_number: null
+      location: null
+    - id: siemens_s7_1200
+      manufacturer: Siemens
+      model: S7-1200
+      firmware: 4.4.0
+      protocols:
+        s7:
+          status: validated
+          performance:
+            throughput: 1200 vars/sec
+            latency: 1.5ms
+          limitations:
+            - Limited to 16 connections
+          configuration: null
+          test_date: null
+        ethernet_ip:
+          status: testing
+          performance:
+            throughput: 600 tags/sec
+            latency: 3ms
+          limitations: []
+          configuration: null
+          test_date: null
+      test_date: null
+      test_notes: Works well with TIA Portal v17
+      serial_number: 6ES7211-1BE40-0XB0
+      location: Test Lab A
+    - id: ab_controllogix
+      manufacturer: Allen-Bradley
+      model: ControlLogix 5580
+      firmware: '32.011'
+      protocols:
+        ethernet_ip:
+          status: validated
+          performance:
+            throughput: 2000 tags/sec
+            latency: 0.8ms
+          limitations: []
+          configuration:
+            rpi: 10
+            connection_type: exclusive
+          test_date: null
+      test_date: null
+      test_notes: Excellent performance, supports all CIP services
+      serial_number: AB-5580-001
+      location: Production Floor
