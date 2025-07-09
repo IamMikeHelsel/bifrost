@@ -1,0 +1,31 @@
+[package]
+name = "bifrost-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Core Rust utilities for Bifrost industrial IoT framework"
+
+[lib]
+name = "bifrost_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+bytes.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+log.workspace = true
+
+[dev-dependencies]
+tokio-test = "0.4"
+proptest = "1.4"
+
+[lints]
+workspace = true

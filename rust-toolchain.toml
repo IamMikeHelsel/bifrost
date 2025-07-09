@@ -1,0 +1,13 @@
+[toolchain]
+channel = "stable"
+profile = "default"
+components = ["rustfmt", "clippy", "rust-analyzer"]
+
+# Pin to a specific version for reproducible builds across the team
+# This should be updated periodically to stay current
+# Current: Rust 1.87.0 (matches what's available in CI environment)
+# 
+# To update: 
+# 1. Test locally with `rustup update`
+# 2. Update this file
+# 3. Test CI builds before merging

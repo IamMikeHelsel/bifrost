@@ -1,0 +1,43 @@
+[package]
+name = "bifrost"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Main Rust components for Bifrost industrial IoT framework"
+
+[lib]
+name = "bifrost"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+bytes.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+log.workspace = true
+tokio.workspace = true
+num-traits.workspace = true
+byteorder.workspace = true
+
+# For future Modbus implementation
+# modbus.workspace = true
+
+[dev-dependencies]
+tokio-test = "0.4"
+proptest = "1.4"
+criterion = "0.5"
+
+[[bench]]
+name = "modbus_performance"
+harness = false
+required-features = []
+
+[lints]
+workspace = true

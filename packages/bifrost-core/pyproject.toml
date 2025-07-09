@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
 
 [project]
 name = "bifrost-core"
@@ -45,3 +45,9 @@ packages = ["src/bifrost_core"]
 
 [tool.hatch.version]
 path = "src/bifrost_core/__init__.py"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+bindings = "pyo3"
+compatibility = "linux"
+module-name = "bifrost_core.bifrost_core"
