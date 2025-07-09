@@ -288,35 +288,38 @@
     "watch": "npx tsgo -watch -p ./",
     "watch:go": "npx tsgo -watch -p ./ || npm run watch",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
+    "lint:eslint": "eslint src --ext ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "benchmark": "node scripts/benchmark-compilation.js",
     "performance:analyze": "node scripts/analyze-performance.js",
     "performance:compare": "node scripts/performance-comparison.js",
-    "test:stack-decision": "npm run performance:compare"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.1.1",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.85.0",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "@typescript/native-preview": "^7.0.0-dev.20250705.1",
-    "@vscode/vsce": "^3.6.0",
-    "eslint": "^8.56.0",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "chart.js": "^4.4.1",
-    "date-fns": "^3.0.6"
-  },
-  "scripts": {
+    "test:stack-decision": "npm run performance:compare",
     "format": "biome format --write .",
     "lint": "biome lint --write .",
     "check": "biome check --write .",
     "format:check": "biome format .",
     "lint:check": "biome lint .",
     "check:ci": "biome check ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.101.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@typescript/native-preview": "^7.0.0-dev.20250705.1",
+    "@vscode/vsce": "^3.6.0",
+    "eslint": "^8.56.0",
+    "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.1",
+    "date-fns": "^3.0.6"
   },
   "pnpm": {
     "onlyBuiltDependencies": []

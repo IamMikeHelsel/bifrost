@@ -8,6 +8,7 @@ from bifrost_core.base import (
     BaseConnection,
     BaseDevice,
     ConnectionState,
+    DeviceInfo,
     Reading,
 )
 from bifrost_core.typing import DataType, JsonDict, Tag, Timestamp, Value

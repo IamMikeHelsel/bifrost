@@ -1,5 +1,7 @@
 module bifrost-gateway
 
+replace bifrost-gateway => ./
+
 go 1.22
 
 require (

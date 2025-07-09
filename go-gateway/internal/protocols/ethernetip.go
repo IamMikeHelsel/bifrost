@@ -658,6 +658,11 @@ func (e *EtherNetIPHandler) incrementIP(ip net.IP) {
 
 // parseAddress parses an EtherNet/IP tag address string
 func (e *EtherNetIPHandler) parseAddress(address string) (*EtherNetIPAddress, error) {
+	// Validate address is not empty
+	if address == "" {
+		return nil, fmt.Errorf("address cannot be empty")
+	}
+	
 	addr := &EtherNetIPAddress{
 		IsSymbolic:  true,
 		AttributeID: 1, // Default attribute ID for symbolic tags
@@ -686,7 +691,7 @@ func (e *EtherNetIPHandler) parseAddress(address string) (*EtherNetIPAddress, er
 		addr.IsSymbolic = false
 		instanceParts := strings.Split(parts[1], ".")
 		if len(instanceParts) != 2 {
-			return nil, fmt.Errorf("invalid instance.attribute format: %s", instanceParts[1])
+			return nil, fmt.Errorf("invalid instance.attribute format: %s", parts[1])
 		}
 		instanceID, err := strconv.ParseUint(instanceParts[0], 10, 32)
 		if err != nil {

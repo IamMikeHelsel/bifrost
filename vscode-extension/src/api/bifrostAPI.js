@@ -1,40 +1,61 @@
-import * as vscode from 'vscode';
-import { type Device, DeviceStatus, type Tag, type DeviceStats } from '../services/deviceManager';
 
-// WebSocket interface for VS Code environment
-interface WebSocketLike {
-    onopen: ((event: any) => void) | null;
-    onmessage: ((event: { data: string }) => void) | null;
-    onclose: (() => void) | null;
-    onerror: ((error: any) => void) | null;
-    send(data: string): void;
-    close(): void;
-}
-
-export class BifrostAPI {
-    private readonly gatewayUrl: string;
-    private websocket?: WebSocketLike;
-    private reconnectTimer?: NodeJS.Timeout;
-    private readonly maxReconnectAttempts = 5;
-    private reconnectAttempts = 0;
-    
+var __createBinding = (this && this.__createBinding) || (Object.create ? ((o, m, k, k2) => {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: () => m[k] };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : ((o, m, k, k2) => {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? ((o, v) => {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : ((o, v) => {
+    o["default"] = v;
+}));
+var __importStar = (this && this.__importStar) || (() => {
+    var ownKeys = (o) => {
+        ownKeys = Object.getOwnPropertyNames || ((o) => {
+            var ar = [];
+            for (var k in o) if (Object.hasOwn(o, k)) ar[ar.length] = k;
+            return ar;
+        });
+        return ownKeys(o);
+    };
+    return (mod) => {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BifrostAPI = void 0;
+const vscode = __importStar(require("vscode"));
+const deviceManager_1 = require("../services/deviceManager");
+class BifrostAPI {
+    gatewayUrl;
+    websocket;
+    reconnectTimer;
+    maxReconnectAttempts = 5;
+    reconnectAttempts = 0;
     constructor() {
         // Connect to Go gateway instead of Python backend
         this.gatewayUrl = this.getGatewayUrl();
     }
-    
-    private getGatewayUrl(): string {
+    getGatewayUrl() {
         const config = vscode.workspace.getConfiguration('bifrost');
         const host = config.get('gateway.host', 'localhost');
         const port = config.get('gateway.port', 8080);
         return `http://${host}:${port}`;
     }
-    
-    private getWebSocketUrl(): string {
+    getWebSocketUrl() {
         return this.gatewayUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws';
     }
-    
-    async discoverDevices(): Promise<Device[]> {
+    async discoverDevices() {
         try {
             const response = await fetch(`${this.gatewayUrl}/api/devices/discover`, {
                 method: 'POST',
@@ -47,31 +68,27 @@ export class BifrostAPI {
                     network_ranges: ['192.168.1.0/24', '10.0.0.0/24']
                 })
             });
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
-            const devices = await response.json() as any[];
-            
+            const devices = await response.json();
             // Convert Go gateway device format to VS Code extension format
-            return devices.map((device: any) => ({
+            return devices.map((device) => ({
                 id: device.id,
                 name: device.name,
                 protocol: device.protocol,
                 address: device.address,
                 port: device.port,
-                status: device.connected ? DeviceStatus.Connected : DeviceStatus.Disconnected
+                status: device.connected ? deviceManager_1.DeviceStatus.Connected : deviceManager_1.DeviceStatus.Disconnected
             }));
-            
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Device discovery failed:', error);
             // Fallback to mock data for development
             return this.getMockDevices();
         }
     }
-    
-    private getMockDevices(): Device[] {
+    getMockDevices() {
         return [
             {
                 id: 'modbus-sim-1',
@@ -79,7 +96,7 @@ export class BifrostAPI {
                 protocol: 'modbus-tcp',
                 address: 'localhost',
                 port: 502,
-                status: DeviceStatus.Disconnected
+                status: deviceManager_1.DeviceStatus.Disconnected
             },
             {
                 id: 'opcua-sim-1',
@@ -87,12 +104,11 @@ export class BifrostAPI {
                 protocol: 'opcua',
                 address: 'localhost',
                 port: 4840,
-                status: DeviceStatus.Disconnected
+                status: deviceManager_1.DeviceStatus.Disconnected
             }
         ];
     }
-    
-    async connectToDevice(device: Device): Promise<boolean> {
+    async connectToDevice(device) {
         try {
             const response = await fetch(`${this.gatewayUrl}/api/devices`, {
                 method: 'POST',
@@ -108,36 +124,32 @@ export class BifrostAPI {
                     config: {}
                 })
             });
-            
             return response.ok;
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to connect to device:', error);
             return false;
         }
     }
-    
-    async disconnectFromDevice(device: Device): Promise<void> {
+    async disconnectFromDevice(device) {
         try {
             await fetch(`${this.gatewayUrl}/api/devices/${device.id}`, {
                 method: 'DELETE'
             });
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to disconnect from device:', error);
         }
     }
-    
-    async getDeviceTags(deviceId: string): Promise<Tag[]> {
+    async getDeviceTags(deviceId) {
         try {
             const response = await fetch(`${this.gatewayUrl}/api/devices/${deviceId}/tags`);
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
-            const tagsData = await response.json() as Record<string, any>;
-            
+            const tagsData = await response.json();
             // Convert Go gateway tag format to VS Code extension format
-            return Object.values(tagsData).map((tag: any) => ({
+            return Object.values(tagsData).map((tag) => ({
                 id: tag.id,
                 name: tag.name,
                 address: tag.address,
@@ -146,15 +158,14 @@ export class BifrostAPI {
                 unit: tag.unit,
                 description: tag.description
             }));
-            
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to get device tags:', error);
             // Fallback to mock data
             return this.getMockTags(deviceId);
         }
     }
-    
-    private getMockTags(deviceId: string): Tag[] {
+    getMockTags(deviceId) {
         if (deviceId.includes('modbus')) {
             return [
                 {
@@ -185,7 +196,8 @@ export class BifrostAPI {
                     description: 'Temperature control setpoint'
                 }
             ];
-        } else if (deviceId.includes('opcua')) {
+        }
+        else if (deviceId.includes('opcua')) {
             return [
                 {
                     id: 'ns2-temp-1',
@@ -207,8 +219,7 @@ export class BifrostAPI {
         }
         return [];
     }
-    
-    async readTag(deviceId: string, address: string): Promise<any> {
+    async readTag(deviceId, address) {
         try {
             const response = await fetch(`${this.gatewayUrl}/api/tags/read`, {
                 method: 'POST',
@@ -220,15 +231,13 @@ export class BifrostAPI {
                     tag_address: address
                 })
             });
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
-            const result = await response.json() as { value: any };
+            const result = await response.json();
             return result.value;
-            
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to read tag:', error);
             // Fallback to mock data
             const baseValue = Math.random() * 100;
@@ -236,8 +245,7 @@ export class BifrostAPI {
             return baseValue + variation;
         }
     }
-    
-    async writeTag(deviceId: string, address: string, value: any): Promise<void> {
+    async writeTag(deviceId, address, value) {
         try {
             const response = await fetch(`${this.gatewayUrl}/api/tags/write`, {
                 method: 'POST',
@@ -250,32 +258,22 @@ export class BifrostAPI {
                     value: value
                 })
             });
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to write tag:', error);
             throw error;
         }
     }
-    
-    async getDeviceStats(deviceId: string): Promise<DeviceStats> {
+    async getDeviceStats(deviceId) {
         try {
             const response = await fetch(`${this.gatewayUrl}/api/devices/${deviceId}/stats`);
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
-            const stats = await response.json() as {
-                requests_total: number;
-                requests_successful: number;
-                requests_failed: number;
-                avg_response_time: number;
-            };
-            
+            const stats = await response.json();
             return {
                 totalRequests: stats.requests_total,
                 successfulRequests: stats.requests_successful,
@@ -283,14 +281,13 @@ export class BifrostAPI {
                 successRate: Math.round((stats.requests_successful / stats.requests_total) * 100),
                 averageResponseTime: stats.avg_response_time
             };
-            
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to get device stats:', error);
             // Fallback to mock data
             const total = Math.floor(Math.random() * 10000) + 1000;
             const failed = Math.floor(Math.random() * 100);
             const successful = total - failed;
-            
             return {
                 totalRequests: total,
                 successfulRequests: successful,
@@ -300,12 +297,10 @@ export class BifrostAPI {
             };
         }
     }
-    
-    async exportData(deviceId: string, tags: string[], format: 'csv' | 'json'): Promise<string> {
+    async exportData(deviceId, tags, format) {
         // Mock export functionality
         const data = [];
         const timestamp = new Date().toISOString();
-        
         for (const tagId of tags) {
             const value = await this.readTag(deviceId, tagId);
             data.push({
@@ -314,10 +309,10 @@ export class BifrostAPI {
                 value
             });
         }
-        
         if (format === 'json') {
             return JSON.stringify(data, null, 2);
-        } else {
+        }
+        else {
             // CSV format
             let csv = 'timestamp,tag,value\n';
             for (const row of data) {
@@ -326,93 +321,84 @@ export class BifrostAPI {
             return csv;
         }
     }
-    
     // WebSocket real-time data streaming
-    startRealTimeDataStream(onDataUpdate: (data: any) => void): void {
+    startRealTimeDataStream(onDataUpdate) {
         this.connectWebSocket(onDataUpdate);
     }
-    
-    stopRealTimeDataStream(): void {
+    stopRealTimeDataStream() {
         if (this.websocket) {
             this.websocket.close();
             this.websocket = undefined;
         }
-        
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = undefined;
         }
     }
-    
-    private connectWebSocket(onDataUpdate: (data: any) => void): void {
+    connectWebSocket(onDataUpdate) {
         try {
             const wsUrl = this.getWebSocketUrl();
             // Use dynamic require to avoid TypeScript issues
             const ws = require('ws');
             this.websocket = new ws(wsUrl);
-            
             if (this.websocket) {
                 this.websocket.onopen = () => {
                     console.log('WebSocket connected to Go gateway');
                     this.reconnectAttempts = 0;
-                    
                     // Subscribe to real-time data updates
                     this.websocket?.send(JSON.stringify({
                         type: 'subscribe',
                         topics: ['device_data', 'device_status']
                     }));
                 };
-            
-                this.websocket.onmessage = (event: { data: string }) => {
+                this.websocket.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         onDataUpdate(data);
-                    } catch (error) {
+                    }
+                    catch (error) {
                         console.error('Failed to parse WebSocket message:', error);
                     }
                 };
-            
                 this.websocket.onclose = () => {
                     console.log('WebSocket disconnected');
                     this.websocket = undefined;
-                    
                     // Attempt to reconnect
                     if (this.reconnectAttempts < this.maxReconnectAttempts) {
                         this.reconnectAttempts++;
                         const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30000);
-                        
                         this.reconnectTimer = setTimeout(() => {
                             console.log(`Attempting WebSocket reconnection ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
                             this.connectWebSocket(onDataUpdate);
                         }, delay);
                     }
                 };
-            
-                this.websocket.onerror = (error: any) => {
+                this.websocket.onerror = (error) => {
                     console.error('WebSocket error:', error);
                 };
             }
-            
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to create WebSocket connection:', error);
         }
     }
-    
     // Check if Go gateway is available
-    async isGatewayAvailable(): Promise<boolean> {
+    async isGatewayAvailable() {
         try {
             const response = await fetch(`${this.gatewayUrl}/health`, {
                 method: 'GET',
                 signal: AbortSignal.timeout(5000) // 5 second timeout
             });
             return response.ok;
-        } catch (error) {
+        }
+        catch (error) {
             return false;
         }
     }
-    
     // Cleanup method
-    dispose(): void {
+    dispose() {
         this.stopRealTimeDataStream();
     }
 }
+exports.BifrostAPI = BifrostAPI;
+//# sourceMappingURL=bifrostAPI.js.map

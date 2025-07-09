@@ -27,6 +27,7 @@ async def modbus_device(mock_client):
 
 @pytest.mark.asyncio
 @pytest.mark.benchmark(group="modbus_read")
+@pytest.mark.slow
 async def test_read_single_register_benchmark(modbus_device, benchmark):
     """Benchmark reading a single holding register."""
     response = MagicMock()
@@ -45,6 +46,7 @@ async def test_read_single_register_benchmark(modbus_device, benchmark):
 
 @pytest.mark.asyncio
 @pytest.mark.benchmark(group="modbus_read")
+@pytest.mark.slow
 async def test_read_multiple_registers_benchmark(modbus_device, benchmark):
     """Benchmark reading multiple holding registers."""
     response = MagicMock()

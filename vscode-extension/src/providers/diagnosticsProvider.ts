@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DeviceManager } from '../services/deviceManager';
+import type { DeviceManager } from '../services/deviceManager';
 
 export class DiagnosticsProvider implements vscode.TreeDataProvider<DiagnosticItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<DiagnosticItem | undefined | null | void> = 

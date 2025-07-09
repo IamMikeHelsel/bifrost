@@ -22,6 +22,7 @@ class TestEndToEndModbusWorkflow:
     """Test complete Modbus workflow from discovery to data operations."""
 
     @pytest.mark.asyncio
+    @pytest.mark.integration
     async def test_complete_modbus_workflow(self):
         """Test discovering, connecting, and reading from a Modbus device."""
         # Mock a complete Modbus device workflow
@@ -161,6 +162,7 @@ class TestEndToEndModbusWorkflow:
             mock_client.write_register.assert_called()
 
     @pytest.mark.asyncio
+    @pytest.mark.integration
     async def test_connection_context_manager_workflow(self):
         """Test using connection as async context manager."""
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
@@ -186,6 +188,7 @@ class TestEndToEndModbusWorkflow:
             assert not connection.is_connected
 
     @pytest.mark.asyncio
+    @pytest.mark.integration
     async def test_error_handling_workflow(self):
         """Test error handling in complete workflow."""
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:
@@ -200,6 +203,7 @@ class TestEndToEndModbusWorkflow:
                     pass
 
     @pytest.mark.asyncio
+    @pytest.mark.integration
     async def test_batch_operations_workflow(self):
         """Test batch read/write operations."""
         with patch("pymodbus.client.AsyncModbusTcpClient") as mock_client_class:

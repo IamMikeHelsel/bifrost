@@ -12,6 +12,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.23",
     "pytest-cov>=4.0",
     "pytest-benchmark>=4.0",
+    "pytest-xdist>=3.0",
     
     # Type checking
     "mypy>=1.8",
@@ -144,14 +145,16 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--cov-report=term-missing",
-    "--cov-branch"
+    "--cov-branch",
+    "-n=auto"
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
-    "benchmark: marks tests as benchmarks"
+    "benchmark: marks tests as benchmarks",
+    "network: marks tests that require network access"
 ]
 
 [tool.coverage.run]

@@ -1,109 +1,116 @@
-import * as vscode from 'vscode';
-import type { Device, Tag } from '../services/deviceManager';
 
-export class MonitorPanel {
-    public static currentPanel: MonitorPanel | undefined;
-    private readonly _panel: vscode.WebviewPanel;
-    private readonly _extensionUri: vscode.Uri;
-    private _disposables: vscode.Disposable[] = [];
-    private _device: Device;
-    private _dataBuffer: Map<string, Array<{time: number, value: number}>> = new Map();
-    
-    public static createOrShow(extensionUri: vscode.Uri, device: Device) {
+var __createBinding = (this && this.__createBinding) || (Object.create ? ((o, m, k, k2) => {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: () => m[k] };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : ((o, m, k, k2) => {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? ((o, v) => {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : ((o, v) => {
+    o["default"] = v;
+}));
+var __importStar = (this && this.__importStar) || (() => {
+    var ownKeys = (o) => {
+        ownKeys = Object.getOwnPropertyNames || ((o) => {
+            var ar = [];
+            for (var k in o) if (Object.hasOwn(o, k)) ar[ar.length] = k;
+            return ar;
+        });
+        return ownKeys(o);
+    };
+    return (mod) => {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MonitorPanel = void 0;
+const vscode = __importStar(require("vscode"));
+class MonitorPanel {
+    static currentPanel;
+    _panel;
+    _extensionUri;
+    _disposables = [];
+    _device;
+    _dataBuffer = new Map();
+    static createOrShow(extensionUri, device) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
-        
         // If we already have a panel, show it
         if (MonitorPanel.currentPanel) {
             MonitorPanel.currentPanel._panel.reveal(column);
             MonitorPanel.currentPanel.updateDevice(device);
             return;
         }
-        
         // Otherwise, create a new panel
-        const panel = vscode.window.createWebviewPanel(
-            'bifrostMonitor',
-            `Bifrost Monitor: ${device.name}`,
-            column || vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.joinPath(extensionUri, 'media'),
-                    vscode.Uri.joinPath(extensionUri, 'node_modules')
-                ]
-            }
-        );
-        
+        const panel = vscode.window.createWebviewPanel('bifrostMonitor', `Bifrost Monitor: ${device.name}`, column || vscode.ViewColumn.One, {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [
+                vscode.Uri.joinPath(extensionUri, 'media'),
+                vscode.Uri.joinPath(extensionUri, 'node_modules')
+            ]
+        });
         MonitorPanel.currentPanel = new MonitorPanel(panel, extensionUri, device);
     }
-    
-    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, device: Device) {
+    constructor(panel, extensionUri, device) {
         this._panel = panel;
         this._extensionUri = extensionUri;
         this._device = device;
-        
         // Set the webview's initial html content
         this._update();
-        
         // Listen for when the panel is disposed
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-        
         // Update the content based on view changes
-        this._panel.onDidChangeViewState(
-            e => {
-                if (this._panel.visible) {
-                    this._update();
-                }
-            },
-            null,
-            this._disposables
-        );
-        
+        this._panel.onDidChangeViewState(e => {
+            if (this._panel.visible) {
+                this._update();
+            }
+        }, null, this._disposables);
         // Handle messages from the webview
-        this._panel.webview.onDidReceiveMessage(
-            message => {
-                switch (message.command) {
-                    case 'refresh':
-                        this._update();
-                        return;
-                    case 'export':
-                        this.exportData();
-                        return;
-                    case 'writeTag':
-                        this.writeTag(message.tagId, message.value);
-                        return;
-                }
-            },
-            null,
-            this._disposables
-        );
+        this._panel.webview.onDidReceiveMessage(message => {
+            switch (message.command) {
+                case 'refresh':
+                    this._update();
+                    return;
+                case 'export':
+                    this.exportData();
+                    return;
+                case 'writeTag':
+                    this.writeTag(message.tagId, message.value);
+                    return;
+            }
+        }, null, this._disposables);
     }
-    
-    public updateDevice(device: Device) {
+    updateDevice(device) {
         this._device = device;
         this._panel.title = `Bifrost Monitor: ${device.name}`;
         this._update();
     }
-    
-    public updateData(tag: Tag) {
+    updateData(tag) {
         // Buffer data for charts
         const buffer = this._dataBuffer.get(tag.id) || [];
         buffer.push({
             time: Date.now(),
             value: parseFloat(tag.value) || 0
         });
-        
         // Keep only last N points
         const maxPoints = vscode.workspace.getConfiguration('bifrost')
-            .get<number>('maxDataPoints', 100);
+            .get('maxDataPoints', 100);
         if (buffer.length > maxPoints) {
             buffer.shift();
         }
-        
         this._dataBuffer.set(tag.id, buffer);
-        
         // Send update to webview
         this._panel.webview.postMessage({
             command: 'dataUpdate',
@@ -111,31 +118,24 @@ export class MonitorPanel {
             data: buffer
         });
     }
-    
-    private async exportData() {
+    async exportData() {
         const format = await vscode.window.showQuickPick(['CSV', 'JSON'], {
             placeHolder: 'Select export format'
         });
-        
         if (!format) {
             return;
         }
-        
         // TODO: Implement actual export
         vscode.window.showInformationMessage(`Exporting data as ${format}...`);
     }
-    
-    private async writeTag(tagId: string, value: any) {
+    async writeTag(tagId, value) {
         // TODO: Implement tag writing
         vscode.window.showInformationMessage(`Writing ${value} to ${tagId}...`);
     }
-    
-    public dispose() {
+    dispose() {
         MonitorPanel.currentPanel = undefined;
-        
         // Clean up our resources
         this._panel.dispose();
-        
         while (this._disposables.length) {
             const x = this._disposables.pop();
             if (x) {
@@ -143,27 +143,17 @@ export class MonitorPanel {
             }
         }
     }
-    
-    private _update() {
+    _update() {
         const webview = this._panel.webview;
         this._panel.webview.html = this._getHtmlForWebview(webview);
     }
-    
-    private _getHtmlForWebview(webview: vscode.Webview) {
+    _getHtmlForWebview(webview) {
         // Get resource URIs
-        const scriptUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'media', 'monitor.js')
-        );
-        const styleUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'media', 'monitor.css')
-        );
-        const chartUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'chart.js', 'dist', 'chart.umd.js')
-        );
-        
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'monitor.js'));
+        const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'monitor.css'));
+        const chartUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'chart.js', 'dist', 'chart.umd.js'));
         // Use a nonce to only allow specific scripts to be run
         const nonce = getNonce();
-        
         return `<!DOCTYPE html>
             <html lang="en">
             <head>
@@ -272,7 +262,7 @@ export class MonitorPanel {
             </html>`;
     }
 }
-
+exports.MonitorPanel = MonitorPanel;
 function getNonce() {
     let text = '';
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -281,3 +271,4 @@ function getNonce() {
     }
     return text;
 }
+//# sourceMappingURL=monitorPanel.js.map

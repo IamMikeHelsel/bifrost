@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DeviceManager, Device, Tag } from '../services/deviceManager';
+import type { DeviceManager, Device, Tag } from '../services/deviceManager';
 
 export class DataPointProvider implements vscode.TreeDataProvider<DataPointItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<DataPointItem | undefined | null | void> = 

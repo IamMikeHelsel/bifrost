@@ -111,5 +111,10 @@
     "**/target": true,
     "**/dist": true,
     "**/build": true
-  }
+  },
+  "python.testing.pytestArgs": [
+    "."
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
