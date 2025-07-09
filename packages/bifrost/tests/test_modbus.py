@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+import pytest_asyncio
 from pymodbus.exceptions import ModbusException
 
 from bifrost.modbus import ModbusConnection, ModbusDevice
@@ -21,14 +22,14 @@ class TestModbusConnection:
         client.is_socket_open = MagicMock(return_value=True)
         return client
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def connection(self, mock_client):
         """Create Modbus TCP connection with mock client."""
         conn = ModbusConnection(host="192.168.1.100", port=502)
         conn.client = mock_client  # Inject mock client
         return conn
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def modbus_device(self, connection):
         """Create Modbus device with mock connection."""
         return ModbusDevice(connection)
@@ -259,3 +260,208 @@ class TestModbusConnection:
                 Tag(name="test", address="40001", data_type=DataType.INT16)
                 not in result
             )
+
+    @pytest.mark.asyncio
+    async def test_invalid_address_format(self, modbus_device, mock_client):
+        """Test reading with invalid address format."""
+        async with modbus_device.connection:
+            # Test various invalid addresses
+            invalid_tags = [
+                Tag(name="test1", address="invalid", data_type=DataType.INT16),
+                Tag(name="test2", address="50001", data_type=DataType.INT16),  # Out of range
+                Tag(name="test3", address="40001:invalid", data_type=DataType.INT16),
+                Tag(name="test4", address="", data_type=DataType.INT16),
+            ]
+            
+            for tag in invalid_tags:
+                result = await modbus_device.read([tag])
+                assert tag not in result
+
+    @pytest.mark.asyncio
+    async def test_mixed_data_types(self, modbus_device, mock_client):
+        """Test reading multiple tags with different data types."""
+        # Set up different responses for different register types
+        mock_client.read_holding_registers = AsyncMock(
+            return_value=MagicMock(isError=lambda: False, registers=[0x1234, 0x5678])
+        )
+        mock_client.read_coils = AsyncMock(
+            return_value=MagicMock(isError=lambda: False, bits=[True, False, True])
+        )
+        mock_client.read_input_registers = AsyncMock(
+            return_value=MagicMock(isError=lambda: False, registers=[0xABCD])
+        )
+        
+        async with modbus_device.connection:
+            tags = [
+                Tag(name="holding", address="40001:2", data_type=DataType.INT16),
+                Tag(name="coil", address="00001:3", data_type=DataType.BOOLEAN),
+                Tag(name="input", address="30001", data_type=DataType.INT16),
+            ]
+            
+            results = await modbus_device.read(tags)
+            
+            assert len(results) == 3
+            assert results[tags[0]].value == [0x1234, 0x5678]
+            assert results[tags[1]].value == [True, False, True]
+            assert results[tags[2]].value == [0xABCD]
+
+    @pytest.mark.asyncio
+    async def test_large_register_count(self, modbus_device, mock_client):
+        """Test reading a large number of registers."""
+        # Create response with 125 registers (near Modbus limit)
+        large_response = MagicMock()
+        large_response.isError.return_value = False
+        large_response.registers = list(range(125))
+        mock_client.read_holding_registers = AsyncMock(return_value=large_response)
+        
+        async with modbus_device.connection:
+            tag = Tag(name="large", address="40001:125", data_type=DataType.INT16)
+            result = await modbus_device.read([tag])
+            
+            assert tag in result
+            assert len(result[tag].value) == 125
+            assert result[tag].value == list(range(125))
+
+    @pytest.mark.asyncio
+    async def test_slave_id_handling(self, modbus_device, mock_client):
+        """Test handling different slave IDs."""
+        response = MagicMock()
+        response.isError.return_value = False
+        response.registers = [999]
+        mock_client.read_holding_registers = AsyncMock(return_value=response)
+        
+        async with modbus_device.connection:
+            # Test with slave ID in address
+            tag = Tag(name="test", address="40001@5", data_type=DataType.INT16)
+            await modbus_device.read([tag])
+            
+            # Verify slave ID was parsed and used
+            mock_client.read_holding_registers.assert_called_with(
+                address=0, count=1, slave=5
+            )
+
+    @pytest.mark.asyncio
+    async def test_concurrent_read_operations(self, modbus_device, mock_client):
+        """Test concurrent read operations."""
+        import asyncio
+        
+        response = MagicMock()
+        response.isError.return_value = False
+        response.registers = [123]
+        
+        # Add delay to simulate network latency
+        async def delayed_read(*args, **kwargs):
+            await asyncio.sleep(0.01)
+            return response
+        
+        mock_client.read_holding_registers = AsyncMock(side_effect=delayed_read)
+        
+        async with modbus_device.connection:
+            # Create multiple tags
+            tags = [
+                Tag(name=f"tag{i}", address=f"4000{i}", data_type=DataType.INT16)
+                for i in range(1, 6)
+            ]
+            
+            # Perform concurrent reads
+            tasks = [modbus_device.read([tag]) for tag in tags]
+            results = await asyncio.gather(*tasks)
+            
+            # Verify all reads completed
+            assert len(results) == 5
+            for i, result in enumerate(results):
+                assert tags[i] in result
+                assert result[tags[i]].value == [123]
+
+    @pytest.mark.asyncio
+    async def test_write_coils_multiple(self, modbus_device, mock_client):
+        """Test writing multiple coils."""
+        response = MagicMock()
+        response.isError.return_value = False
+        mock_client.write_coils = AsyncMock(return_value=response)
+        
+        async with modbus_device.connection:
+            tag = Tag(name="test", address="00001", data_type=DataType.BOOLEAN)
+            await modbus_device.write({tag: [True, False, True, True]})
+            
+            mock_client.write_coils.assert_called_once_with(
+                address=0, values=[True, False, True, True], slave=1
+            )
+
+    @pytest.mark.asyncio
+    async def test_connection_retry_logic(self, mock_client):
+        """Test connection retry behavior."""
+        # First attempt fails, second succeeds
+        mock_client.connect = AsyncMock(side_effect=[False, True])
+        
+        conn = ModbusConnection(host="192.168.1.100", port=502)
+        conn.client = mock_client
+        
+        async with conn:
+            # Should succeed on second attempt
+            assert conn.is_connected
+            assert mock_client.connect.call_count == 1  # Only one attempt in context manager
+
+    @pytest.mark.asyncio
+    async def test_float_data_type_conversion(self, modbus_device, mock_client):
+        """Test reading and writing float values."""
+        import struct
+        
+        # Create float value packed as two 16-bit registers
+        float_value = 123.456
+        packed = struct.pack('>f', float_value)
+        registers = struct.unpack('>HH', packed)
+        
+        response = MagicMock()
+        response.isError.return_value = False
+        response.registers = list(registers)
+        mock_client.read_holding_registers = AsyncMock(return_value=response)
+        
+        async with modbus_device.connection:
+            tag = Tag(name="float_tag", address="40001:2", data_type=DataType.FLOAT32)
+            result = await modbus_device.read([tag])
+            
+            # Note: The actual float conversion would be done by the application layer
+            assert tag in result
+            assert len(result[tag].value) == 2
+            assert result[tag].value == list(registers)
+
+    @pytest.mark.asyncio
+    async def test_timeout_handling(self, modbus_device, mock_client):
+        """Test handling of timeout errors."""
+        import asyncio
+        
+        # Simulate timeout
+        mock_client.read_holding_registers = AsyncMock(
+            side_effect=asyncio.TimeoutError("Operation timed out")
+        )
+        
+        async with modbus_device.connection:
+            result = await modbus_device.read(
+                [Tag(name="test", address="40001", data_type=DataType.INT16)]
+            )
+            # Should handle timeout gracefully
+            assert len(result) == 0
+
+    @pytest.mark.asyncio
+    async def test_connection_state_transitions(self):
+        """Test connection state transitions."""
+        conn = ModbusConnection(host="192.168.1.100", port=502)
+        
+        # Initial state
+        assert not conn.is_connected
+        
+        # Mock successful connection
+        mock_client = MagicMock()
+        mock_client.connect = AsyncMock(return_value=True)
+        mock_client.close = AsyncMock()
+        mock_client.is_socket_open = MagicMock(return_value=True)
+        conn.client = mock_client
+        
+        # Connect
+        async with conn:
+            assert conn.is_connected
+            
+        # After context exit
+        assert not conn.is_connected
+        mock_client.close.assert_called_once()

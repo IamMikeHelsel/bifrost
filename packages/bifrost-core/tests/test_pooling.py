@@ -78,11 +78,17 @@ class TestConnectionPool:
 
         # Try to get another connection, should wait as max_size is 1
         get_task = asyncio.create_task(pool.get())
-        await asyncio.sleep(0.01)  # Give it a moment to try and get
-        assert not get_task.done()
-
+        try:
+            # Give it a brief moment to start waiting, but don't wait forever
+            await asyncio.wait_for(asyncio.shield(get_task), timeout=0.001)
+            assert False, "Should not have gotten a connection immediately"
+        except asyncio.TimeoutError:
+            # This is expected - the task should be waiting
+            pass
+        
+        # Now release the connection and the task should complete
         await pool.put(conn1)
-        conn2 = await get_task
+        conn2 = await asyncio.wait_for(get_task, timeout=0.1)
         assert conn1 is conn2
 
     @pytest.mark.asyncio
@@ -150,8 +156,8 @@ class TestConnectionPool:
     @pytest.mark.asyncio
     async def test_get_with_timeout(self):
         async def factory():
-            # This factory will never return a connection, simulating a timeout
-            await asyncio.sleep(100)
+            # This factory will take too long, simulating a timeout
+            await asyncio.sleep(0.1)  # Much shorter sleep for faster tests
             conn = MockConnection("localhost")
             await conn.__aenter__()  # Ensure connection is connected
             return conn
@@ -168,7 +174,8 @@ class TestConnectionPool:
             return conn
 
         pool = ConnectionPool(connection_factory=factory, max_size=1)
-        async with pool as conn:
+        conn = await pool.get()
+        async with pool:
             assert isinstance(conn, MockConnection)
             assert conn.is_connected
         assert not conn.is_connected  # Should be closed after exiting context

@@ -40,24 +40,22 @@ class ConnectionPool(Generic[C]):
 
     async def get(self) -> C:
         """Get a connection from the pool."""
-        async with self._lock:
-            if self._pool:
-                conn = self._pool.popleft()
-                self._used_connections.add(conn)
-                return conn
+        while True:
+            async with self._lock:
+                if self._pool:
+                    conn = self._pool.popleft()
+                    self._used_connections.add(conn)
+                    return conn
 
-            if self._created_connections < self._max_size:
-                self._created_connections += 1
-                conn = await self._factory()
-                self._used_connections.add(conn)
-                return conn
+                if self._created_connections < self._max_size:
+                    self._created_connections += 1
+                    conn = await self._factory()
+                    self._used_connections.add(conn)
+                    return conn
 
             # Wait for a connection to be returned to the pool
-            while not self._pool:
-                await asyncio.sleep(0.01)  # Yield control to event loop
-            conn = self._pool.popleft()
-            self._used_connections.add(conn)
-            return conn
+            # Release the lock while waiting to avoid deadlock
+            await asyncio.sleep(0.01)  # Yield control to event loop
 
     async def put(self, connection: C) -> None:
         """Return a connection to the pool."""

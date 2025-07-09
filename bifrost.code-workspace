@@ -25,12 +25,10 @@
     // Python settings
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
-      "packages/*/tests",
-      "-v",
-      "--tb=short"
+      "."
     ],
     "python.testing.unittestEnabled": false,
-    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv1/bin/python",
     
     // Go settings
     "go.testFlags": ["-v", "-cover"],

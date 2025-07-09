@@ -143,10 +143,7 @@ python_functions = ["test_*"]
 addopts = [
     "-ra",
     "--strict-markers",
-    "--strict-config",
-    "--cov-report=term-missing",
-    "--cov-branch",
-    "-n=auto"
+    "--strict-config"
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
