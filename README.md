@@ -422,13 +422,27 @@ go test -race -cover ./...             # With race detection and coverage
 go test -bench=. ./pkg/performance     # Benchmark tests
 
 # Python tests
-pytest packages/bifrost/tests/         # Python unit tests
-pytest --integration                   # Integration tests
+pytest packages/bifrost/tests/         # Python unit and mocked integration tests
+pytest --integration                   # Runs tests marked with 'integration'
 pytest --benchmark                     # Performance benchmarks
+# For specific E2E tests using live gateway and virtual devices:
+# See "End-to-End Tests" section below.
 
-# End-to-end tests
-./scripts/e2e-tests.sh                # Full system tests
-docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+# End-to-end Tests
+# These tests involve the Go Gateway, Python client, and virtual devices (simulators).
+# They are orchestrated by the run-e2e-tests.sh script.
+./scripts/run-e2e-tests.sh                # Runs the full E2E test suite
+# The Python E2E test suite is located in packages/bifrost/tests/e2e/
+# The script handles starting the gateway, virtual devices (via Docker Compose),
+# running pytest for the E2E suite, and then cleaning up.
+# Individual E2E tests can also be run with pytest if the environment is manually set up:
+# pytest packages/bifrost/tests/e2e/ -m e2e
+
+# Example for running specific E2E tests with a running environment:
+# pytest packages/bifrost/tests/e2e/test_e2e_modbus_connect_read_write.py
+
+# Older/other test execution methods (may be outdated or for specific purposes):
+# docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 ```
 
 ### Code Quality Tools

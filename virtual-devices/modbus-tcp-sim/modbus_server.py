@@ -55,6 +55,11 @@ class SimulatedDevice:
         for i in range(10):
             self.coils[i] = random.choice([True, False])
 
+        # Writable registers for E2E tests (40050-40059)
+        # These are offset by 1, so register index 49 is address 40050.
+        for i in range(49, 49 + 10): # Registers 49 through 58
+            self.registers[i] = 0 # Initialize to 0
+
     def _update_loop(self):
         """Simulate realistic sensor value changes."""
         while self.running:

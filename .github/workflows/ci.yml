@@ -259,15 +259,16 @@ jobs:
           npm ci
           npm audit --audit-level=high || true
           
-  # Integration Tests
+  # Integration Tests (Enhanced for E2E)
   integration-tests:
-    name: Integration Tests
+    name: End-to-End Integration Tests
     runs-on: ubuntu-latest
-    needs: [go-gateway, vscode-extension]
-    if: success() || failure()  # Run even if previous jobs fail
+    needs: [go-gateway] # Depends on Go gateway build
+    # Removed vscode-extension from needs as these E2E tests focus on gateway & python client first
+    # if: success() || failure() # Consider if this job should run if go-gateway fails. For now, let's assume it needs a successful gateway build.
     
     services:
-      redis:
+      redis: # Retained if gateway uses it, can be removed if not essential for core E2E
         image: redis:7-alpine
         options: >-
           --health-cmd "redis-cli ping"
@@ -281,48 +282,65 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Download Go binary
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3 # Though not building here, ensures Docker is ready
+
+      - name: Download Go binary artifact
         uses: actions/download-artifact@v4
         with:
           name: bifrost-gateway-linux
-          path: ./go-gateway/
-        continue-on-error: true
-          
-      - name: Make binary executable
-        run: chmod +x ./go-gateway/bifrost-gateway || true
-        
-      - name: Start gateway in background
-        working-directory: ./go-gateway
+          path: ./go-gateway/bin/ # Ensure it's placed where the script expects it
+        # Removed continue-on-error: true, if binary is not there, E2E can't run
+
+      - name: Ensure Go binary is executable and in expected path
         run: |
-          ./bifrost-gateway &
-          sleep 5
-        continue-on-error: true
-          
-      - name: Run integration tests
-        run: |
-          # Test health endpoint
-          curl -f http://localhost:8080/health || echo "Health check failed"
-          
-          # Test metrics endpoint
-          curl -f http://localhost:8080/metrics || echo "Metrics check failed"
-          
-          # Test API endpoints
-          curl -f http://localhost:8080/api/devices || echo "API check failed"
-        continue-on-error: true
-          
-      - name: Upload integration test results
-        uses: actions/upload-artifact@v4
+          mkdir -p ./go-gateway/bin
+          mv ./go-gateway/bifrost-gateway ./go-gateway/bin/bifrost-gateway || echo "Gateway binary already in place or download failed."
+          chmod +x ./go-gateway/bin/bifrost-gateway
+
+      - name: Set up Python for test execution (using uv)
+        uses: actions/setup-python@v5
         with:
-          name: integration-test-results
-          path: test-results/
-        if: always()
+          python-version: '3.10' # Or version specified in justfile/project
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install Python dependencies (via just, which uses uv)
+        run: |
+          # Ensure just is available or install it
+          # For simplicity, assuming just is available or installed by a previous global step
+          # If not, add: sudo apt-get update && sudo apt-get install -y just
+          # The run-e2e-tests.sh script calls 'just dev-setup'
+          echo "Python dependencies will be installed by run-e2e-tests.sh via 'just dev-setup'"
+
+      - name: Run End-to-End Tests
+        run: ./scripts/run-e2e-tests.sh
+        # Removed continue-on-error, test script should exit non-zero on failure
+
+      - name: Upload E2E Test Results (JUnit XML)
+        uses: actions/upload-artifact@v4
+        if: always() # Upload results even if tests fail
+        with:
+          name: e2e-test-results
+          path: test-results/e2e/*.xml
+          retention-days: 7
+        continue-on-error: true # Allow workflow to continue to report other failures
+
+      - name: Upload Gateway Logs from E2E Tests
+        uses: actions/upload-artifact@v4
+        if: always() # Upload logs even if tests fail
+        with:
+          name: e2e-gateway-logs
+          path: bifrost-gateway-e2e.log
+          retention-days: 7
         continue-on-error: true
-        
+
   # Notify on completion
   notify:
     name: Notification
     runs-on: ubuntu-latest
-    needs: [go-gateway, vscode-extension, container, dependency-check, integration-tests]
+    needs: [go-gateway, vscode-extension, container, dependency-check, integration-tests] # integration-tests now refers to the E2E job
     if: always()
     
     steps:
