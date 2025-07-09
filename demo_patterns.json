@@ -1,0 +1,89 @@
+{
+  "patterns": {
+    "schneider_m340_modbus": {
+      "pattern_id": "schneider_m340_modbus",
+      "manufacturer_id": "Schneider Electric",
+      "product_family": "Modicon M340",
+      "model_number": "BMXP342020",
+      "firmware_version_range": {
+        "min_version": null,
+        "max_version": null,
+        "exact_version": null
+      },
+      "protocol_variant": {
+        "protocol": "modbus.tcp",
+        "variant": null,
+        "version": null,
+        "port": 502
+      },
+      "discovery_signature": {
+        "network_responses": [],
+        "timing_characteristics": null,
+        "service_discovery_data": []
+      },
+      "communication_profile": {
+        "optimal_polling_rate": 1.0,
+        "request_templates": [],
+        "data_point_mappings": [],
+        "error_handling_strategy": {
+          "retry_count": 3,
+          "retry_delay_ms": 1000,
+          "fallback_strategy": "skip",
+          "error_codes_to_ignore": []
+        }
+      },
+      "historical_performance": null,
+      "pattern_confidence": 0.97,
+      "usage_count": 2,
+      "last_verified": 1751922149315696640,
+      "contributor_reputation": 0.5,
+      "status": "active",
+      "tags": [],
+      "metadata": {}
+    },
+    "allen_bradley_compactlogix_cip": {
+      "pattern_id": "allen_bradley_compactlogix_cip",
+      "manufacturer_id": "Allen-Bradley",
+      "product_family": "CompactLogix",
+      "model_number": "1769-L33ER",
+      "firmware_version_range": {
+        "min_version": null,
+        "max_version": null,
+        "exact_version": null
+      },
+      "protocol_variant": {
+        "protocol": "ethernet_ip",
+        "variant": null,
+        "version": null,
+        "port": 44818
+      },
+      "discovery_signature": {
+        "network_responses": [],
+        "timing_characteristics": null,
+        "service_discovery_data": []
+      },
+      "communication_profile": {
+        "optimal_polling_rate": 1.0,
+        "request_templates": [],
+        "data_point_mappings": [],
+        "error_handling_strategy": {
+          "retry_count": 3,
+          "retry_delay_ms": 1000,
+          "fallback_strategy": "skip",
+          "error_codes_to_ignore": []
+        }
+      },
+      "historical_performance": null,
+      "pattern_confidence": 0.93,
+      "usage_count": 1,
+      "last_verified": 1751922149315288320,
+      "contributor_reputation": 0.5,
+      "status": "active",
+      "tags": [],
+      "metadata": {}
+    }
+  },
+  "version": "1.0",
+  "last_updated": 1751922149315700736,
+  "metadata": {}
+}

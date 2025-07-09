@@ -1,0 +1,52 @@
+{
+  "patterns": {
+    "samplemfg_sample123_modbus_tcp": {
+      "pattern_id": "samplemfg_sample123_modbus_tcp",
+      "manufacturer_id": "SampleMfg",
+      "product_family": "Sample Family",
+      "model_number": "Sample123",
+      "firmware_version_range": {
+        "min_version": null,
+        "max_version": null,
+        "exact_version": null
+      },
+      "protocol_variant": {
+        "protocol": "modbus.tcp",
+        "variant": null,
+        "version": null,
+        "port": 502
+      },
+      "discovery_signature": {
+        "network_responses": [],
+        "timing_characteristics": null,
+        "service_discovery_data": []
+      },
+      "communication_profile": {
+        "optimal_polling_rate": 1.0,
+        "request_templates": [],
+        "data_point_mappings": [],
+        "error_handling_strategy": {
+          "retry_count": 3,
+          "retry_delay_ms": 1000,
+          "fallback_strategy": "skip",
+          "error_codes_to_ignore": []
+        }
+      },
+      "historical_performance": null,
+      "pattern_confidence": 0.8,
+      "usage_count": 0,
+      "last_verified": null,
+      "contributor_reputation": 0.5,
+      "status": "active",
+      "tags": [],
+      "metadata": {
+        "created_by": "cli_tool",
+        "created_at": 1751921957172397568,
+        "sample_pattern": true
+      }
+    }
+  },
+  "version": "1.0",
+  "last_updated": 1751921957172691712,
+  "metadata": {}
+}
