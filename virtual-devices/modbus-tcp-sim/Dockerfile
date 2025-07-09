@@ -3,13 +3,15 @@ FROM python:3.13-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including certificates
 RUN apt-get update && apt-get install -y \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && update-ca-certificates
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r requirements.txt
 
 # Copy simulator code
 COPY modbus_server.py .

@@ -1,0 +1,2 @@
+# Simple EtherNet/IP simulation without cpppo dependency
+asyncio

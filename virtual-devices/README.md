@@ -1,10 +1,38 @@
 # Virtual Device Testing Framework
 
+A comprehensive collection of virtual industrial devices for Docker-based testing of industrial communication protocols and device discovery systems.
+
 ## Overview
 
-This directory contains virtual devices and testing infrastructure for comprehensive end-to-end, integration, and functional testing of Bifrost's industrial IoT capabilities. The framework simulates real industrial environments and devices to enable reliable testing without requiring physical hardware.
+This framework provides realistic virtual industrial devices that support common industrial protocols:
 
-## Current Implementation (Phase 1)
+- **Modbus TCP/RTU** - Multiple device types and manufacturers
+- **OPC UA** - Industrial data servers with real-time simulation  
+- **Ethernet/IP** - EtherNet/IP scanner and device simulation
+- **S7 (Siemens)** - S7 PLC simulation with memory areas
+
+All devices are containerized using Docker and can be deployed individually or as complete test environments using Docker Compose.
+
+## Quick Start
+
+```bash
+# Start basic test environment (Modbus TCP + OPC UA + RTU + S7 + Ethernet/IP)
+docker compose up -d
+
+# Start extended environment with additional device variants
+docker compose --profile extended up -d
+
+# Start testing environment with error simulation
+docker compose --profile testing up -d
+
+# View logs from all devices
+docker compose logs -f
+
+# Stop all devices
+docker compose down
+```
+
+## Current Implementation (Complete)
 
 The following simulators are currently implemented and ready for use:
 
@@ -12,24 +40,70 @@ The following simulators are currently implemented and ready for use:
 - **Location**: `modbus-tcp-sim/`
 - **Features**: Realistic device simulation with error injection, dynamic sensor data
 - **Docker**: Ready-to-use container with health checks
-- **Port**: 502 (standard), 503 (faulty variant)
+- **Port**: 502 (standard), 505 (faulty variant)
+
+### Modbus RTU Simulator
+- **Location**: `modbus-rtu-sim/`
+- **Features**: RTU-over-TCP simulation, multiple device types (energy meter, temperature controller, flow meter)
+- **Docker**: Ready-to-use container with health checks
+- **Ports**: 503 (energy meter), 504 (temperature controller)
 
 ### OPC UA Simulator  
 - **Location**: `opcua-sim/`
 - **Features**: Industrial node hierarchy, real-time data updates, subscription support
 - **Docker**: Ready-to-use container with health checks
-- **Port**: 4840
+- **Ports**: 4840 (factory), 4841 (process control)
 
-### Quick Start
+### Ethernet/IP Simulator
+- **Location**: `ethernet-ip-sim/`
+- **Features**: EtherNet/IP device simulation, CIP protocol support, device discovery
+- **Docker**: Ready-to-use container with health checks
+- **Ports**: 44818/udp (discovery), 2222 (explicit messaging)
+
+### S7 (Siemens) Simulator
+- **Location**: `s7-sim/`
+- **Features**: S7 PLC simulation, memory areas (DB, M, I, Q), realistic process data
+- **Docker**: Ready-to-use container with health checks
+- **Port**: 102
+
+### Advanced Testing Scenarios
+
 ```bash
-# Start all simulators
-docker-compose up -d
+# Start all basic devices
+docker compose up -d modbus-tcp-sim modbus-rtu-sim opcua-sim ethernet-ip-sim s7-sim
 
-# View logs
-docker-compose logs -f
+# Start multiple device variants for comprehensive testing
+docker compose --profile extended up -d
 
-# Stop all simulators  
-docker-compose down
+# Test error handling and resilience
+docker compose --profile testing up -d
+
+# Individual device testing
+docker compose up -d modbus-tcp-sim
+docker compose up -d opcua-sim
+docker compose up -d s7-sim
+
+# Custom configurations
+docker run -p 502:502 bifrost/modbus-tcp-sim --error-rate 0.05
+docker run -p 503:503 bifrost/modbus-rtu-sim --device-type temperature_controller
+```
+
+### Device Discovery Testing
+
+The framework supports testing of various device discovery protocols:
+
+```bash
+# Network scan for Modbus devices (ports 502-505)
+nmap -p 502-505 172.20.0.0/16
+
+# EtherNet/IP device discovery
+# Send ListIdentity broadcast to 224.0.1.1:44818
+
+# OPC UA endpoint discovery  
+# Connect to opc.tcp://localhost:4840 and browse server
+
+# S7 PLC identification
+# Connect to port 102 and read system information
 ```
 
 ### Testing Your Implementation

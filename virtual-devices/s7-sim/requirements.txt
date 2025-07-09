@@ -1,0 +1,2 @@
+# Simple S7 protocol simulation without snap7 dependency
+asyncio

@@ -14,19 +14,19 @@ COPY requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r requirements.txt
 
 # Copy simulator code  
-COPY opcua_server.py .
+COPY modbus_rtu_server.py .
 
 # Create non-root user for security
 RUN useradd -m -u 1000 simulator
 
-# Expose OPC UA port
-EXPOSE 4840
+# Expose RTU over TCP port (different from standard Modbus TCP)
+EXPOSE 503
 
 USER simulator
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 4840)); s.close()" || exit 1
+    CMD python -c "import socket; s=socket.socket(); s.settimeout(1); s.connect(('localhost', 503)); s.close()" || exit 1
 
 # Default command
-CMD ["python", "opcua_server.py", "--log-level", "INFO"]
+CMD ["python", "modbus_rtu_server.py", "--log-level", "INFO"]
