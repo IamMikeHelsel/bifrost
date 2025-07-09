@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Protocol Testing Matrix Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f0f0f0; padding: 20px; border-radius: 5px; }
+        .protocol { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .passed { color: green; }
+        .failed { color: red; }
+        .partial { color: orange; }
+        .not_run { color: gray; }
+        .gap { background: #fff3cd; padding: 10px; margin: 5px 0; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Protocol Testing Matrix Report</h1>
+        <p>Generated: 2025-07-08T14:19:34Z</p>
+        <p>Overall Status: <span class="passed">PASSED</span></p>
+        <p>Coverage: 100.0% (10/10 tests passed)</p>
+    </div>
+    
+    <h2>Protocol Status</h2>
+
+    <div class="protocol">
+        <h3>ethernetip</h3>
+        <p>Status: <span class="not_run">NOT_RUN</span></p>
+        <p>Tests: 0 passed, 0 failed (0.0% coverage)</p>
+        <p>Last Run: 2024-07-08T14:00:00Z</p>
+    </div>
+    <div class="protocol">
+        <h3>modbus</h3>
+        <p>Status: <span class="passed">PASSED</span></p>
+        <p>Tests: 10 passed, 0 failed (100.0% coverage)</p>
+        <p>Last Run: 2025-07-08T14:17:11Z</p>
+    </div>
+    <div class="protocol">
+        <h3>opcua</h3>
+        <p>Status: <span class="not_run">NOT_RUN</span></p>
+        <p>Tests: 0 passed, 0 failed (0.0% coverage)</p>
+        <p>Last Run: 2024-07-08T14:00:00Z</p>
+    </div>
+    <div class="protocol">
+        <h3>s7</h3>
+        <p>Status: <span class="not_run">NOT_RUN</span></p>
+        <p>Tests: 0 passed, 0 failed (0.0% coverage)</p>
+        <p>Last Run: 2024-07-08T14:00:00Z</p>
+    </div><h2>Gap Analysis</h2>
+    <div class="gap">
+        <strong>[HIGH]</strong> modbus/virtual_devices<br>
+        Missing: No virtual devices configured
+    </div>
+</body>
+</html>

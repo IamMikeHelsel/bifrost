@@ -1,0 +1,57 @@
+{
+  "GeneratedAt": "2025-07-08T14:19:34.963212328Z",
+  "OverallStatus": "passed",
+  "TotalTests": 10,
+  "PassedTests": 10,
+  "FailedTests": 0,
+  "CoveragePercent": 100,
+  "ProtocolStatus": {
+    "ethernetip": {
+      "Name": "ethernetip",
+      "Status": "not_run",
+      "TestsRun": 0,
+      "TestsPassed": 0,
+      "TestsFailed": 0,
+      "CoveragePercent": 0,
+      "LastRun": "2024-07-08T14:00:00Z"
+    },
+    "modbus": {
+      "Name": "modbus",
+      "Status": "passed",
+      "TestsRun": 10,
+      "TestsPassed": 10,
+      "TestsFailed": 0,
+      "CoveragePercent": 100,
+      "LastRun": "2025-07-08T14:17:11.615980447Z"
+    },
+    "opcua": {
+      "Name": "opcua",
+      "Status": "not_run",
+      "TestsRun": 0,
+      "TestsPassed": 0,
+      "TestsFailed": 0,
+      "CoveragePercent": 0,
+      "LastRun": "2024-07-08T14:00:00Z"
+    },
+    "s7": {
+      "Name": "s7",
+      "Status": "not_run",
+      "TestsRun": 0,
+      "TestsPassed": 0,
+      "TestsFailed": 0,
+      "CoveragePercent": 0,
+      "LastRun": "2024-07-08T14:00:00Z"
+    }
+  },
+  "GapAnalysis": [
+    {
+      "Protocol": "modbus",
+      "Implementation": "",
+      "Category": "virtual_devices",
+      "Missing": [
+        "No virtual devices configured"
+      ],
+      "Severity": "high"
+    }
+  ]
+}

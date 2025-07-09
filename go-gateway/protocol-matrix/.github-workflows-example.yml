@@ -1,0 +1,218 @@
+# GitHub Actions Workflow Integration for Protocol Testing Matrix
+# Add this to your existing CI workflow or create a new one
+
+name: Protocol Testing Matrix
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run matrix analysis daily at 6 AM UTC
+    - cron: '0 6 * * *'
+
+jobs:
+  protocol-matrix:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go-gateway
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Install dependencies
+      run: go mod download
+    
+    - name: Build Protocol Matrix CLI
+      run: make matrix-build
+    
+    - name: Validate Protocol Matrix Configuration
+      run: make matrix-validate
+    
+    - name: Run Protocol Matrix Tests
+      run: make matrix-test
+    
+    - name: Analyze Protocol Matrix
+      run: make matrix-analyze
+    
+    - name: Generate Protocol Matrix Reports
+      run: make matrix-report
+    
+    - name: Show Matrix Status
+      run: make matrix-status
+    
+    - name: Upload Matrix Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: protocol-matrix-reports
+        path: |
+          go-gateway/protocol-matrix/status/
+          go-gateway/protocol-matrix/protocol_matrix.yaml
+        retention-days: 30
+    
+    # Optionally commit updated matrix status back to repository
+    - name: Commit Matrix Status Updates
+      if: github.event_name == 'schedule' || github.event_name == 'push'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add protocol-matrix/status/
+        git diff --staged --quiet || git commit -m "Update protocol matrix status [automated]"
+        git push
+
+  # Job to run actual protocol tests and update matrix
+  run-protocol-tests:
+    runs-on: ubuntu-latest
+    needs: protocol-matrix
+    defaults:
+      run:
+        working-directory: go-gateway
+    
+    strategy:
+      matrix:
+        protocol: [modbus, opcua, ethernetip, s7]
+        implementation: [tcp, rtu, "", ""]
+        exclude:
+          - protocol: opcua
+            implementation: tcp
+          - protocol: opcua
+            implementation: rtu
+          - protocol: ethernetip
+            implementation: tcp
+          - protocol: ethernetip
+            implementation: rtu
+          - protocol: s7
+            implementation: tcp
+          - protocol: s7
+            implementation: rtu
+          - protocol: modbus
+            implementation: ""
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Install dependencies
+      run: go mod download
+    
+    - name: Build Protocol Matrix CLI
+      run: make matrix-build
+    
+    # Run actual protocol tests here
+    # This is where you would run your protocol-specific test suites
+    - name: Run Protocol Tests
+      run: |
+        echo "Running tests for ${{ matrix.protocol }}/${{ matrix.implementation }}"
+        # Example: go test -v ./internal/protocols/${{ matrix.protocol }}_test.go
+        # Example: python3 ../virtual-devices/test_${{ matrix.protocol }}.py
+        
+        # For demonstration, we'll just update with mock results
+        if [ -n "${{ matrix.implementation }}" ]; then
+          ./bin/matrix -command=update -protocol=${{ matrix.protocol }} -implementation=${{ matrix.implementation }}
+        else
+          ./bin/matrix -command=update -protocol=${{ matrix.protocol }}
+        fi
+    
+    - name: Upload Updated Matrix
+      uses: actions/upload-artifact@v3
+      with:
+        name: matrix-${{ matrix.protocol }}-${{ matrix.implementation || 'default' }}
+        path: go-gateway/protocol-matrix/protocol_matrix.yaml
+
+  # Final job to consolidate results and generate final report
+  consolidate-results:
+    runs-on: ubuntu-latest
+    needs: run-protocol-tests
+    defaults:
+      run:
+        working-directory: go-gateway
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download all matrix artifacts
+      uses: actions/download-artifact@v3
+      with:
+        pattern: matrix-*
+        path: matrix-artifacts/
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Build Protocol Matrix CLI
+      run: make matrix-build
+    
+    # Merge all matrix updates (this would need custom logic)
+    - name: Consolidate Matrix Results
+      run: |
+        echo "Consolidating test results from all protocol tests"
+        # Custom script to merge results from different test runs
+        # For now, just generate final report
+        make matrix-analyze
+        make matrix-report
+    
+    - name: Generate Final Report
+      run: |
+        echo "## Protocol Testing Matrix Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Generated: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        ./bin/matrix -command=status >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+    
+    - name: Upload Final Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: final-protocol-matrix-reports
+        path: |
+          go-gateway/protocol-matrix/status/
+        retention-days: 90
+    
+    # Post results to PR as comment (if this is a PR)
+    - name: Comment PR with Matrix Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const status = JSON.parse(fs.readFileSync('go-gateway/protocol-matrix/status/report.json', 'utf8'));
+          
+          const comment = `## Protocol Testing Matrix Results
+          
+          **Overall Status:** ${status.OverallStatus.toUpperCase()}
+          **Coverage:** ${status.CoveragePercent.toFixed(1)}%
+          **Tests:** ${status.PassedTests}/${status.TotalTests} passed
+          
+          ### Protocol Status
+          ${Object.values(status.ProtocolStatus).map(p => 
+            `- **${p.Name}**: ${p.Status} (${p.CoveragePercent.toFixed(1)}% coverage)`
+          ).join('\n')}
+          
+          ${status.GapAnalysis.length > 0 ? 
+            `### Gaps Found\n${status.GapAnalysis.map(g => 
+              `- [${g.Severity.toUpperCase()}] ${g.Protocol}/${g.Category}: ${g.Missing.join(', ')}`
+            ).join('\n')}` : ''}
+          
+          [View detailed reports](${context.payload.pull_request.html_url}/checks)
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

@@ -1,0 +1,45 @@
+generated_at: 2025-07-08T14:16:51.748244761Z
+overall_status: not_run
+total_tests: 0
+passed_tests: 0
+failed_tests: 0
+coverage_percent: 0
+protocol_status:
+    ethernetip:
+        name: ethernetip
+        status: not_run
+        tests_run: 0
+        tests_passed: 0
+        tests_failed: 0
+        coverage_percent: 0
+        last_run: 2024-07-08T14:00:00Z
+    modbus:
+        name: modbus
+        status: not_run
+        tests_run: 0
+        tests_passed: 0
+        tests_failed: 0
+        coverage_percent: 0
+        last_run: 2024-07-08T14:00:00Z
+    opcua:
+        name: opcua
+        status: not_run
+        tests_run: 0
+        tests_passed: 0
+        tests_failed: 0
+        coverage_percent: 0
+        last_run: 2024-07-08T14:00:00Z
+    s7:
+        name: s7
+        status: not_run
+        tests_run: 0
+        tests_passed: 0
+        tests_failed: 0
+        coverage_percent: 0
+        last_run: 2024-07-08T14:00:00Z
+gap_analysis:
+    - protocol: modbus
+      category: virtual_devices
+      missing:
+        - No virtual devices configured
+      severity: high

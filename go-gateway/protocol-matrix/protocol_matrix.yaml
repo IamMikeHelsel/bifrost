@@ -1,0 +1,236 @@
+schema_version: "1.0"
+last_updated: 2025-07-08T14:17:11.615981198Z
+protocols:
+    ethernetip:
+        test_coverage:
+            data_types:
+                - BOOL
+                - SINT
+                - INT
+                - DINT
+                - REAL
+                - STRING
+            messaging_types:
+                - Explicit
+                - Implicit
+            connection_types:
+                - Class1
+                - Class3
+            services:
+                - Get_Attribute_Single
+                - Set_Attribute_Single
+                - Get_Attribute_List
+                - Forward_Open
+                - Forward_Close
+            device_profiles:
+                - Generic Device
+                - I/O Device
+                - Drive Device
+        virtual_devices:
+            - ethernetip_adapter_simulator
+            - ab_plc_simulator
+        real_devices: []
+        vendor_compatibility:
+            - Allen-Bradley
+            - Schneider Electric
+            - Omron
+        test_results:
+            last_run: 2024-07-08T14:00:00Z
+            status: not_run
+            passed: 0
+            failed: 0
+            coverage_percentage: 0
+    modbus:
+        implementations:
+            rtu:
+                test_coverage:
+                    function_codes:
+                        - 1
+                        - 2
+                        - 3
+                        - 4
+                        - 5
+                        - 6
+                        - 15
+                        - 16
+                    exception_codes:
+                        - 1
+                        - 2
+                        - 3
+                        - 4
+                    performance_tests: true
+                    data_types:
+                        - bool
+                        - int16
+                        - int32
+                        - float32
+                    serial_configs:
+                        - 9600,8,N,1
+                        - 19200,8,E,1
+                virtual_devices:
+                    - modbus_rtu_simulator
+                real_devices: []
+                test_results:
+                    last_run: 2024-07-08T14:00:00Z
+                    status: not_run
+                    passed: 0
+                    failed: 0
+                    coverage_percentage: 0
+            tcp:
+                test_coverage:
+                    function_codes:
+                        - 1
+                        - 2
+                        - 3
+                        - 4
+                        - 5
+                        - 6
+                        - 15
+                        - 16
+                        - 23
+                    exception_codes:
+                        - 1
+                        - 2
+                        - 3
+                        - 4
+                    performance_tests: true
+                    concurrent_connections: 100
+                    data_types:
+                        - bool
+                        - int16
+                        - int32
+                        - float32
+                        - string
+                virtual_devices:
+                    - modbus_tcp_simulator
+                    - multi_slave_simulator
+                real_devices: []
+                test_results:
+                    last_run: 2025-07-08T14:17:11.615980447Z
+                    status: passed
+                    passed: 10
+                    failed: 0
+                    coverage_percentage: 100
+                    details:
+                        - test_name: function_code_01_test
+                          status: passed
+                          duration: 50ms
+                          category: function_code
+                        - test_name: performance_throughput_test
+                          status: passed
+                          duration: 2s
+                          category: performance
+        virtual_devices: []
+        real_devices: []
+        test_results:
+            last_run: 0001-01-01T00:00:00Z
+            status: ""
+            passed: 0
+            failed: 0
+            coverage_percentage: 0
+    opcua:
+        test_coverage:
+            data_types:
+                - Boolean
+                - Int16
+                - Int32
+                - Float
+                - Double
+                - String
+                - DateTime
+            security_policies:
+                - None
+                - Basic128Rsa15
+                - Basic256
+                - Basic256Sha256
+            authentication_modes:
+                - Anonymous
+                - Username
+                - Certificate
+            operations:
+                - Browse
+                - Read
+                - Write
+                - Subscribe
+                - HistoryRead
+        virtual_devices:
+            - opcua_server_simulator
+            - vendor_specific_simulator
+        real_devices: []
+        vendor_compatibility:
+            - Schneider Electric
+            - Siemens
+            - Rockwell
+            - ABB
+        test_results:
+            last_run: 2024-07-08T14:00:00Z
+            status: not_run
+            passed: 0
+            failed: 0
+            coverage_percentage: 0
+    s7:
+        test_coverage:
+            data_types:
+                - BOOL
+                - BYTE
+                - WORD
+                - DWORD
+                - INT
+                - DINT
+                - REAL
+                - STRING
+            operations:
+                - Read_DB
+                - Write_DB
+                - Read_Memory
+                - Write_Memory
+                - Get_CPU_Info
+            cpu_families:
+                - S7-300
+                - S7-400
+                - S7-1200
+                - S7-1500
+            memory_areas:
+                - DB
+                - M
+                - I
+                - Q
+                - T
+                - C
+        virtual_devices:
+            - s7_plc_simulator
+            - simatic_simulator
+        real_devices: []
+        vendor_compatibility:
+            - Siemens
+        test_results:
+            last_run: 2024-07-08T14:00:00Z
+            status: not_run
+            passed: 0
+            failed: 0
+            coverage_percentage: 0
+test_execution:
+    timeout: 30m
+    parallel_tests: true
+    max_workers: 4
+    retry_failed_tests: true
+    max_retries: 3
+    generate_html_report: true
+    generate_json_report: true
+performance_targets:
+    ethernetip:
+        throughput_ops_per_sec: 3000
+        latency_p95_ms: 15
+        concurrent_connections: 25
+    modbus:
+        throughput_ops_per_sec: 10000
+        latency_p95_ms: 10
+        concurrent_connections: 100
+    opcua:
+        throughput_ops_per_sec: 5000
+        latency_p95_ms: 20
+        concurrent_connections: 50
+    s7:
+        throughput_ops_per_sec: 2000
+        latency_p95_ms: 25
+        concurrent_connections: 20
