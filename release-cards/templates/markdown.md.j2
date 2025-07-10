@@ -1,0 +1,304 @@
+# Bifrost Release Card: {{ version }}
+
+**Release Date:** {{ release_date }}  
+**Release Type:** {{ release_type | title }}  
+**Schema Version:** {{ metadata.schema_version }}
+
+## 📋 Release Summary
+
+{{ release_notes }}
+
+{% if breaking_changes %}
+### ⚠️ Breaking Changes
+{% for change in breaking_changes %}
+- {{ change }}
+{% endfor %}
+
+{% if migration_notes %}
+**Migration Notes:** {{ migration_notes }}
+{% endif %}
+{% endif %}
+
+## 🔌 Protocol Support Matrix
+
+### Modbus Protocol
+{% if protocols.modbus %}
+{% if protocols.modbus.tcp %}
+#### Modbus TCP
+- **Status:** {{ protocols.modbus.tcp.status | title }} ({{ protocols.modbus.tcp.version }})
+- **Performance:** {{ protocols.modbus.tcp.performance.throughput }}, {{ protocols.modbus.tcp.performance.latency }} latency
+- **Concurrent Connections:** {{ protocols.modbus.tcp.performance.concurrent_limit }}
+- **Memory Usage:** {{ protocols.modbus.tcp.performance.memory_usage }}
+
+**Tested Devices:**
+{% if protocols.modbus.tcp.tested_devices.virtual %}
+- Virtual: {{ protocols.modbus.tcp.tested_devices.virtual | join(', ') }}
+{% endif %}
+{% if protocols.modbus.tcp.tested_devices.real %}
+- Real Hardware: {{ protocols.modbus.tcp.tested_devices.real | join(', ') }}
+{% else %}
+- Real Hardware: None tested
+{% endif %}
+
+{% if protocols.modbus.tcp.limitations %}
+**Limitations:**
+{% for limitation in protocols.modbus.tcp.limitations %}
+- {{ limitation }}
+{% endfor %}
+{% endif %}
+
+{% if protocols.modbus.tcp.known_issues %}
+**Known Issues:**
+{% for issue in protocols.modbus.tcp.known_issues %}
+- {{ issue }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if protocols.modbus.rtu %}
+#### Modbus RTU
+- **Status:** {{ protocols.modbus.rtu.status | title }} ({{ protocols.modbus.rtu.version }})
+- **Performance:** {{ protocols.modbus.rtu.performance.throughput }}, {{ protocols.modbus.rtu.performance.latency }} latency
+- **Concurrent Connections:** {{ protocols.modbus.rtu.performance.concurrent_limit }}
+- **Memory Usage:** {{ protocols.modbus.rtu.performance.memory_usage }}
+
+**Tested Devices:**
+{% if protocols.modbus.rtu.tested_devices.virtual %}
+- Virtual: {{ protocols.modbus.rtu.tested_devices.virtual | join(', ') }}
+{% endif %}
+{% if protocols.modbus.rtu.tested_devices.real %}
+- Real Hardware: {{ protocols.modbus.rtu.tested_devices.real | join(', ') }}
+{% else %}
+- Real Hardware: None tested
+{% endif %}
+
+{% if protocols.modbus.rtu.limitations %}
+**Limitations:**
+{% for limitation in protocols.modbus.rtu.limitations %}
+- {{ limitation }}
+{% endfor %}
+{% endif %}
+
+{% if protocols.modbus.rtu.known_issues %}
+**Known Issues:**
+{% for issue in protocols.modbus.rtu.known_issues %}
+- {{ issue }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endif %}
+
+### OPC UA Protocol
+{% if protocols.opcua %}
+{% if protocols.opcua.client %}
+#### OPC UA Client
+- **Status:** {{ protocols.opcua.client.status | title }} ({{ protocols.opcua.client.version }})
+- **Performance:** {{ protocols.opcua.client.performance.throughput }}, {{ protocols.opcua.client.performance.latency }} latency
+- **Concurrent Connections:** {{ protocols.opcua.client.performance.concurrent_limit }}
+- **Memory Usage:** {{ protocols.opcua.client.performance.memory_usage }}
+
+**Security Features:**
+- Authentication: {{ protocols.opcua.client.security_features.authentication | join(', ') }}
+- Encryption: {{ protocols.opcua.client.security_features.encryption | join(', ') }}
+- Certificates: {{ "Supported" if protocols.opcua.client.security_features.certificates else "Not supported" }}
+
+**Tested Servers:**
+{% if protocols.opcua.client.tested_servers.virtual %}
+- Virtual: {{ protocols.opcua.client.tested_servers.virtual | join(', ') }}
+{% endif %}
+{% if protocols.opcua.client.tested_servers.real %}
+- Real Hardware: {{ protocols.opcua.client.tested_servers.real | join(', ') }}
+{% else %}
+- Real Hardware: None tested
+{% endif %}
+
+{% if protocols.opcua.client.limitations %}
+**Limitations:**
+{% for limitation in protocols.opcua.client.limitations %}
+- {{ limitation }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if protocols.opcua.server %}
+#### OPC UA Server
+- **Status:** {{ protocols.opcua.server.status | title }} ({{ protocols.opcua.server.version }})
+{% if protocols.opcua.server.status != "unsupported" %}
+- **Performance:** {{ protocols.opcua.server.performance.throughput }}, {{ protocols.opcua.server.performance.latency }} latency
+- **Concurrent Connections:** {{ protocols.opcua.server.performance.concurrent_limit }}
+- **Memory Usage:** {{ protocols.opcua.server.performance.memory_usage }}
+{% endif %}
+{% endif %}
+{% endif %}
+
+### Ethernet/IP Protocol
+{% if protocols.ethernet_ip %}
+- **Status:** {{ protocols.ethernet_ip.status | title }} ({{ protocols.ethernet_ip.version }})
+{% if protocols.ethernet_ip.status != "unsupported" %}
+- **Performance:** {{ protocols.ethernet_ip.performance.throughput }}, {{ protocols.ethernet_ip.performance.latency }} latency
+- **Concurrent Connections:** {{ protocols.ethernet_ip.performance.concurrent_limit }}
+- **Memory Usage:** {{ protocols.ethernet_ip.performance.memory_usage }}
+
+**CIP Features:**
+- Explicit Messaging: {{ "Supported" if protocols.ethernet_ip.cip_features.explicit_messaging else "Not supported" }}
+- Implicit Messaging: {{ "Supported" if protocols.ethernet_ip.cip_features.implicit_messaging else "Not supported" }}
+- CIP Classes: {{ protocols.ethernet_ip.cip_features.class_support | join(', ') }}
+
+**Tested Devices:**
+{% if protocols.ethernet_ip.tested_devices.virtual %}
+- Virtual: {{ protocols.ethernet_ip.tested_devices.virtual | join(', ') }}
+{% endif %}
+{% if protocols.ethernet_ip.tested_devices.real %}
+- Real Hardware: {{ protocols.ethernet_ip.tested_devices.real | join(', ') }}
+{% else %}
+- Real Hardware: None tested
+{% endif %}
+{% endif %}
+{% endif %}
+
+### Siemens S7 Protocol
+{% if protocols.s7 %}
+- **Status:** {{ protocols.s7.status | title }} ({{ protocols.s7.version }})
+{% if protocols.s7.status != "unsupported" %}
+- **Performance:** {{ protocols.s7.performance.throughput }}, {{ protocols.s7.performance.latency }} latency
+
+**PLC Compatibility:**
+- S7-300: {{ "Supported" if protocols.s7.plc_compatibility.s7_300 else "Not supported" }}
+- S7-400: {{ "Supported" if protocols.s7.plc_compatibility.s7_400 else "Not supported" }}
+- S7-1200: {{ "Supported" if protocols.s7.plc_compatibility.s7_1200 else "Not supported" }}
+- S7-1500: {{ "Supported" if protocols.s7.plc_compatibility.s7_1500 else "Not supported" }}
+{% if protocols.s7.plc_compatibility.tia_portal %}
+- TIA Portal: {{ protocols.s7.plc_compatibility.tia_portal | join(', ') }}
+{% endif %}
+{% endif %}
+{% endif %}
+
+## 🧪 Testing Summary
+
+### Automated Tests
+- **Total:** {{ testing_summary.automated_tests.total }}
+- **Passed:** {{ testing_summary.automated_tests.passed }}
+- **Failed:** {{ testing_summary.automated_tests.failed }}
+- **Skipped:** {{ testing_summary.automated_tests.skipped }}
+- **Coverage:** {{ testing_summary.automated_tests.coverage }}
+
+### Manual Tests
+- **Total:** {{ testing_summary.manual_tests.total }}
+- **Passed:** {{ testing_summary.manual_tests.passed }}
+- **Failed:** {{ testing_summary.manual_tests.failed }}
+- **Pending:** {{ testing_summary.manual_tests.pending }}
+- **Coverage:** {{ testing_summary.manual_tests.coverage }}
+
+### Regression Tests
+- **Total:** {{ testing_summary.regression_tests.total }}
+- **Passed:** {{ testing_summary.regression_tests.passed }}
+- **Failed:** {{ testing_summary.regression_tests.failed }}
+- **Coverage:** {{ testing_summary.regression_tests.coverage }}
+
+### Security Tests
+- **Total:** {{ testing_summary.security_tests.total }}
+- **Passed:** {{ testing_summary.security_tests.passed }}
+- **Failed:** {{ testing_summary.security_tests.failed }}
+- **Coverage:** {{ testing_summary.security_tests.coverage }}
+
+## 📊 Performance Benchmarks
+
+**Test Environment:**
+- **OS:** {{ performance_benchmarks.test_environment.os }}
+- **CPU:** {{ performance_benchmarks.test_environment.cpu }}
+- **Memory:** {{ performance_benchmarks.test_environment.memory }}
+- **Network:** {{ performance_benchmarks.test_environment.network }}
+- **Load Conditions:** {{ performance_benchmarks.test_environment.load_conditions }}
+
+**Results:**
+{% for result in performance_benchmarks.results %}
+- **{{ result.protocol | title }}** ({{ result.test_type }}): {{ result.value }} {{ result.metric }} 
+  {% if result.status == "pass" %}✅{% elif result.status == "warn" %}⚠️{% else %}❌{% endif %} 
+  Target: {{ result.target }} {{ result.metric }}
+  {% if result.notes %}({{ result.notes }}){% endif %}
+{% endfor %}
+
+## 🏷️ Device Registry
+
+### Virtual Devices
+{% if device_registry.virtual_devices %}
+{% for device in device_registry.virtual_devices %}
+- **{{ device.name }}** ({{ device.protocol }})
+  - Version: {{ device.version }}
+  - Coverage: {{ device.test_coverage }}
+  - Status: {% if device.status == "passing" %}✅{% elif device.status == "unstable" %}⚠️{% else %}❌{% endif %} {{ device.status | title }}
+  - Last Tested: {{ device.last_tested }}
+{% endfor %}
+{% else %}
+No virtual devices registered.
+{% endif %}
+
+### Real Hardware Devices
+{% if device_registry.real_devices %}
+{% for device in device_registry.real_devices %}
+- **{{ device.vendor }} {{ device.model }}** ({{ device.protocol }})
+  - Firmware: {{ device.firmware }}
+  - Coverage: {{ device.test_coverage }}
+  - Status: {% if device.status == "passing" %}✅{% elif device.status == "unstable" %}⚠️{% else %}❌{% endif %} {{ device.status | title }}
+  - Last Tested: {{ device.last_tested }}
+  - Location: {{ device.location }}
+  {% if device.notes %}- Notes: {{ device.notes }}{% endif %}
+{% endfor %}
+{% else %}
+No real hardware devices tested.
+{% endif %}
+
+## 🎯 Quality Metrics
+
+- **Code Coverage:** {{ quality_metrics.code_coverage }}
+- **Security Score:** {{ quality_metrics.security_score }}
+- **Performance Score:** {{ quality_metrics.performance_score }}
+- **Reliability Score:** {{ quality_metrics.reliability_score }}
+- **Documentation Score:** {{ quality_metrics.documentation_score }}
+
+## ⚠️ Known Issues
+
+{% if known_issues %}
+{% for issue in known_issues %}
+### {{ issue.title }} ({{ issue.id }})
+**Severity:** {{ issue.severity | title }}  
+**Description:** {{ issue.description }}
+{% if issue.workaround %}
+**Workaround:** {{ issue.workaround }}
+{% endif %}
+{% if issue.target_fix %}
+**Target Fix:** {{ issue.target_fix }}
+{% endif %}
+
+{% endfor %}
+{% else %}
+No known issues reported.
+{% endif %}
+
+## 📋 System Requirements
+
+### Dependencies
+- **Python Version:** {{ dependencies.python_version }}
+- **Supported OS:** {{ dependencies.os_requirements | join(', ') }}
+
+### Hardware Requirements
+
+**Minimum:**
+- CPU: {{ dependencies.hardware_requirements.minimum.cpu }}
+- Memory: {{ dependencies.hardware_requirements.minimum.memory }}
+- Storage: {{ dependencies.hardware_requirements.minimum.storage }}
+
+**Recommended:**
+- CPU: {{ dependencies.hardware_requirements.recommended.cpu }}
+- Memory: {{ dependencies.hardware_requirements.recommended.memory }}
+- Storage: {{ dependencies.hardware_requirements.recommended.storage }}
+
+---
+
+**Generated:** {{ metadata.generated_at }} by {{ metadata.generated_by }}  
+**Validation Status:** {{ metadata.validation_status | title }}  
+{% if metadata.checksum %}**Checksum:** {{ metadata.checksum }}{% endif %}
+
+---
+
+*For technical support and questions, please refer to the project documentation or open an issue on GitHub.*

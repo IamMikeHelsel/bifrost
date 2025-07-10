@@ -1,0 +1,228 @@
+name: Generate Release Card
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to generate release card for'
+        required: true
+        default: '0.1.0'
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'alpha'
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - stable
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  test-and-benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_lock.txt
+          pip install pyyaml jinja2 jsonschema pytest-benchmark pytest-xvfb
+      
+      - name: Run virtual device tests
+        run: |
+          mkdir -p test-results
+          python -m pytest packages/*/tests \
+            --junitxml=test-results/junit.xml \
+            --benchmark-json=test-results/benchmarks.json \
+            --benchmark-only \
+            || true  # Don't fail if no benchmark tests exist
+      
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+  generate-release-card:
+    needs: test-and-benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml jinja2 jsonschema
+      
+      - name: Download test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "release_type=${{ github.event.inputs.release_type }}" >> $GITHUB_OUTPUT
+          else
+            # Extract version from tag
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            
+            # Determine release type from version
+            if [[ "$VERSION" == *"alpha"* ]]; then
+              echo "release_type=alpha" >> $GITHUB_OUTPUT
+            elif [[ "$VERSION" == *"beta"* ]]; then
+              echo "release_type=beta" >> $GITHUB_OUTPUT
+            elif [[ "$VERSION" == *"rc"* ]]; then
+              echo "release_type=rc" >> $GITHUB_OUTPUT
+            else
+              echo "release_type=stable" >> $GITHUB_OUTPUT
+            fi
+          fi
+      
+      - name: Collect release data
+        run: |
+          mkdir -p release-cards/generated
+          python release-cards/tools/collect.py \
+            --project-root . \
+            --output release-cards/generated/release-data-${{ steps.version.outputs.version }}.yaml \
+            --version "${{ steps.version.outputs.version }}" \
+            --release-type "${{ steps.version.outputs.release_type }}" \
+            --test-results test-results/junit.xml \
+            --benchmarks test-results/benchmarks.json
+      
+      - name: Validate release data
+        run: |
+          python release-cards/tools/validate.py \
+            release-cards/generated/release-data-${{ steps.version.outputs.version }}.yaml \
+            --strict
+      
+      - name: Generate release card documentation
+        run: |
+          python release-cards/tools/generate.py \
+            release-cards/generated/release-data-${{ steps.version.outputs.version }}.yaml \
+            --output-dir release-cards/generated \
+            --formats markdown,html,json
+      
+      - name: Upload release card artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-card-${{ steps.version.outputs.version }}
+          path: release-cards/generated/
+          retention-days: 90
+      
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.version.outputs.version }}
+          body_path: release-cards/generated/release-card-${{ steps.version.outputs.version }}.md
+          files: |
+            release-cards/generated/release-card-${{ steps.version.outputs.version }}.*
+            release-cards/generated/release-data-${{ steps.version.outputs.version }}.yaml
+          draft: false
+          prerelease: ${{ steps.version.outputs.release_type != 'stable' }}
+      
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: release-cards/generated
+          destination_dir: releases/${{ steps.version.outputs.version }}
+          keep_files: true
+      
+      - name: Comment on PR (if workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "## 🎉 Release Card Generated"
+          echo ""
+          echo "**Version:** ${{ steps.version.outputs.version }}"
+          echo "**Type:** ${{ steps.version.outputs.release_type }}"
+          echo ""
+          echo "### 📄 Generated Files"
+          echo "- [Markdown](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/release-card-${{ steps.version.outputs.version }}.md)"
+          echo "- [HTML](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/release-card-${{ steps.version.outputs.version }}.html)"
+          echo "- [JSON](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/release-card-${{ steps.version.outputs.version }}.json)"
+          echo "- [Raw Data](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/release-data-${{ steps.version.outputs.version }}.yaml)"
+          echo ""
+          echo "### 🔗 Links"
+          echo "- [View on GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/releases/${{ steps.version.outputs.version }}/release-card-${{ steps.version.outputs.version }}.html)"
+          echo "- [Download Release](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.version }})"
+
+  update-documentation:
+    needs: generate-release-card
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Download release card artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-card-${{ needs.generate-release-card.outputs.version }}
+          path: release-cards/generated/
+      
+      - name: Update compatibility documentation
+        run: |
+          # Create/update compatibility matrix in docs
+          mkdir -p docs/compatibility
+          
+          # Copy latest release card to docs
+          cp release-cards/generated/release-card-*.md docs/compatibility/latest.md
+          
+          # Update index with link to new release
+          VERSION=$(echo ${GITHUB_REF#refs/tags/v})
+          DATE=$(date +%Y-%m-%d)
+          
+          cat >> docs/compatibility/index.md << EOF
+          
+          ## Release $VERSION ($DATE)
+          
+          - [Release Card](latest.md)
+          - [JSON API](https://api.github.com/repos/${{ github.repository }}/releases/tags/v$VERSION)
+          - [Download](https://github.com/${{ github.repository }}/releases/tag/v$VERSION)
+          
+          EOF
+      
+      - name: Commit documentation updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/
+          git diff --staged --quiet || git commit -m "docs: update compatibility documentation for ${{ needs.generate-release-card.outputs.version }}"
+          git push

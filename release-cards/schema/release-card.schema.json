@@ -1,0 +1,410 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/IamMikeHelsel/bifrost/blob/main/release-cards/schema/release-card.schema.json",
+  "title": "Bifrost Release Card Schema",
+  "description": "Schema for documenting tested fieldbus protocols and device compatibility in Bifrost releases",
+  "type": "object",
+  "required": ["version", "release_date", "release_type", "protocols", "testing_summary"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?$",
+      "description": "Semantic version number (e.g., '0.1.0' or '1.0.0-alpha')"
+    },
+    "release_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Release date in ISO 8601 format"
+    },
+    "release_type": {
+      "type": "string",
+      "enum": ["alpha", "beta", "rc", "stable"],
+      "description": "Type of release"
+    },
+    "release_notes": {
+      "type": "string",
+      "description": "Brief summary of changes in this release"
+    },
+    "breaking_changes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "List of breaking changes"
+    },
+    "migration_notes": {
+      "type": "string",
+      "description": "Migration guidance for breaking changes"
+    },
+    "protocols": {
+      "type": "object",
+      "properties": {
+        "modbus": {
+          "$ref": "#/definitions/modbus_protocol"
+        },
+        "opcua": {
+          "$ref": "#/definitions/opcua_protocol"
+        },
+        "ethernet_ip": {
+          "$ref": "#/definitions/ethernet_ip_protocol"
+        },
+        "s7": {
+          "$ref": "#/definitions/s7_protocol"
+        }
+      }
+    },
+    "device_registry": {
+      "$ref": "#/definitions/device_registry"
+    },
+    "performance_benchmarks": {
+      "$ref": "#/definitions/performance_benchmarks"
+    },
+    "testing_summary": {
+      "$ref": "#/definitions/testing_summary"
+    },
+    "quality_metrics": {
+      "$ref": "#/definitions/quality_metrics"
+    },
+    "known_issues": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/known_issue"}
+    },
+    "dependencies": {
+      "$ref": "#/definitions/dependencies"
+    },
+    "metadata": {
+      "$ref": "#/definitions/metadata"
+    }
+  },
+  "definitions": {
+    "protocol_status": {
+      "type": "string",
+      "enum": ["stable", "beta", "experimental", "unsupported"]
+    },
+    "test_status": {
+      "type": "string", 
+      "enum": ["passing", "failing", "unstable"]
+    },
+    "performance_metrics": {
+      "type": "object",
+      "properties": {
+        "throughput": {"type": "string"},
+        "latency": {"type": "string"},
+        "concurrent_limit": {"type": "integer", "minimum": 0},
+        "memory_usage": {"type": "string"}
+      }
+    },
+    "tested_devices": {
+      "type": "object",
+      "properties": {
+        "virtual": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "real": {
+          "type": "array", 
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "modbus_variant": {
+      "type": "object",
+      "properties": {
+        "status": {"$ref": "#/definitions/protocol_status"},
+        "version": {"type": "string"},
+        "performance": {"$ref": "#/definitions/performance_metrics"},
+        "tested_devices": {"$ref": "#/definitions/tested_devices"},
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "known_issues": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "modbus_protocol": {
+      "type": "object",
+      "properties": {
+        "tcp": {"$ref": "#/definitions/modbus_variant"},
+        "rtu": {"$ref": "#/definitions/modbus_variant"}
+      }
+    },
+    "opcua_variant": {
+      "type": "object",
+      "properties": {
+        "status": {"$ref": "#/definitions/protocol_status"},
+        "version": {"type": "string"},
+        "performance": {"$ref": "#/definitions/performance_metrics"},
+        "security_features": {
+          "type": "object",
+          "properties": {
+            "authentication": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "encryption": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "certificates": {"type": "boolean"}
+          }
+        },
+        "tested_servers": {"$ref": "#/definitions/tested_devices"},
+        "tested_clients": {"$ref": "#/definitions/tested_devices"},
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "known_issues": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "opcua_protocol": {
+      "type": "object",
+      "properties": {
+        "client": {"$ref": "#/definitions/opcua_variant"},
+        "server": {"$ref": "#/definitions/opcua_variant"}
+      }
+    },
+    "ethernet_ip_protocol": {
+      "type": "object",
+      "properties": {
+        "status": {"$ref": "#/definitions/protocol_status"},
+        "version": {"type": "string"},
+        "performance": {"$ref": "#/definitions/performance_metrics"},
+        "cip_features": {
+          "type": "object",
+          "properties": {
+            "explicit_messaging": {"type": "boolean"},
+            "implicit_messaging": {"type": "boolean"},
+            "class_support": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "tested_devices": {"$ref": "#/definitions/tested_devices"},
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "known_issues": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "s7_protocol": {
+      "type": "object",
+      "properties": {
+        "status": {"$ref": "#/definitions/protocol_status"},
+        "version": {"type": "string"},
+        "performance": {"$ref": "#/definitions/performance_metrics"},
+        "plc_compatibility": {
+          "type": "object",
+          "properties": {
+            "s7_300": {"type": "boolean"},
+            "s7_400": {"type": "boolean"},
+            "s7_1200": {"type": "boolean"},
+            "s7_1500": {"type": "boolean"},
+            "tia_portal": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "tested_devices": {"$ref": "#/definitions/tested_devices"},
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "known_issues": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "device_registry": {
+      "type": "object",
+      "properties": {
+        "virtual_devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "protocol": {"type": "string"},
+              "version": {"type": "string"},
+              "test_coverage": {"type": "string"},
+              "status": {"$ref": "#/definitions/test_status"},
+              "last_tested": {"type": "string", "format": "date"}
+            }
+          }
+        },
+        "real_devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "vendor": {"type": "string"},
+              "model": {"type": "string"},
+              "firmware": {"type": "string"},
+              "protocol": {"type": "string"},
+              "test_coverage": {"type": "string"},
+              "status": {"$ref": "#/definitions/test_status"},
+              "last_tested": {"type": "string", "format": "date"},
+              "location": {"type": "string"},
+              "notes": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "performance_benchmarks": {
+      "type": "object",
+      "properties": {
+        "test_environment": {
+          "type": "object",
+          "properties": {
+            "os": {"type": "string"},
+            "cpu": {"type": "string"},
+            "memory": {"type": "string"},
+            "network": {"type": "string"},
+            "load_conditions": {"type": "string"}
+          }
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "protocol": {"type": "string"},
+              "test_type": {"type": "string"},
+              "metric": {"type": "string"},
+              "value": {"type": "number"},
+              "target": {"type": "number"},
+              "status": {
+                "type": "string",
+                "enum": ["pass", "fail", "warn"]
+              },
+              "notes": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "testing_summary": {
+      "type": "object",
+      "properties": {
+        "automated_tests": {
+          "type": "object",
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "passed": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0},
+            "skipped": {"type": "integer", "minimum": 0},
+            "coverage": {"type": "string"}
+          }
+        },
+        "manual_tests": {
+          "type": "object",
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "passed": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0},
+            "pending": {"type": "integer", "minimum": 0},
+            "coverage": {"type": "string"}
+          }
+        },
+        "regression_tests": {
+          "type": "object",
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "passed": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0},
+            "coverage": {"type": "string"}
+          }
+        },
+        "security_tests": {
+          "type": "object",
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "passed": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0},
+            "coverage": {"type": "string"}
+          }
+        }
+      }
+    },
+    "quality_metrics": {
+      "type": "object",
+      "properties": {
+        "code_coverage": {"type": "string"},
+        "security_score": {"type": "string"},
+        "performance_score": {"type": "string"},
+        "reliability_score": {"type": "string"},
+        "documentation_score": {"type": "string"}
+      }
+    },
+    "known_issue": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "description": {"type": "string"},
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "workaround": {"type": "string"},
+        "target_fix": {"type": "string"}
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "python_version": {"type": "string"},
+        "os_requirements": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "hardware_requirements": {
+          "type": "object",
+          "properties": {
+            "minimum": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"},
+                "storage": {"type": "string"}
+              }
+            },
+            "recommended": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"},
+                "storage": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_by": {"type": "string"},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "schema_version": {"type": "string"},
+        "validation_status": {
+          "type": "string",
+          "enum": ["valid", "invalid", "warning"]
+        },
+        "checksum": {"type": "string"}
+      }
+    }
+  }
+}

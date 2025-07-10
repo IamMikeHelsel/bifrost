@@ -1,0 +1,224 @@
+# Release Card Schema Definition
+# This YAML schema defines the structure for release cards that document
+# tested fieldbus protocols and device compatibility
+
+release_card:
+  # Release metadata
+  version: string          # e.g., "0.1.0"
+  release_date: date       # ISO 8601 format: "2024-12-01"
+  release_type: enum       # "alpha", "beta", "rc", "stable"
+  release_notes: string    # Brief summary of changes
+  breaking_changes: list   # List of breaking changes
+  migration_notes: string  # Migration guidance for breaking changes
+
+  # Protocol support matrix
+  protocols:
+    modbus:
+      tcp:
+        status: enum         # "stable", "beta", "experimental", "unsupported"
+        version: string      # Implementation version
+        performance:
+          throughput: string     # e.g., "1000+ regs/sec"
+          latency: string        # e.g., "<1ms"
+          concurrent_limit: int  # max concurrent connections
+          memory_usage: string   # typical memory usage
+        tested_devices:
+          virtual: list      # List of virtual device simulators tested
+          real: list         # List of real hardware devices tested
+        limitations: list    # Known limitations or restrictions
+        known_issues: list   # Open issues and workarounds
+      
+      rtu:
+        status: enum
+        version: string
+        performance:
+          throughput: string
+          latency: string
+          concurrent_limit: int
+          memory_usage: string
+        tested_devices:
+          virtual: list
+          real: list
+        limitations: list
+        known_issues: list
+
+    opcua:
+      client:
+        status: enum
+        version: string
+        performance:
+          throughput: string     # e.g., "10,000 tags/sec"
+          latency: string
+          concurrent_limit: int
+          memory_usage: string
+        security_features:
+          authentication: list   # Supported auth methods
+          encryption: list       # Supported encryption
+          certificates: bool     # Certificate support
+        tested_servers:
+          virtual: list
+          real: list
+        limitations: list
+        known_issues: list
+      
+      server:
+        status: enum
+        version: string
+        performance:
+          throughput: string
+          latency: string
+          concurrent_limit: int
+          memory_usage: string
+        security_features:
+          authentication: list
+          encryption: list
+          certificates: bool
+        tested_clients:
+          virtual: list
+          real: list
+        limitations: list
+        known_issues: list
+
+    ethernet_ip:
+      status: enum
+      version: string
+      performance:
+        throughput: string       # e.g., "5,000 tags/sec"
+        latency: string
+        concurrent_limit: int
+        memory_usage: string
+      cip_features:
+        explicit_messaging: bool
+        implicit_messaging: bool
+        class_support: list      # Supported CIP classes
+      tested_devices:
+        virtual: list
+        real: list
+      limitations: list
+      known_issues: list
+
+    s7:
+      status: enum
+      version: string
+      performance:
+        throughput: string       # e.g., "2,000 tags/sec"
+        latency: string
+        concurrent_limit: int
+        memory_usage: string
+      plc_compatibility:
+        s7_300: bool
+        s7_400: bool
+        s7_1200: bool
+        s7_1500: bool
+        tia_portal: list         # Supported TIA Portal versions
+      tested_devices:
+        virtual: list
+        real: list
+      limitations: list
+      known_issues: list
+
+  # Device registry and testing coverage
+  device_registry:
+    virtual_devices:
+      - name: string           # Device name
+        protocol: string       # Protocol used
+        version: string        # Device simulator version
+        test_coverage: string  # % of features tested
+        status: enum           # "passing", "failing", "unstable"
+        last_tested: date      # Last test date
+    
+    real_devices:
+      - vendor: string         # Device vendor
+        model: string          # Device model
+        firmware: string       # Firmware version
+        protocol: string       # Protocol used
+        test_coverage: string  # % of features tested
+        status: enum           # "passing", "failing", "unstable"
+        last_tested: date      # Last test date
+        location: string       # Test lab location
+        notes: string          # Additional notes
+
+  # Performance benchmarks
+  performance_benchmarks:
+    test_environment:
+      os: string               # Operating system
+      cpu: string              # CPU specifications
+      memory: string           # RAM amount
+      network: string          # Network configuration
+      load_conditions: string  # Load testing conditions
+    
+    results:
+      - protocol: string       # Protocol tested
+        test_type: string      # "throughput", "latency", "concurrent"
+        metric: string         # Measurement unit
+        value: float           # Measured value
+        target: float          # Target value
+        status: enum           # "pass", "fail", "warn"
+        notes: string          # Additional context
+
+  # Testing summary
+  testing_summary:
+    automated_tests:
+      total: int               # Total number of tests
+      passed: int              # Number of passed tests
+      failed: int              # Number of failed tests
+      skipped: int             # Number of skipped tests
+      coverage: string         # Test coverage percentage
+    
+    manual_tests:
+      total: int
+      passed: int
+      failed: int
+      pending: int
+      coverage: string
+    
+    regression_tests:
+      total: int
+      passed: int
+      failed: int
+      coverage: string
+    
+    security_tests:
+      total: int
+      passed: int
+      failed: int
+      coverage: string
+
+  # Quality metrics
+  quality_metrics:
+    code_coverage: string      # Overall code coverage
+    security_score: string     # Security assessment score
+    performance_score: string # Performance assessment
+    reliability_score: string # Reliability assessment
+    documentation_score: string # Documentation completeness
+
+  # Known issues and limitations
+  known_issues:
+    - id: string               # Issue ID/reference
+      title: string            # Issue title
+      description: string      # Issue description
+      severity: enum           # "critical", "high", "medium", "low"
+      workaround: string       # Workaround if available
+      target_fix: string       # Target fix version
+
+  # Dependencies and requirements
+  dependencies:
+    python_version: string     # Required Python version
+    os_requirements: list      # Supported operating systems
+    hardware_requirements:
+      minimum:
+        cpu: string
+        memory: string
+        storage: string
+      recommended:
+        cpu: string
+        memory: string
+        storage: string
+
+  # Metadata
+  metadata:
+    generated_by: string       # Tool/person who generated
+    generated_at: datetime     # Generation timestamp
+    schema_version: string     # Schema version used
+    validation_status: enum    # "valid", "invalid", "warning"
+    checksum: string           # Data integrity checksum
