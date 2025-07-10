@@ -1,3 +1,0 @@
-
-# This file defines the Python toolchain and dependencies.
-# Empty BUILD.bazel file to make this a valid Bazel package

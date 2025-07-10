@@ -1,3 +1,0 @@
-# Bifrost Gateway Root BUILD file
-# This is a marker file for the go-gateway package.
-# The actual binaries are in cmd/ subdirectories.

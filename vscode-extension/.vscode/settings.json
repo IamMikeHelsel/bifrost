@@ -1,9 +1,0 @@
-{
-  "jest.jestCommandLine": "npm test",
-  "jest.autoRun": "off",
-  "jest.showCoverageOnLoad": true,
-  "jest.rootPath": ".",
-  "typescript.preferences.useAliasesForRenames": false,
-  "testing.openTesting": "openOnTestStart",
-  "testExplorer.useNativeTesting": true
-}

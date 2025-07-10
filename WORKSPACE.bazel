@@ -1,3 +1,0 @@
-# This is the main Bazel workspace file.
-# With Bzlmod enabled, this file is minimal and most configuration
-# is done in MODULE.bazel

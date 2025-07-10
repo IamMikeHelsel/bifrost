@@ -1,2 +1,0 @@
-# This is the root BUILD.bazel file.
-# It can contain top-level build rules or simply serve as a marker for the workspace root.
