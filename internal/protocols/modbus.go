@@ -397,6 +397,8 @@ func (m *ModbusHandler) Ping(device *Device) error {
 		return err
 	}
 
+	// Perform a simple read operation to test connectivity
+	// Try to read a single coil at address 0 (if it exists)
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
 
@@ -414,7 +416,11 @@ func (m *ModbusHandler) Ping(device *Device) error {
 func (m *ModbusHandler) GetDiagnostics(device *Device) (*Diagnostics, error) {
 	conn, err := m.getConnection(device)
 	if err != nil {
-		return nil, err
+		return &Diagnostics{
+			IsHealthy: false,
+			ErrorCount: 1,
+			SuccessRate: 0.0,
+		}, nil
 	}
 
 	conn.mutex.RLock()
@@ -424,8 +430,40 @@ func (m *ModbusHandler) GetDiagnostics(device *Device) (*Diagnostics, error) {
 		IsHealthy:         conn.isConnected,
 		LastCommunication: conn.lastUsed,
 		ConnectionUptime:  time.Since(conn.createdAt),
-		// Additional Modbus-specific diagnostics would go here
+		SuccessRate:       1.0, // TODO: Calculate actual success rate
 	}, nil
+}
+
+// cleanupStaleConnections removes stale connections from the pool
+func (m *ModbusHandler) cleanupStaleConnections() {
+	var staleConnections []string
+	
+	m.connections.Range(func(key, value interface{}) bool {
+		conn := value.(*ModbusConnection)
+		conn.mutex.RLock()
+		isConnected := conn.isConnected
+		lastUsed := conn.lastUsed
+		conn.mutex.RUnlock()
+		
+		// Remove connections that are disconnected or haven't been used recently
+		if !isConnected || time.Since(lastUsed) > m.config.ConnectionTimeout*2 {
+			staleConnections = append(staleConnections, key.(string))
+		}
+		return true
+	})
+	
+	// Remove stale connections
+	for _, connKey := range staleConnections {
+		if connInterface, exists := m.connections.Load(connKey); exists {
+			conn := connInterface.(*ModbusConnection)
+			conn.mutex.Lock()
+			if conn.handler != nil {
+				conn.handler.Close()
+			}
+			conn.mutex.Unlock()
+			m.connections.Delete(connKey)
+		}
+	}
 }
 
 // Helper methods
@@ -441,8 +479,22 @@ func (m *ModbusHandler) getConnection(device *Device) (*ModbusConnection, error)
 	}
 
 	conn := connInterface.(*ModbusConnection)
-	if !conn.isConnected {
+	
+	// Check connection health with proper locking
+	conn.mutex.RLock()
+	isConnected := conn.isConnected
+	conn.mutex.RUnlock()
+	
+	if !isConnected {
+		// Clean up stale connection
+		m.connections.Delete(device.ConnectionID)
 		return nil, fmt.Errorf("connection is closed")
+	}
+
+	// Validate connection health
+	if conn.handler == nil {
+		m.connections.Delete(device.ConnectionID)
+		return nil, fmt.Errorf("connection handler is nil")
 	}
 
 	return conn, nil

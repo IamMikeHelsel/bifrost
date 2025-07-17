@@ -143,7 +143,30 @@ func NewOptimizedGateway(config *OptimizedConfig, logger *zap.Logger) *Optimized
 		cancel:    cancel,
 		wsUpgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				return true // Allow all origins for development
+				origin := r.Header.Get("Origin")
+				if origin == "" {
+					return false // Reject requests without origin header
+				}
+				
+				// Allow localhost for development
+				if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" {
+					return true
+				}
+				
+				// In production, validate against allowed origins
+				// TODO: Configure allowed origins via config file
+				allowedOrigins := []string{
+					"https://your-frontend-domain.com",
+					"https://admin.your-domain.com",
+				}
+				
+				for _, allowed := range allowedOrigins {
+					if origin == allowed {
+						return true
+					}
+				}
+				
+				return false
 			},
 		},
 	}
@@ -259,7 +282,7 @@ func (og *OptimizedGateway) Start(ctx context.Context) error {
 
 	// Start performance monitoring
 	if og.monitor != nil {
-		// wg.Add(1) // TODO: Fix this, Add1 is not a method of WaitGroup
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			og.startPerformanceMonitoring(ctx)
