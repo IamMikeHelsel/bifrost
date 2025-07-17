@@ -397,6 +397,8 @@ func (m *ModbusHandler) Ping(device *Device) error {
 		return err
 	}
 
+	// Perform a simple read operation to test connectivity
+	// Try to read a single coil at address 0 (if it exists)
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
 
@@ -441,8 +443,22 @@ func (m *ModbusHandler) getConnection(device *Device) (*ModbusConnection, error)
 	}
 
 	conn := connInterface.(*ModbusConnection)
-	if !conn.isConnected {
+	
+	// Check connection health with proper locking
+	conn.mutex.RLock()
+	isConnected := conn.isConnected
+	conn.mutex.RUnlock()
+	
+	if !isConnected {
+		// Clean up stale connection
+		m.connections.Delete(device.ConnectionID)
 		return nil, fmt.Errorf("connection is closed")
+	}
+
+	// Validate connection health
+	if conn.handler == nil {
+		m.connections.Delete(device.ConnectionID)
+		return nil, fmt.Errorf("connection handler is nil")
 	}
 
 	return conn, nil

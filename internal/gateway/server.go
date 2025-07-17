@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -35,6 +36,9 @@ type IndustrialGateway struct {
 
 	// Configuration
 	config *Config
+	
+	// Startup time for uptime calculation
+	startTime time.Time
 }
 
 type Config struct {
@@ -90,9 +94,33 @@ func NewIndustrialGateway(config *Config, logger *zap.Logger) *IndustrialGateway
 		logger:    logger,
 		protocols: make(map[string]protocols.ProtocolHandler),
 		config:    config,
+		startTime: time.Now(),
 		wsUpgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				return true // Allow all origins for development
+				origin := r.Header.Get("Origin")
+				if origin == "" {
+					return false // Reject requests without origin header
+				}
+				
+				// Allow localhost for development
+				if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" {
+					return true
+				}
+				
+				// In production, validate against allowed origins
+				// TODO: Configure allowed origins via config file
+				allowedOrigins := []string{
+					"https://your-frontend-domain.com",
+					"https://admin.your-domain.com",
+				}
+				
+				for _, allowed := range allowedOrigins {
+					if origin == allowed {
+						return true
+					}
+				}
+				
+				return false
 			},
 		},
 	}
@@ -246,7 +274,13 @@ func (g *IndustrialGateway) collectAllData(ctx context.Context) {
 
 	// Collect data from all connected devices concurrently
 	g.devices.Range(func(key, value interface{}) bool {
-		device := value.(*Device)
+		device, ok := value.(*Device)
+		if !ok {
+			g.logger.Error("Invalid device type in sync.Map", 
+				zap.String("key", key.(string)),
+				zap.String("type", fmt.Sprintf("%T", value)))
+			return true
+		}
 		if device.Connected {
 			wg.Add(1)
 			go func(d *Device) {
@@ -375,7 +409,10 @@ func (g *IndustrialGateway) DisconnectDevice(deviceID string) error {
 		return fmt.Errorf("device not found: %s", deviceID)
 	}
 
-	device := deviceInterface.(*Device)
+	device, ok := deviceInterface.(*Device)
+	if !ok {
+		return fmt.Errorf("invalid device type for device %s", deviceID)
+	}
 
 	if device.Handler != nil {
 		// Create protocols.Device from gateway.Device
@@ -407,16 +444,24 @@ func (g *IndustrialGateway) broadcastTagUpdate(device *Device, tag *Tag) {
 		"tag":       tag,
 	}
 
+	// Collect clients to remove to avoid concurrent modification
+	var clientsToRemove []*websocket.Conn
+
 	// Broadcast to all WebSocket clients
 	g.wsClients.Range(func(key, value interface{}) bool {
 		conn := key.(*websocket.Conn)
 		if err := conn.WriteJSON(message); err != nil {
-			// Remove disconnected client
-			g.wsClients.Delete(conn)
-			conn.Close()
+			// Mark client for removal
+			clientsToRemove = append(clientsToRemove, conn)
 		}
 		return true
 	})
+
+	// Remove disconnected clients after iteration
+	for _, conn := range clientsToRemove {
+		g.wsClients.Delete(conn)
+		conn.Close()
+	}
 }
 
 // GetStats returns gateway performance statistics
@@ -426,7 +471,8 @@ func (g *IndustrialGateway) GetStats() map[string]interface{} {
 
 	g.devices.Range(func(key, value interface{}) bool {
 		deviceCount++
-		if value.(*Device).Connected {
+		device, ok := value.(*Device)
+		if ok && device.Connected {
 			connectedCount++
 		}
 		return true
@@ -435,7 +481,7 @@ func (g *IndustrialGateway) GetStats() map[string]interface{} {
 	return map[string]interface{}{
 		"devices_total":     deviceCount,
 		"devices_connected": connectedCount,
-		"uptime":            time.Since(time.Now()), // TODO: Track actual uptime
+		"uptime":            time.Since(g.startTime),
 	}
 }
 
@@ -474,12 +520,31 @@ func (g *IndustrialGateway) handleDevices(w http.ResponseWriter, r *http.Request
 
 	devices := make([]*Device, 0)
 	g.devices.Range(func(key, value interface{}) bool {
-		devices = append(devices, value.(*Device))
+		device, ok := value.(*Device)
+		if ok {
+			devices = append(devices, device)
+		} else {
+			g.logger.Error("Invalid device type in sync.Map during device listing",
+				zap.String("key", key.(string)),
+				zap.String("type", fmt.Sprintf("%T", value)))
+		}
 		return true
 	})
 
-	// Simple JSON response (in production, use proper JSON library)
-	w.Write([]byte(fmt.Sprintf(`{"devices": %v}`, devices)))
+	// Proper JSON response using encoding/json
+	response := map[string]interface{}{
+		"devices": devices,
+		"count":   len(devices),
+	}
+	
+	jsonData, err := json.Marshal(response)
+	if err != nil {
+		g.logger.Error("Failed to marshal devices response", zap.Error(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	
+	w.Write(jsonData)
 }
 
 func (g *IndustrialGateway) handleDiscovery(w http.ResponseWriter, r *http.Request) {
